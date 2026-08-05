@@ -25,17 +25,19 @@ Sentinela e LIRAa ficam destacados em um painel "ao vivo" no topo da página, po
 
 ```
 painel-endemias/
-├── index.html   # título e botões com todos os links
-├── style.css    # visual (tema escuro, botões, destaque para Sentinela/LIRAa)
+├── index.html            # título e cartões compactos com todos os links
+├── style.css              # visual institucional (cores da logo, cartões pequenos)
+├── assets/
+│   └── logo-ponta-pora.png
 └── README.md
 ```
 
-Versão enxuta: só o título "Painel de Endemias" e os botões de acesso. Sentinela e LIRAa ficam com a cor de destaque (coral) por serem os monitoramentos ao vivo.
+Visual institucional em tema claro, com as cores da logo da Prefeitura de Ponta Porã (azul-marinho, azul, verde e amarelo). Barra superior com a logo oficial, título e subtítulo, e os sistemas em cartões pequenos e compactos. Sentinela e LIRAa recebem um selo "Ao vivo" por serem os monitoramentos em tempo real.
 
 ## Como publicar no GitHub Pages
 
 1. Crie um repositório novo no GitHub (ex.: `painel-endemias`).
-2. Envie estes 4 arquivos para a raiz do repositório:
+2. Envie estes arquivos para a raiz do repositório:
    ```bash
    git init
    git add .
@@ -51,7 +53,7 @@ Versão enxuta: só o título "Painel de Endemias" e os botões de acesso. Senti
 
 ## Editar os links depois
 
-Todos os links estão em `index.html`, dentro das tags `<a class="btn" href="...">`. Basta trocar o endereço no atributo `href` de cada botão (e o texto entre `<a>` e `</a>` para trocar a legenda).
+Todos os links estão em `index.html`, dentro das tags `<a class="card" href="...">`. Basta trocar o endereço no atributo `href` de cada cartão (e o texto dentro de `<span class="card__label">` para trocar a legenda).
 
 ## Rodar localmente
 
