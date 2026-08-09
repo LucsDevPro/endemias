@@ -229,3 +229,317 @@ a { text-decoration: none; color: inherit; }
   .brand__name { display: none; }
   .brand__divider { display: none; }
 }
+
+/* ============================================================
+   Botão "Gerador de Folga" (é um <button>, não um link externo)
+   ============================================================ */
+
+.card--tool {
+  cursor: pointer;
+  font: inherit;
+}
+
+.card--tool .card__icon {
+  background: rgba(0, 185, 59, 0.10);
+  color: var(--green);
+}
+
+.card--tool:hover,
+.card--tool:focus-visible {
+  border-color: rgba(0, 185, 59, 0.4);
+  box-shadow: 0 2px 4px rgba(10, 30, 61, 0.06), 0 10px 22px -10px rgba(0, 185, 59, 0.3);
+}
+
+/* ============================================================
+   Modal — Gerador de Folga
+   ============================================================ */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 30, 61, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2rem;
+  z-index: 100;
+}
+
+.modal-overlay[hidden] { display: none; }
+
+.modal {
+  background: var(--surface);
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px -20px rgba(10, 30, 61, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.modal__header h2 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  margin: 0;
+  color: var(--navy);
+}
+
+.modal__close {
+  border: none;
+  background: transparent;
+  font-size: 1.1rem;
+  color: var(--ink-muted);
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.modal__close:hover { background: var(--bg); color: var(--ink); }
+
+.modal__body {
+  padding: 1.1rem 1.2rem 1.3rem;
+  overflow-y: auto;
+}
+
+.modal__actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.folga-section {
+  margin-bottom: 1.3rem;
+}
+
+.folga-section__title {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  margin: 0 0 0.6rem;
+}
+
+.folga-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.folga-row--tools {
+  margin-top: 0.6rem;
+}
+
+.folga-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+  flex: 1;
+  min-width: 140px;
+}
+
+.folga-field input,
+.folga-input,
+.folga-select {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.folga-field input:disabled {
+  background: var(--bg);
+  color: var(--ink-muted);
+}
+
+.folga-input { flex: 1; min-width: 160px; }
+
+.folga-count {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  margin: 0.2rem 0 0.4rem;
+}
+
+.folga-list {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.4rem;
+  background: var(--bg);
+}
+
+.folga-emp {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  background: var(--surface);
+  margin-bottom: 0.35rem;
+}
+
+.folga-emp:last-child { margin-bottom: 0; }
+
+.folga-emp__nome {
+  flex: 1;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.folga-emp__cargo {
+  font-size: 0.72rem;
+  max-width: 190px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.25rem 0.35rem;
+  background: var(--surface);
+}
+
+.folga-emp__rm {
+  border: none;
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.folga-emp__rm:hover { background: #FDECEA; color: #C0392B; }
+
+.folga-link-btn {
+  border: none;
+  background: transparent;
+  color: var(--blue);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.2rem 0;
+}
+
+.folga-link-btn:hover { text-decoration: underline; }
+
+.folga-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.folga-btn:hover { background: var(--bg); }
+
+.folga-btn--ghost {
+  color: var(--ink-muted);
+}
+
+.folga-btn--primary {
+  flex: 1;
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
+
+.folga-btn--primary:hover { background: #001f4d; }
+
+.folga-preview__vazio {
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+  margin: 0;
+}
+
+.folga-preview__item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.6rem 0.7rem;
+  margin-bottom: 0.5rem;
+}
+
+.folga-preview__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.folga-preview__head strong {
+  display: block;
+  font-size: 0.85rem;
+}
+
+.folga-preview__cargo {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--ink-muted);
+  margin-top: 0.1rem;
+}
+
+.folga-preview__datas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.folga-chip {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.2rem 0.3rem 0.2rem 0.6rem;
+  font-size: 0.74rem;
+  color: var(--ink);
+}
+
+.folga-chip__x {
+  border: none;
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+  font-size: 0.7rem;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  margin-left: 0.2rem;
+}
+
+.folga-chip__x:hover { background: #FDECEA; color: #C0392B; }
+
+.folga-status {
+  min-height: 1.1rem;
+  font-size: 0.8rem;
+  color: var(--green);
+  margin: 0.4rem 0 0;
+}
+
+.folga-status--erro { color: #C0392B; }
+
+@media (max-width: 480px) {
+  .folga-emp__cargo { max-width: 120px; }
+}

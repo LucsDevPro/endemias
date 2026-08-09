@@ -25,14 +25,35 @@ Sentinela e LIRAa ficam destacados em um painel "ao vivo" no topo da página, po
 
 ```
 painel-endemias/
-├── index.html            # título e cartões compactos com todos os links
-├── style.css              # visual institucional (cores da logo, cartões pequenos)
+├── index.html            # título, cartões e o modal do Gerador de Folga
+├── style.css              # visual institucional + estilos do modal
+├── folga.js                # lógica do Gerador de Folga (lista de funcionários, datas, geração do .docx)
 ├── assets/
-│   └── logo-ponta-pora.png
+│   ├── logo-ponta-pora.png
+│   └── modelo-folga.docx   # modelo Word com as tags <<ci>>, <<hoje>> e a tabela de funcionários
 └── README.md
 ```
 
 Visual institucional em tema claro, com as cores da logo da Prefeitura de Ponta Porã (azul-marinho, azul, verde e amarelo). Barra superior com a logo oficial, título e subtítulo, e os sistemas em cartões pequenos e compactos. Sentinela e LIRAa recebem um selo "Ao vivo" por serem os monitoramentos em tempo real.
+
+## Gerador de Folga
+
+O último cartão do painel ("Gerador de Folga") não é um link — ele abre uma janela dentro do próprio site com:
+
+- **Número da CI** e a data de hoje (preenchida automaticamente).
+- **Lista de funcionários** com busca, filtro por cargo, edição do cargo de cada um e botão para adicionar/remover funcionário.
+- **Exportar lista / Importar lista / Restaurar padrão**: a lista de funcionários fica salva no navegador (localStorage) — ela não é enviada a nenhum servidor, então **fica salva só naquele navegador/computador**. Use "Exportar lista" para baixar um `.json` de backup e "Importar lista" para carregar esse backup em outro navegador ou computador.
+- **Adicionar data**: selecione os funcionários na lista, escolha uma data e clique em "Adicionar data" — pode repetir para adicionar várias datas à mesma pessoa.
+- **Gerar documento (.docx)**: baixa o documento Word já preenchido, no mesmo formato do `modelofolga.docx` original, com CI, data, e a tabela de funcionários/cargo/datas.
+
+### Como funciona por baixo dos panos
+
+O botão usa duas bibliotecas gratuitas e de código aberto, carregadas via CDN (por isso é necessário estar com internet ao gerar o documento):
+
+- [PizZip](https://github.com/open-xml-templating/pizzip) — abre o `.docx` (que é um arquivo zip).
+- [Docxtemplater](https://github.com/open-xml-templating/docxtemplater) — substitui as tags `<<ci>>`, `<<hoje>>` e repete a linha da tabela para cada funcionário selecionado, usando apenas os recursos gratuitos da biblioteca (sem módulos pagos).
+
+O arquivo `assets/modelo-folga.docx` é uma versão do seu `modelofolga.docx` original com uma tabela já pronta no lugar da tag `<<tabela>>`, contendo as tags de repetição (`<<#funcionarios>>` ... `<</funcionarios>>`) que o Docxtemplater usa para gerar uma linha por funcionário. Se quiser ajustar o layout do documento (fontes, cores, textos fixos), edite esse arquivo no Word — só tome cuidado para não apagar as tags.
 
 ## Como publicar no GitHub Pages
 
