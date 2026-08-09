@@ -103,12 +103,19 @@
       <span class="card__label">Montar Escala</span>
     </a>
 
-    <button type="button" class="card card--tool" id="folgaOpenBtn">
+    <a class="card card--tool" href="folga.html">
       <span class="card__icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 12v6M9 15h6"/></svg>
       </span>
       <span class="card__label">Gerador de Folga</span>
-    </button>
+    </a>
+
+    <a class="card card--tool" href="ferias.html">
+      <span class="card__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20c3-6 6-8 8-14 2 6 5 8 8 14" /><path d="M4 20h16" /></svg>
+      </span>
+      <span class="card__label">Gerador de Férias</span>
+    </a>
 
   </nav>
 
@@ -117,82 +124,6 @@
   </footer>
 
 </main>
-
-<div class="modal-overlay" id="folgaOverlay" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="folgaTitle">
-    <div class="modal__header">
-      <h2 id="folgaTitle">Gerador de Folga</h2>
-      <button type="button" class="modal__close" id="folgaClose" aria-label="Fechar">✕</button>
-    </div>
-
-    <div class="modal__body">
-
-      <section class="folga-section">
-        <div class="folga-row">
-          <label class="folga-field">
-            <span>Número da CI</span>
-            <input type="text" id="folgaCi" placeholder="Ex: 001/2026">
-          </label>
-          <label class="folga-field">
-            <span>Data de hoje</span>
-            <input type="text" id="folgaHoje" disabled>
-          </label>
-        </div>
-      </section>
-
-      <section class="folga-section">
-        <h3 class="folga-section__title">Funcionários</h3>
-
-        <div class="folga-row">
-          <input type="text" id="folgaBusca" class="folga-input" placeholder="🔍 Buscar funcionário...">
-          <select id="folgaFiltroCargo" class="folga-select"></select>
-        </div>
-
-        <div class="folga-row folga-row--add">
-          <input type="text" id="folgaNovoNome" class="folga-input" placeholder="Nome do novo funcionário">
-          <select id="folgaNovoCargo" class="folga-select"></select>
-          <button type="button" id="folgaAddFuncionario" class="folga-btn folga-btn--ghost">+ Adicionar</button>
-        </div>
-
-        <p class="folga-count" id="folgaContador"></p>
-
-        <div class="folga-list" id="folgaLista"></div>
-
-        <div class="folga-row folga-row--tools">
-          <button type="button" id="folgaExportar" class="folga-link-btn">Exportar lista</button>
-          <button type="button" id="folgaImportar" class="folga-link-btn">Importar lista</button>
-          <button type="button" id="folgaRestaurar" class="folga-link-btn">Restaurar padrão</button>
-          <input type="file" id="folgaImportarInput" accept="application/json" hidden>
-        </div>
-      </section>
-
-      <section class="folga-section">
-        <h3 class="folga-section__title">Adicionar data aos selecionados</h3>
-        <div class="folga-row">
-          <input type="date" id="folgaData" class="folga-input">
-          <button type="button" id="folgaAddData" class="folga-btn">Adicionar data</button>
-        </div>
-      </section>
-
-      <section class="folga-section">
-        <h3 class="folga-section__title">Prévia das folgas</h3>
-        <div class="folga-preview" id="folgaPreview"></div>
-      </section>
-
-      <p class="folga-status" id="folgaStatus"></p>
-
-      <div class="modal__actions">
-        <button type="button" id="folgaLimpar" class="folga-btn folga-btn--ghost">Limpar tudo</button>
-        <button type="button" id="folgaGerar" class="folga-btn folga-btn--primary">Gerar documento (.docx)</button>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<script src="https://unpkg.com/pizzip@3.2.0/dist/pizzip.js"></script>
-<script src="https://unpkg.com/docxtemplater@3.69.0/build/docxtemplater.js"></script>
-<script src="folga.js"></script>
 
 </body>
 </html>

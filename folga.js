@@ -1,8 +1,9 @@
 // ============================================================
-// Gerador de Folga — lê assets/modelo-folga.docx e substitui
-// as tags <<ci>>, <<hoje>> e a tabela de funcionários/datas.
-// Lista de funcionários fica salva no navegador (localStorage),
-// editável, com exportar/importar/restaurar.
+// Gerador de Folga — página própria. Lê assets/modelo-folga.docx
+// e substitui as tags <<ci>>, <<hoje>> e a tabela de funcionários
+// (usa docx-utils.js, que já foi testado). Lista de funcionários
+// fica salva no navegador (localStorage), editável, com
+// exportar/importar/restaurar.
 // ============================================================
 
 (function () {
@@ -129,15 +130,7 @@
     return date.getDate() + " de " + MESES[date.getMonth()] + " de " + date.getFullYear();
   }
 
-  function hojeBR() {
-    var d = new Date();
-    var dia = String(d.getDate()).padStart(2, "0");
-    var mes = String(d.getMonth() + 1).padStart(2, "0");
-    return dia + "/" + mes + "/" + d.getFullYear();
-  }
-
   function dataInputParaBR(valor) {
-    // valor vem de <input type="date"> como yyyy-mm-dd
     var partes = valor.split("-");
     return partes[2] + "/" + partes[1] + "/" + partes[0];
   }
@@ -162,11 +155,7 @@
   var dom = {};
 
   function cacheDom() {
-    dom.overlay = document.getElementById("folgaOverlay");
-    dom.close = document.getElementById("folgaClose");
-    dom.openBtn = document.getElementById("folgaOpenBtn");
     dom.ci = document.getElementById("folgaCi");
-    dom.hoje = document.getElementById("folgaHoje");
     dom.busca = document.getElementById("folgaBusca");
     dom.filtroCargo = document.getElementById("folgaFiltroCargo");
     dom.lista = document.getElementById("folgaLista");
@@ -417,44 +406,51 @@
       setStatus("Adicione pelo menos uma folga antes de gerar o documento.", true);
       return;
     }
-    if (typeof window.PizZip === "undefined" || typeof window.docxtemplater === "undefined") {
+    if (typeof window.JSZip === "undefined" || typeof window.DocxUtils === "undefined") {
       setStatus("Não foi possível carregar os componentes de geração de documento (verifique a conexão com a internet).", true);
       return;
     }
 
     setStatus("Gerando documento...", false);
 
+    var funcionariosOrdenados = nomes.sort().map(function (nome) {
+      var datas = state.selecoes[nome].slice().sort(compararDatasBR);
+      return {
+        nome: nome,
+        cargo: state.funcionarios[nome] || "",
+        tipo: "Banco de horas",
+        datas: datas.join(", ")
+      };
+    });
+
     fetch("assets/modelo-folga.docx")
       .then(function (resp) {
         if (!resp.ok) throw new Error("Modelo não encontrado (assets/modelo-folga.docx)");
         return resp.arrayBuffer();
       })
-      .then(function (buffer) {
-        var zip = new window.PizZip(buffer);
-        var doc = new window.docxtemplater(zip, {
-          paragraphLoop: true,
-          linebreaks: true,
-          delimiters: { start: "<<", end: ">>" }
+      .then(function (bytes) {
+        return DocxUtils.lerArquivosXml(bytes).then(function (arquivos) {
+          var docXml = arquivos["word/document.xml"];
+
+          docXml = DocxUtils.expandirLinhaTabela(docXml, "<<nome>>", funcionariosOrdenados, function (item) {
+            return {
+              "<<nome>>": item.nome,
+              "<<cargo>>": item.cargo,
+              "<<tipo>>": item.tipo,
+              "<<datas>>": item.datas
+            };
+          });
+
+          var subs = { "<<ci>>": ci, "<<hoje>>": formatarDataExtenso(new Date()) };
+          Object.keys(arquivos).forEach(function (caminho) {
+            var xmlAtual = caminho === "word/document.xml" ? docXml : arquivos[caminho];
+            arquivos[caminho] = DocxUtils.substituirTags(xmlAtual, subs);
+          });
+
+          return DocxUtils.gerarDocxBlob(bytes, arquivos);
         });
-
-        var funcionariosOrdenados = nomes.sort().map(function (nome) {
-          var datas = state.selecoes[nome].slice().sort(compararDatasBR);
-          return {
-            nome: nome,
-            cargo: state.funcionarios[nome] || "",
-            tipo: "Banco de horas",
-            datas: datas.join("\n")
-          };
-        });
-
-        doc.render({
-          ci: ci,
-          hoje: formatarDataExtenso(new Date()),
-          funcionarios: funcionariosOrdenados
-        });
-
-        var blob = doc.toBlob();
-
+      })
+      .then(function (blob) {
         var primeiroNome = funcionariosOrdenados[0].nome.split(" ")[0];
         var ciLimpo = ci.replace(/\//g, "-").replace(/\\/g, "-").replace(/:/g, "-");
         var nomeArquivo = "Ci - " + ciLimpo + " - Folga " + primeiroNome + ".docx";
@@ -476,40 +472,18 @@
       });
   }
 
-  // ---------------- Modal ----------------
-
-  function abrirModal() {
-    dom.overlay.hidden = false;
-    document.body.style.overflow = "hidden";
-    dom.hoje.textContent = hojeBR();
-    setStatus("", false);
-  }
-
-  function fecharModal() {
-    dom.overlay.hidden = true;
-    document.body.style.overflow = "";
-  }
-
   // ---------------- Início ----------------
 
   function iniciar() {
     cacheDom();
-    if (!dom.overlay) return;
+    if (!dom.lista) return;
 
     state.funcionarios = carregarFuncionarios();
     popularSelectCargos(dom.novoCargo, CARGOS[0]);
     renderFiltroCargo();
     renderListaFuncionarios();
     renderPreview();
-
-    dom.openBtn.addEventListener("click", abrirModal);
-    dom.close.addEventListener("click", fecharModal);
-    dom.overlay.addEventListener("click", function (e) {
-      if (e.target === dom.overlay) fecharModal();
-    });
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && !dom.overlay.hidden) fecharModal();
-    });
+    setStatus("", false);
 
     dom.busca.addEventListener("input", function () {
       state.filtroTexto = dom.busca.value;

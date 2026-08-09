@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Férias — Painel de Endemias</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar__inner">
+    <div class="brand">
+      <img class="brand__logo" src="assets/logo-ponta-pora.png" alt="Prefeitura Municipal de Ponta Porã">
+      <span class="brand__divider" aria-hidden="true"></span>
+      <span class="brand__name">Vigilância em Endemias</span>
+    </div>
+    <a class="topbar__back" href="index.html">← Painel</a>
+  </div>
+</header>
+
+<main class="page page--tool">
+
+  <div class="hero">
+    <h1 class="title">Gerador de Férias</h1>
+    <p class="subtitle">Preenche o Requerimento de Férias a partir da planilha de funcionários.</p>
+  </div>
+
+  <div class="tool-panel">
+
+    <section class="folga-section">
+      <h3 class="folga-section__title">1. Planilha de funcionários (.csv)</h3>
+      <p class="folga-privacy">🔒 A planilha não é enviada a nenhum servidor nem fica salva no site — ela só é lida aqui no seu navegador, nesta aba, e é descartada ao recarregar a página.</p>
+
+      <div class="folga-upload" id="feriasCsvZone">
+        <div class="folga-upload__icon">📋</div>
+        <div class="folga-upload__texto" id="feriasCsvTexto">Clique ou arraste a planilha de funcionários (.csv)</div>
+        <div class="folga-upload__dica">Colunas: Matrícula · Nome · Admissão · CPF (separador ; )</div>
+      </div>
+      <input type="file" id="feriasCsvInput" accept=".csv" hidden>
+
+      <div id="feriasSelectWrap" class="folga-row" style="margin-top:0.8rem" hidden>
+        <select id="feriasSelFunc" class="folga-select" style="flex:1"></select>
+      </div>
+    </section>
+
+    <section class="folga-section">
+      <h3 class="folga-section__title">2. Dados do servidor</h3>
+      <div class="folga-row">
+        <label class="folga-field" style="flex-basis:100%">
+          <span>Nome completo <small>{{NOME}}</small></span>
+          <input type="text" id="feriasNome" placeholder="Selecione o funcionário acima ou digite">
+        </label>
+      </div>
+      <div class="folga-row">
+        <label class="folga-field">
+          <span>Matrícula <small>{{MATRICULA}}</small></span>
+          <input type="text" id="feriasMatricula">
+        </label>
+        <label class="folga-field">
+          <span>CPF <small>{{CPF}}</small></span>
+          <input type="text" id="feriasCpf">
+        </label>
+      </div>
+      <div class="folga-row">
+        <label class="folga-field">
+          <span>Cargo <small>{{CARGO}}</small></span>
+          <select id="feriasCargo"></select>
+        </label>
+        <label class="folga-field">
+          <span>Data de admissão <small>{{DATAADMISSAO}}</small></span>
+          <input type="text" id="feriasAdmissao" placeholder="dd/mm/aaaa">
+        </label>
+      </div>
+      <div class="folga-row">
+        <label class="folga-field">
+          <span>Período aquisitivo <small>{{PERIODO}}</small></span>
+          <select id="feriasPeriodo"></select>
+        </label>
+      </div>
+    </section>
+
+    <section class="folga-section">
+      <h3 class="folga-section__title">3. Período de gozo das férias</h3>
+      <div class="folga-row">
+        <div class="folga-toggle">
+          <button type="button" id="feriasBtn15" class="folga-toggle__btn">15 dias</button>
+          <button type="button" id="feriasBtn30" class="folga-toggle__btn folga-toggle__btn--active">30 dias</button>
+        </div>
+      </div>
+      <div class="folga-row">
+        <label class="folga-field">
+          <span>Início do gozo <small>{{DATAINICIO}}</small></span>
+          <input type="date" id="feriasDtInicio">
+        </label>
+        <label class="folga-field">
+          <span>Fim do gozo <small>{{DATAFIM}}</small></span>
+          <input type="text" id="feriasDtFimDisplay" disabled placeholder="Calculado automaticamente">
+        </label>
+      </div>
+      <p class="folga-pill" id="feriasPill" hidden></p>
+      <p class="folga-count">Data do requerimento <small>{{DATACRIACAO}}</small>: <strong id="feriasDataCriacao"></strong> (automática)</p>
+    </section>
+
+    <p class="folga-status" id="feriasStatus"></p>
+
+    <div class="modal__actions">
+      <button type="button" id="feriasGerar" class="folga-btn folga-btn--primary">Gerar documento (.docx)</button>
+    </div>
+
+  </div>
+
+  <footer class="foot">
+    <p>Gerador de Férias — Prefeitura Municipal de Ponta Porã.</p>
+  </footer>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="docx-utils.js"></script>
+<script src="ferias.js"></script>
+</body>
+</html>
