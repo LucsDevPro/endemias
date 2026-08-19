@@ -208,6 +208,15 @@ a { text-decoration: none; color: inherit; }
 
 .card__badge--dev::before { background: #8A96A8; }
 
+.card__badge--aviso {
+  background: #FFF4DE;
+  color: #8A5A00;
+  border-color: rgba(255, 185, 0, 0.5);
+  white-space: nowrap;
+}
+
+.card__badge--aviso::before { background: var(--amber); }
+
 .card--live .card__icon {
   background: rgba(0, 185, 59, 0.10);
   color: var(--green);
