@@ -21,6 +21,7 @@ Site estático em HTML/CSS/JS puro — sem dependências de build, pronto para p
 | **Gerador de Folga** | Gera a Comunicação Interna de folga (página própria) | `folga.html` |
 | **Gerador de Férias** | Gera o Requerimento de Férias (página própria) | `ferias.html` |
 | **Comunicação Interna** | Gera uma CI a partir de texto digitado/ditado, com revisão opcional por IA (página própria) | `ci.html` |
+| **Lançar Ovitrampas** | Bookmarklet que preenche e envia em lote os lançamentos no contaovos.com (página própria) | `ovitrampas.html` |
 
 Sentinela e LIRAa ficam destacados em um painel "ao vivo", por serem as ferramentas de monitoramento em tempo real.
 
@@ -32,6 +33,8 @@ painel-endemias/
 ├── folga.html               # página do Gerador de Folga
 ├── ferias.html               # página do Gerador de Férias
 ├── ci.html                    # página da Comunicação Interna
+├── ovitrampas.html             # página do Lançador de Ovitrampas (bookmarklet)
+├── ovitrampas-core.js            # código do bookmarklet (carregado por ele, não pelo site)
 ├── ferias-config.js           # URL do Apps Script para a planilha (opcional)
 ├── ci-config.js                 # URL do Apps Script para a IA (opcional)
 ├── style.css                  # visual institucional (compartilhado pelas 4 páginas)
@@ -49,7 +52,7 @@ painel-endemias/
 └── README.md
 ```
 
-Visual institucional em tema claro, com as cores da logo da Prefeitura de Ponta Porã (azul-marinho, azul, verde e amarelo). Os dois geradores viraram **páginas próprias** (`folga.html` e `ferias.html`), abertas a partir dos cartões do painel — em vez de uma janela por cima do painel, cada um tem a tela toda para si, com um link "← Painel" para voltar.
+Visual institucional em tema claro, com as cores da logo da Prefeitura de Ponta Porã (azul-marinho, azul, verde e amarelo). Cada ferramenta é uma **página própria** (`folga.html`, `ferias.html`, `ci.html`, `ovitrampas.html`), aberta a partir dos cartões do painel principal — em vez de uma janela por cima do painel, cada uma tem a tela toda para si, com um link "← Painel" para voltar.
 
 ## Como funciona por baixo dos panos (`docx-utils.js`)
 
@@ -137,6 +140,19 @@ Mesma lógica de "opcional, protegido, não obrigatório" da planilha de férias
 **Aviso sobre o "token"**: diferente do login do Google (que usa a planilha de férias), aqui não tem tela de login — é uma chamada direta. O `CI_TOKEN`/`AI_TOKEN` é só uma senha simples enviada junto do pedido; ela fica visível para quem abrir o código do site (não é um segredo real), mas evita que alguém ache a URL por acidente e gaste sua cota de IA à toa. A chave de verdade (`GEMINI_API_KEY`) é a que fica protegida de verdade, porque essa nunca sai do lado do Google.
 
 **Não testei esse fluxo de ponta a ponta** (não tenho como criar uma chave de API nem implantar o Apps Script daqui). Testei e confirmei que a geração do documento funciona perfeitamente sem a IA configurada (preenchendo o Assunto à mão) — essa parte é sólida. A parte da IA, revise o `doPost` no `Codigo.gs` e teste com uma chave de teste antes de confiar nela no dia a dia.
+
+## Lançar Ovitrampas (`ovitrampas.html`)
+
+Diferente dos outros três, este não gera um documento — é um **bookmarklet**: um favorito especial do navegador que, ao ser clicado *enquanto você está na tela de lançamento em lote do contaovos.com*, abre um painel flutuante por cima daquela página. Esse painel lê uma planilha (.xlsx/.xls/.csv/.tsv, sem cabeçalho, colunas: ID da ovitrampa · código da observação · nº de ovos) e clica nos botões de envio que já existem na página, um por um — poupando o trabalho de preencher campo por campo na mão.
+
+A página `ovitrampas.html` explica o passo a passo e monta o bookmarklet automaticamente com o endereço certo do seu site (não tem nada fixo no código — funciona em qualquer domínio onde você publicar o projeto).
+
+- **Como instalar**: arraste o botão azul da página para a barra de favoritos do navegador — uma vez só.
+- **Como usar**: já logado no contaovos.com, na tela de lançamento em lote, clique no favorito, escolha a planilha, confira a tabela de conferência (IDs em vermelho não foram encontrados na página) e confirme o envio.
+- **O que ele não faz**: não manda nada para fora do contaovos.com, não guarda login nem senha, não funciona em nenhuma outra página — só na tela específica de lançamento em lote (é ali que os campos que ele procura existem).
+- `ovitrampas-core.js` é o código que o bookmarklet carrega toda vez que é clicado (direto do seu site, sempre a versão mais atual) — **não é chamado pelo `ovitrampas.html`**, só existe para o bookmarklet buscar.
+
+Se o contaovos.com mudar o layout da tela de lançamento no futuro, esse script pode parar de achar os campos (ele procura por `.input_send_ovitrampa_data`, `.counting_eggs`, `.counting_observation_id` e `.counting_observation` na página) — nesse caso, ele avisa quais IDs não foram encontrados, mas não faz nada perigoso.
 
 ## Como publicar no GitHub Pages
 

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lançamento de Ovitrampas — Painel de Endemias</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar__inner">
+    <div class="brand">
+      <img class="brand__logo" src="assets/logo-ponta-pora.png" alt="Prefeitura Municipal de Ponta Porã">
+      <span class="brand__divider" aria-hidden="true"></span>
+      <span class="brand__name">Vigilância em Endemias</span>
+    </div>
+    <a class="topbar__back" href="index.html">← Painel</a>
+  </div>
+</header>
+
+<main class="page page--tool">
+
+  <div class="hero">
+    <h1 class="title">Lançamento de Ovitrampas</h1>
+    <p class="subtitle">Preenche e envia em lote os lançamentos de ovitrampas no contaovos.com, a partir de uma planilha.</p>
+  </div>
+
+  <div class="tool-panel">
+
+    <section class="folga-section">
+      <h3 class="folga-section__title">Como funciona</h3>
+      <p class="folga-privacy">
+        Isto é um <strong>bookmarklet</strong> (um favorito especial do navegador), não uma página do site.
+        Ele abre um painel flutuante <em>dentro da própria tela de lançamento do contaovos.com</em>, lê uma
+        planilha e clica nos botões de "enviar" que já existem naquela página — um por um. Não manda nada para
+        fora do contaovos.com, e só funciona se você já estiver logado lá normalmente.
+      </p>
+    </section>
+
+    <section class="folga-section">
+      <h3 class="folga-section__title">1. Instale o botão (uma vez só)</h3>
+      <p class="folga-count" style="margin-bottom:0.6rem">
+        Arraste o botão azul abaixo para a <strong>barra de favoritos</strong> do seu navegador. Se a barra de
+        favoritos estiver escondida, mostre com <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> (Chrome/Edge no
+        Windows) antes de arrastar.
+      </p>
+
+      <div class="ovi-bookmarklet-box">
+        <a id="oviBookmarklet" href="#" onclick="alert('Não clique — arraste este botão para a barra de favoritos do navegador.'); return false;" class="ovi-bookmarklet">
+          🦟 Lançar Ovitrampas
+        </a>
+      </div>
+      <p class="folga-count" id="oviOrigemAviso"></p>
+    </section>
+
+    <section class="folga-section">
+      <h3 class="folga-section__title">2. Prepare a planilha</h3>
+      <p class="folga-count" style="margin-bottom:0.4rem">Planilha <code>.xlsx</code>, <code>.xls</code>, <code>.csv</code> ou <code>.tsv</code>, <strong>sem cabeçalho</strong>, com as colunas nesta ordem:</p>
+      <div class="folga-list" style="max-height:none">
+        <table class="ovi-tabela-exemplo">
+          <thead>
+            <tr><th>Coluna A</th><th>Coluna B</th><th>Coluna C</th></tr>
+            <tr><th>ID da ovitrampa</th><th>Código da observação</th><th>Nº de ovos</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1024</td><td>1</td><td>37</td></tr>
+            <tr><td>1025</td><td>10</td><td>0</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="folga-section">
+      <h3 class="folga-section__title">3. Use no contaovos.com</h3>
+      <div class="folga-list" style="max-height:none; padding: 0.9rem 1rem;">
+        <ol class="ovi-passos">
+          <li>Abra a tela de lançamento em lote e faça login normalmente.</li>
+          <li>Clique no favorito <strong>🦟 Lançar Ovitrampas</strong> que você instalou no passo 1.</li>
+          <li>No painel que abrir, escolha o arquivo da planilha.</li>
+          <li>Clique em <strong>"Preencher campos na tela"</strong> e confira a tabela — IDs em vermelho não foram encontrados na página atual.</li>
+          <li>Se estiver tudo certo, clique em <strong>"Confirmar e enviar"</strong>.</li>
+        </ol>
+      </div>
+      <a class="folga-link-btn" href="https://contaovos.com/pt-br/count/bulk-ovitrap" target="_blank" rel="noopener noreferrer">Abrir a tela de lançamento no contaovos.com →</a>
+    </section>
+
+  </div>
+
+  <footer class="foot">
+    <p>Lançamento de Ovitrampas — Prefeitura Municipal de Ponta Porã.</p>
+  </footer>
+
+</main>
+
+<script>
+  (function () {
+    var base = window.location.origin + window.location.pathname.replace(/[^/]*$/, "");
+    var urlScript = base + "ovitrampas-core.js?t=" + Date.now();
+    var codigo = "(function(){var s=document.createElement('script');s.src='" + base + "ovitrampas-core.js?t='+Date.now();document.body.appendChild(s);})();";
+    var link = document.getElementById("oviBookmarklet");
+    link.setAttribute("href", "javascript:" + encodeURIComponent(codigo));
+    var aviso = document.getElementById("oviOrigemAviso");
+    if (window.location.protocol === "file:") {
+      aviso.textContent = "⚠️ Você está abrindo este arquivo direto do computador (file://) — o bookmarklet só funciona depois de publicar o site (https://...), porque ele carrega o script do mesmo endereço da página.";
+    } else {
+      aviso.textContent = "O botão vai carregar o script de: " + base + "ovitrampas-core.js";
+    }
+  })();
+</script>
+</body>
+</html>
