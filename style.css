@@ -114,8 +114,22 @@ a { text-decoration: none; color: inherit; }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(var(--cols, 5), 1fr);
   gap: 0.6rem;
+}
+
+.grid-section + .grid-section {
+  margin-top: 1.6rem;
+}
+
+.grid-section__label {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+  margin: 0 0 0.6rem 0.1rem;
 }
 
 .card {
@@ -208,14 +222,13 @@ a { text-decoration: none; color: inherit; }
 
 .card__badge--dev::before { background: #8A96A8; }
 
-.card__badge--aviso {
-  background: #FFF4DE;
+.card__badge--alerta {
+  background: #FFF7E0;
   color: #8A5A00;
   border-color: rgba(255, 185, 0, 0.5);
-  white-space: nowrap;
 }
 
-.card__badge--aviso::before { background: var(--amber); }
+.card__badge--alerta::before { background: var(--amber); }
 
 .card--live .card__icon {
   background: rgba(0, 185, 59, 0.10);

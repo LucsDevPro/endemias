@@ -16,7 +16,7 @@
     <div class="brand">
       <img class="brand__logo" src="assets/logo-ponta-pora.png" alt="Prefeitura Municipal de Ponta Porã">
       <span class="brand__divider" aria-hidden="true"></span>
-      <span class="brand__name">Vigilância em Endemias</span>
+      <span class="brand__name">Setor de Endemias e Vetores - SEV</span>
     </div>
     <a class="topbar__back" href="index.html">← Painel</a>
   </div>
@@ -32,8 +32,8 @@
   <div class="tool-panel">
 
     <section class="folga-section">
-      <h3 class="folga-section__title">1. Planilha de funcionários (.csv)</h3>
-      <p class="folga-privacy">🔒 A planilha não é enviada a nenhum servidor nem fica salva no site — ela só é lida aqui no seu navegador, nesta aba, e é descartada ao recarregar a página.</p>
+      <h3 class="folga-section__title">1. Planilha de funcionários</h3>
+      <p class="folga-privacy">🔒 A planilha não é enviada a nenhum servidor nem fica salva no site. No upload manual, ela só é lida aqui no navegador e some ao recarregar a página. Na opção "carregar do Google", os dados só chegam depois que você faz login com uma conta autorizada — veja o README para configurar.</p>
 
       <div class="folga-upload" id="feriasCsvZone">
         <div class="folga-upload__icon">📋</div>
@@ -41,6 +41,14 @@
         <div class="folga-upload__dica">Colunas: Matrícula · Nome · Admissão · CPF (separador ; )</div>
       </div>
       <input type="file" id="feriasCsvInput" accept=".csv" hidden>
+
+      <div class="folga-or"><span>ou</span></div>
+
+      <button type="button" id="feriasGoogleBtn" class="folga-btn folga-btn--google" hidden>
+        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.26 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.85A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.09A6.6 6.6 0 0 1 5.5 12c0-.73.13-1.43.34-2.09V7.06H2.18A11 11 0 0 0 1 12c0 1.78.43 3.46 1.18 4.94z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1a11 11 0 0 0-9.82 6.06l3.66 2.85c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Carregar planilha do Google (login)
+      </button>
+      <p class="folga-count" id="feriasGoogleStatus"></p>
 
       <div id="feriasSelectWrap" class="folga-row" style="margin-top:0.8rem" hidden>
         <select id="feriasSelFunc" class="folga-select" style="flex:1"></select>
@@ -119,8 +127,9 @@
 
 </main>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="jszip.local.js"></script>
 <script src="docx-utils.js"></script>
+<script src="ferias-config.js"></script>
 <script src="ferias.js"></script>
 </body>
 </html>

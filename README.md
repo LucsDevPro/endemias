@@ -16,8 +16,11 @@ Site estático em HTML/CSS/JS puro — sem dependências de build, pronto para p
 | Ahgora | Registro de ponto | https://app.ahgora.com.br/home |
 | **Sentinela** (destaque) | Vigilância entomológica ao vivo | https://lucsdevpro.github.io/Sentinela/ |
 | **LIRAa** (destaque) | Índice de infestação ao vivo | https://lucsdevpro.github.io/lira/ |
+| **Monitoramento de Ovitrampas** (destaque) | Painel ao vivo das ovitrampas | https://patrickdias123.github.io/Ovitrampas-Ponta-Por-/ |
 | Sies | Controle de inseticida | http://sies.saude.gov.br/ |
 | Montar Escala | Plantões | https://smsapp.com.br/rh/login_plantao.php |
+| Central | Portal central do sistema | https://www.smsapp.com.br/inicio/index.php |
+| **Compras** (pedidos abertos dia 20 a 28) | Pedidos ao almoxarifado | https://smsapp.com.br/almoxarifado/pedidos.php |
 | **Gerador de Folga** | Gera a Comunicação Interna de folga (página própria) | `folga.html` |
 | **Gerador de Férias** | Gera o Requerimento de Férias (página própria) | `ferias.html` |
 | **Comunicação Interna** | Gera uma CI a partir de texto digitado/ditado, com revisão opcional por IA (página própria) | `ci.html` |
@@ -25,11 +28,16 @@ Site estático em HTML/CSS/JS puro — sem dependências de build, pronto para p
 
 Sentinela e LIRAa ficam destacados em um painel "ao vivo", por serem as ferramentas de monitoramento em tempo real.
 
+Os cartões do painel principal ficam organizados em 3 fileiras: **Sistemas** (os links de sempre), **Central** (Central e Compras) e **Monitoramento e Geradores** (Sentinela, LIRAa, Monitoramento de Ovitrampas e os 4 geradores/ferramentas).
+
+Cada fileira ajusta sozinha quantas colunas usar (`grid-layout.js`), preferindo 4 cartões por linha e caindo para 3 quando isso deixa as linhas mais equilibradas (sem sobrar 1 cartão solto numa linha) — e seções pequenas, como "Central", ficam do tamanho exato dos seus cartões em vez de esticar por colunas vazias. Isso é só para as 3 fileiras do painel principal; se você adicionar ou remover cartões de uma fileira, não precisa mexer em nada — o cálculo é automático, refeito a cada carregamento da página.
+
 ## Estrutura
 
 ```
 painel-endemias/
 ├── index.html              # painel principal — título e cartões (links)
+├── grid-layout.js            # ajusta sozinho a quantidade de colunas de cada fileira
 ├── folga.html               # página do Gerador de Folga
 ├── ferias.html               # página do Gerador de Férias
 ├── ci.html                    # página da Comunicação Interna
