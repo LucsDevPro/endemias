@@ -17,10 +17,22 @@
 
   function linhaParaDado(linha) {
     const id = parseInt(linha[0], 10);
-    const obs = parseInt(linha[1], 10) || 1;
+    const obsLida = parseInt(linha[1], 10);
+    // obs = número que o usuário digita/vê na planilha (0 a 9, igual ao texto da opção).
+    // Não usar "|| 0" aqui trocado por isNaN: com "||", obs=0 ("0 - Sem Observações")
+    // virava falsy e caía no valor padrão errado.
+    const obs = isNaN(obsLida) ? 0 : obsLida;
     const ovos = parseInt(linha[2], 10) || 0;
     const texto = (linha[3] || '').toString();
     return { id, obs, ovos, texto };
+  }
+
+  // O <option> do HTML usa value = (número exibido ao usuário) + 1 — ex.: a opção
+  // "8 - Ovitrampa com pouca água" tem value="9", e "9 - Outra Observação" tem
+  // value="10". Esta função é o ÚNICO lugar que faz essa conversão; o resto do
+  // código sempre trabalha com o número que o usuário vê (d.obs).
+  function obsParaValueHtml(obsExibido) {
+    return obsExibido + 1;
   }
 
   async function processarArquivo(file) {
@@ -41,9 +53,9 @@
         const linha = botao.closest('tr');
         linha.querySelector('.counting_eggs').value = d.ovos;
         const selectObs = linha.querySelector('.counting_observation_id');
-        selectObs.value = d.obs;
+        selectObs.value = obsParaValueHtml(d.obs);
         selectObs.dispatchEvent(new Event('change', { bubbles: true }));
-        if (d.obs === 10 && d.texto) {
+        if (d.obs === 9 && d.texto) {
           setTimeout(() => {
             const textarea = linha.querySelector('.counting_observation');
             if (textarea) textarea.value = d.texto;
