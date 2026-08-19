@@ -192,6 +192,22 @@ a { text-decoration: none; color: inherit; }
   background: var(--amber);
 }
 
+.card__badge--novo {
+  background: #FDECEA;
+  color: #C0392B;
+  border-color: rgba(192, 57, 43, 0.4);
+}
+
+.card__badge--novo::before { background: #E74C3C; }
+
+.card__badge--dev {
+  background: #EEF1F5;
+  color: #5D6B82;
+  border-color: rgba(93, 107, 130, 0.35);
+}
+
+.card__badge--dev::before { background: #8A96A8; }
+
 .card--live .card__icon {
   background: rgba(0, 185, 59, 0.10);
   color: var(--green);
