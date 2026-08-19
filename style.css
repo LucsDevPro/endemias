@@ -770,6 +770,11 @@ a { text-decoration: none; color: inherit; }
    Lançamento de Ovitrampas (ovitrampas.html)
    ============================================================ */
 
+.ovi-abrir-btn {
+  display: inline-flex;
+  width: auto;
+}
+
 .ovi-bookmarklet-box {
   text-align: center;
   padding: 1.2rem;
