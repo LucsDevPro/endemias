@@ -16,7 +16,7 @@ Site estático em HTML/CSS/JS puro — sem dependências de build, pronto para p
 | Ahgora | Registro de ponto | https://app.ahgora.com.br/home |
 | **Sentinela** (destaque) | Vigilância entomológica ao vivo | https://lucsdevpro.github.io/Sentinela/ |
 | **LIRAa** (destaque) | Índice de infestação ao vivo | https://lucsdevpro.github.io/lira/ |
-| **Monitoramento de Ovitrampas** (destaque) | Painel ao vivo das ovitrampas | https://patrickdias123.github.io/Ovitrampas-Ponta-Por-/ |
+| **Mapeamento Ovitrampas** (novo) | Painel ao vivo das ovitrampas | https://patrickdias123.github.io/Ovitrampas-Ponta-Por-/ |
 | Sies | Controle de inseticida | http://sies.saude.gov.br/ |
 | Montar Escala | Plantões | https://smsapp.com.br/rh/login_plantao.php |
 | Central | Portal central do sistema | https://www.smsapp.com.br/inicio/index.php |
@@ -28,9 +28,9 @@ Site estático em HTML/CSS/JS puro — sem dependências de build, pronto para p
 
 Sentinela e LIRAa ficam destacados em um painel "ao vivo", por serem as ferramentas de monitoramento em tempo real.
 
-Os cartões do painel principal ficam organizados em 3 fileiras: **Sistemas** (os links de sempre), **Central** (Central e Compras) e **Monitoramento e Geradores** (Sentinela, LIRAa, Monitoramento de Ovitrampas e os 4 geradores/ferramentas).
+Os cartões do painel principal ficam organizados em ordem alfabética, em 3 seções: **Sistemas** (todos os links do dia a dia, incluindo Central e Compras), **Monitoramento** (Sentinela, LIRAa e Mapeamento Ovitrampas — em destaque, com um painel âmbar, selo "Ao vivo" no cabeçalho da seção (em vez de repetido em cada botão) e um ponto pulsante, no meio da página) e **Geradores** (os 4 geradores/ferramentas), por último.
 
-Cada fileira ajusta sozinha quantas colunas usar (`grid-layout.js`), preferindo 4 cartões por linha e caindo para 3 quando isso deixa as linhas mais equilibradas (sem sobrar 1 cartão solto numa linha) — e seções pequenas, como "Central", ficam do tamanho exato dos seus cartões em vez de esticar por colunas vazias. Isso é só para as 3 fileiras do painel principal; se você adicionar ou remover cartões de uma fileira, não precisa mexer em nada — o cálculo é automático, refeito a cada carregamento da página.
+Cada seção ajusta sozinha quantas colunas usar (`grid-layout.js`): o alvo é 5 cartões por fileira; seções com menos de 5 ficam numa fileira só, centralizada, com cartões do mesmo tamanho das fileiras cheias (não esticam para preencher 5 colunas vazias). Se uma seção crescer além de 5 e não for múltiplo exato, ele tenta 4 por linha para equilibrar melhor a última fileira. Isso é automático — se você adicionar ou remover cartões de uma seção, não precisa mexer em nada.
 
 ## Estrutura
 

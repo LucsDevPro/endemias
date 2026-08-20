@@ -3,9 +3,10 @@
 // usa no painel principal, para as fileiras ficarem "cheias" em
 // vez de deixar uma última linha torta com 1 ou 2 cartões soltos.
 //
-// Prefere 4 por fileira; se sobrar pouco na última linha, tenta 3;
-// seções pequenas (até 4 cartões) ficam numa fileira só, do
-// tamanho exato da seção — sem esticar pra 4 ou 5 colunas vazias.
+// Alvo: 5 cartões por fileira. Seções pequenas (até 5 cartões)
+// ficam numa fileira só, do tamanho exato da seção — sem esticar
+// pra 5 colunas vazias (o CSS centraliza essa fileira mais curta).
+// Se sobrar pouco na última linha de uma seção grande, tenta 4.
 // Só entra em ação na largura "desktop" — no celular e no tablet,
 // as regras de @media do CSS já cuidam da quantidade de colunas.
 // ============================================================
@@ -15,9 +16,9 @@
 
   function escolherColunas(n) {
     if (n <= 1) return 1;
-    if (n <= 4) return n;
+    if (n <= 5) return n;
 
-    var candidatos = [4, 3];
+    var candidatos = [5, 4];
     var melhor = null;
 
     candidatos.forEach(function (c) {
