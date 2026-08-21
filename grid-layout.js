@@ -44,5 +44,17 @@
     });
   }
 
+  // O botão "Compras" só aceita pedidos entre os dias 20 e 28 de cada mês
+  // (regra do próprio sistema) — nesses dias, destaca o cartão com uma
+  // borda vermelha, pra chamar atenção de que a janela está aberta.
+  function marcarPeriodoCompras() {
+    var cartao = document.getElementById("cardCompras");
+    if (!cartao) return;
+    var dia = new Date().getDate();
+    var dentroDoPeriodo = dia >= 20 && dia <= 28;
+    cartao.classList.toggle("card--periodo-ativo", dentroDoPeriodo);
+  }
+
   ajustar();
+  marcarPeriodoCompras();
 })();
