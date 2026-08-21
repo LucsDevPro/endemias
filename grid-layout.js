@@ -53,6 +53,22 @@
     var dia = new Date().getDate();
     var dentroDoPeriodo = dia >= 20 && dia <= 28;
     cartao.classList.toggle("card--periodo-ativo", dentroDoPeriodo);
+
+    var chamas = cartao.querySelector(".card__fogo");
+    if (dentroDoPeriodo && !chamas) {
+      var wrap = document.createElement("span");
+      wrap.className = "card__fogo";
+      wrap.setAttribute("aria-hidden", "true");
+      for (var i = 0; i < 8; i++) {
+        var f = document.createElement("span");
+        f.textContent = "🔥";
+        f.style.animationDelay = (i * 0.11) + "s";
+        wrap.appendChild(f);
+      }
+      cartao.appendChild(wrap);
+    } else if (!dentroDoPeriodo && chamas) {
+      chamas.remove();
+    }
   }
 
   ajustar();
