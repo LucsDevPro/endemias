@@ -5,6 +5,12 @@
 // cadastro — https://open-meteo.com/), consultada direto pelo
 // navegador. Mostra os próximos 5 dias, discretamente, no
 // rodapé do painel.
+//
+// Atualiza sozinha: busca de novo a cada 30 minutos (pra quem
+// deixa a aba aberta o dia inteiro, ex.: numa tela da secretaria)
+// e também quando a aba volta a ficar visível depois de minimizada
+// — assim, se passar da meia-noite com a aba aberta, os "próximos
+// 5 dias" andam junto sem precisar recarregar a página manualmente.
 // ============================================================
 
 (function () {
@@ -13,6 +19,8 @@
   // Ponta Porã, MS
   var LAT = -22.53;
   var LON = -55.72;
+
+  var INTERVALO_ATUALIZACAO_MS = 30 * 60 * 1000; // 30 minutos
 
   var DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -87,15 +95,15 @@
     }
   }
 
-  function iniciar() {
-    if (!document.getElementById("climaFaixa")) return;
-
+  function buscar() {
     var url = "https://api.open-meteo.com/v1/forecast" +
       "?latitude=" + LAT + "&longitude=" + LON +
       "&daily=weather_code,temperature_2m_max,temperature_2m_min" +
       "&timezone=America%2FCampo_Grande&forecast_days=5";
 
-    fetch(url)
+    // "no-store" garante que nunca mostra uma resposta antiga guardada
+    // pelo navegador — sempre busca a previsão atual de verdade.
+    fetch(url, { cache: "no-store" })
       .then(function (resp) {
         if (!resp.ok) throw new Error("resposta " + resp.status);
         return resp.json();
@@ -106,6 +114,19 @@
         // informação essencial do painel, não vale mostrar erro pro usuário.
         console.warn("Previsão do tempo indisponível:", err.message);
       });
+  }
+
+  function iniciar() {
+    if (!document.getElementById("climaFaixa")) return;
+
+    buscar();
+    setInterval(buscar, INTERVALO_ATUALIZACAO_MS);
+
+    // se a aba ficou minimizada/em segundo plano e a pessoa volta a ela,
+    // busca de novo na hora (ex.: deixou de madrugada e voltou de manhã)
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") buscar();
+    });
   }
 
   if (document.readyState === "loading") {
