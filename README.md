@@ -40,6 +40,7 @@ painel-endemias/
 ├── grid-layout.js            # ajusta sozinho a quantidade de colunas de cada fileira
 ├── fit-screen.js              # encolhe o painel pra caber na tela sem rolagem
 ├── weather.js                   # previsão do tempo (Open-Meteo, sem chave)
+├── auto-reload.js                 # recarrega o painel sozinho a cada 60min
 ├── folga.html               # página do Gerador de Folga
 ├── ferias.html               # página do Gerador de Férias
 ├── ci.html                    # página da Comunicação Interna
@@ -171,7 +172,11 @@ O painel principal (`index.html`) mede sozinho quanto espaço o conteúdo precis
 
 ## Previsão do tempo
 
-Uma faixa discreta no rodapé do painel principal mostra os próximos 5 dias (`weather.js`), usando a API pública e gratuita da [Open-Meteo](https://open-meteo.com/) — sem chave, sem cadastro, consultada direto pelo navegador para as coordenadas de Ponta Porã. Se a internet cair ou a API não responder, a faixa simplesmente não aparece (não trava nem mostra erro).
+Uma faixa discreta no rodapé do painel principal mostra os próximos 5 dias (`weather.js`), usando a API pública e gratuita da [Open-Meteo](https://open-meteo.com/) — sem chave, sem cadastro, consultada direto pelo navegador para as coordenadas de Ponta Porã. Se a internet cair ou a API não responder, a faixa simplesmente não aparece (não trava nem mostra erro). Ela se atualiza sozinha a cada 30 minutos e também quando a aba volta a ficar visível (útil pra quem deixa a página aberta o dia inteiro).
+
+## Recarregamento automático
+
+O painel principal recarrega a própria página sozinho a cada 60 minutos (`auto-reload.js`) — útil pra quem deixa ele aberto numa tela o dia todo. **Só o painel principal faz isso** — as páginas dos geradores (Folga, Férias, Comunicação Interna, Ovitrampas) não recarregam sozinhas, de propósito, pra não perder o que alguém estiver preenchendo num formulário no meio do caminho.
 
 ## Como publicar no GitHub Pages
 
