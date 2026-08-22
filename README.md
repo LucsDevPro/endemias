@@ -38,6 +38,8 @@ Cada seção ajusta sozinha quantas colunas usar (`grid-layout.js`): o alvo é 5
 painel-endemias/
 ├── index.html              # painel principal — título e cartões (links)
 ├── grid-layout.js            # ajusta sozinho a quantidade de colunas de cada fileira
+├── fit-screen.js              # encolhe o painel pra caber na tela sem rolagem
+├── weather.js                   # previsão do tempo (Open-Meteo, sem chave)
 ├── folga.html               # página do Gerador de Folga
 ├── ferias.html               # página do Gerador de Férias
 ├── ci.html                    # página da Comunicação Interna
@@ -55,6 +57,7 @@ painel-endemias/
 ├── assets/
 │   ├── logo-ponta-pora.png
 │   ├── modelo-folga.docx         # modelo com as tags <<ci>>, <<hoje>>, <<nome>>...
+│   ├── fogo-moldura.png           # moldura de fogo (border-image) do cartão Compras
 │   ├── modelo-ferias.docx        # modelo com as tags {{NOME}}, {{CPF}}...
 │   └── modelo-ci.docx             # modelo com as tags {{CI}}, {{DATAHOJE}}, {{Secretaria}}, {{Assunto}}, {{Texto}}
 └── README.md
@@ -161,6 +164,14 @@ A página `ovitrampas.html` explica o passo a passo e monta o bookmarklet automa
 - `ovitrampas-core.js` é o código que o bookmarklet carrega toda vez que é clicado (direto do seu site, sempre a versão mais atual) — **não é chamado pelo `ovitrampas.html`**, só existe para o bookmarklet buscar.
 
 Se o contaovos.com mudar o layout da tela de lançamento no futuro, esse script pode parar de achar os campos (ele procura por `.input_send_ovitrampa_data`, `.counting_eggs`, `.counting_observation_id` e `.counting_observation` na página) — nesse caso, ele avisa quais IDs não foram encontrados, mas não faz nada perigoso.
+
+## Ajuste automático à tela (sem barra de rolagem)
+
+O painel principal (`index.html`) mede sozinho quanto espaço o conteúdo precisa e a altura disponível na janela (`fit-screen.js`); se não couber, encolhe tudo proporcionalmente (título, cartões, tudo junto, texto incluso) até caber sem precisar rolar — nunca aumenta além do tamanho normal em telas grandes, e tem um limite mínimo de encolhimento (60%) para não deixar o texto ilegível em janelas extremamente baixas (nesse caso extremo, prefere deixar uma rolagem pequena a espremer demais). Funciona nos navegadores atuais (Chrome, Edge, Safari recente); em navegadores muito antigos sem suporte a isso, a página só volta a rolar normalmente — nada quebra. Esse ajuste é só do painel principal; as páginas dos geradores (que têm listas e formulários mais longos) continuam com rolagem normal, de propósito.
+
+## Previsão do tempo
+
+Uma faixa discreta no rodapé do painel principal mostra os próximos 5 dias (`weather.js`), usando a API pública e gratuita da [Open-Meteo](https://open-meteo.com/) — sem chave, sem cadastro, consultada direto pelo navegador para as coordenadas de Ponta Porã. Se a internet cair ou a API não responder, a faixa simplesmente não aparece (não trava nem mostra erro).
 
 ## Como publicar no GitHub Pages
 

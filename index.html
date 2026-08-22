@@ -12,6 +12,7 @@
 </head>
 <body>
 
+<div id="fitWrap">
 <header class="topbar">
   <div class="topbar__inner">
     <div class="brand">
@@ -177,10 +178,18 @@
 
   <footer class="foot">
     <p>Painel de Endemias — Prefeitura Municipal de Ponta Porã · acesso centralizado aos sistemas de vigilância e rotina em saúde.</p>
+
+    <div class="weather-strip" id="climaFaixa" hidden>
+      <span class="weather-strip__label">🌤️ Previsão — Ponta Porã</span>
+      <div class="weather-strip__dias" id="climaDias"></div>
+    </div>
   </footer>
 
 </main>
+</div>
 
+<script src="fit-screen.js"></script>
 <script src="grid-layout.js"></script>
+<script src="weather.js"></script>
 </body>
 </html>

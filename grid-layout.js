@@ -46,29 +46,14 @@
 
   // O botão "Compras" só aceita pedidos entre os dias 20 e 28 de cada mês
   // (regra do próprio sistema) — nesses dias, destaca o cartão com uma
-  // borda vermelha, pra chamar atenção de que a janela está aberta.
+  // moldura de fogo real (border-image, ver style.css), pra chamar
+  // atenção de que a janela de pedidos está aberta.
   function marcarPeriodoCompras() {
     var cartao = document.getElementById("cardCompras");
     if (!cartao) return;
     var dia = new Date().getDate();
     var dentroDoPeriodo = dia >= 20 && dia <= 28;
     cartao.classList.toggle("card--periodo-ativo", dentroDoPeriodo);
-
-    var chamas = cartao.querySelector(".card__fogo");
-    if (dentroDoPeriodo && !chamas) {
-      var wrap = document.createElement("span");
-      wrap.className = "card__fogo";
-      wrap.setAttribute("aria-hidden", "true");
-      for (var i = 0; i < 8; i++) {
-        var f = document.createElement("span");
-        f.textContent = "🔥";
-        f.style.animationDelay = (i * 0.11) + "s";
-        wrap.appendChild(f);
-      }
-      cartao.appendChild(wrap);
-    } else if (!dentroDoPeriodo && chamas) {
-      chamas.remove();
-    }
   }
 
   ajustar();
