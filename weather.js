@@ -66,7 +66,7 @@
 
   function renderizar(dados) {
     var faixa = document.getElementById("climaFaixa");
-    var wrap = document.getElementById("climaDias");
+    var wrap = faixa;
     if (!faixa || !wrap || !dados || !dados.daily) return;
 
     var d = dados.daily;
