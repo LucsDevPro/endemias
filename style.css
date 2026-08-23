@@ -56,7 +56,7 @@ a { text-decoration: none; color: inherit; }
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   border-top: 3px solid transparent;
-  border-image: linear-gradient(90deg, var(--navy), var(--blue) 55%, var(--green) 80%, var(--amber)) 1;
+  border-image: linear-gradient(90deg, var(--navy), var(--blue)) 1;
 }
 
 .topbar__inner {
@@ -404,15 +404,9 @@ a { text-decoration: none; color: inherit; }
   font: inherit;
 }
 
-.card--tool .card__icon {
-  background: rgba(0, 185, 59, 0.10);
-  color: var(--green);
-}
-
 .card--tool:hover,
 .card--tool:focus-visible {
-  border-color: rgba(0, 185, 59, 0.4);
-  box-shadow: 0 2px 4px rgba(10, 30, 61, 0.06), 0 10px 22px -10px rgba(0, 185, 59, 0.3);
+  border-color: rgba(0, 126, 202, 0.35);
 }
 
 /* ============================================================
@@ -992,60 +986,57 @@ kbd {
 }
 
 /* ============================================================
-   Faixa de previsão do tempo (rodapé, discreta)
+   Previsão do tempo — seção própria, mesmo padrão dos cartões
    ============================================================ */
 
 .weather-strip {
-  margin-top: 0.8rem;
-  padding-top: 0.8rem;
-  border-top: 1px solid var(--border);
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
   justify-content: center;
   gap: 0.6rem;
 }
 
-.weather-strip__label {
-  font-size: 0.72rem;
-  color: var(--ink-muted);
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.weather-strip__dias {
-  display: flex;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
 .weather-strip__dia {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 999px;
+  gap: 0.25rem;
+  min-width: 76px;
+  padding: 0.7rem 0.6rem;
+  border-radius: var(--radius-md);
   background: var(--surface);
   border: 1px solid var(--border);
-  font-size: 0.72rem;
+  box-shadow: var(--shadow);
+  font-size: 0.76rem;
   color: var(--ink-muted);
+  transition: transform 0.18s cubic-bezier(.2,.8,.2,1), box-shadow 0.18s ease;
+}
+
+.weather-strip__dia:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
 }
 
 .weather-strip__nome {
-  font-weight: 600;
-  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--blue);
 }
 
 .weather-strip__icone {
-  font-size: 0.85rem;
+  font-size: 1.3rem;
   line-height: 1;
+  margin: 0.1rem 0;
+}
+
+.weather-strip__temp {
+  font-size: 0.8rem;
 }
 
 .weather-strip__temp strong {
   color: var(--ink);
-}
-
-@media (max-width: 480px) {
-  .weather-strip__label { width: 100%; text-align: center; }
+  font-weight: 700;
 }
