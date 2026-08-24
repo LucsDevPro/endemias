@@ -66,7 +66,7 @@
 
   function renderizar(dados) {
     var faixa = document.getElementById("climaFaixa");
-    var wrap = faixa;
+    var wrap = document.getElementById("climaDias");
     if (!faixa || !wrap || !dados || !dados.daily) return;
 
     var d = dados.daily;
@@ -79,12 +79,14 @@
       var min = Math.round(d.temperature_2m_min[i]);
 
       var item = document.createElement("div");
-      item.className = "weather-strip__dia";
+      item.className = "weather-panel__dia";
       item.title = info[1];
       item.innerHTML =
-        "<span class=\"weather-strip__nome\">" + nomeDia(d.time[i], hojeIso) + "</span>" +
-        "<span class=\"weather-strip__icone\" aria-hidden=\"true\">" + info[0] + "</span>" +
-        "<span class=\"weather-strip__temp\"><strong>" + max + "°</strong> " + min + "°</span>";
+        "<span class=\"weather-panel__icone\" aria-hidden=\"true\">" + info[0] + "</span>" +
+        "<span class=\"weather-panel__info\">" +
+        "<span class=\"weather-panel__nome\">" + nomeDia(d.time[i], hojeIso) + "</span>" +
+        "<span class=\"weather-panel__temp\"><strong>" + max + "°</strong> " + min + "°</span>" +
+        "</span>";
       wrap.appendChild(item);
     }
 
