@@ -64,9 +64,54 @@
     return DIAS_SEMANA[d.getDay()];
   }
 
+  function alinharComSistemas() {
+    var painel = document.getElementById("climaFaixa");
+    var layout = document.querySelector(".page-layout");
+    var primeiraSecao = document.querySelector(".grid-section");
+    var primeiroCartao = primeiraSecao ? primeiraSecao.querySelector(".card") : null;
+    var secoes = document.querySelectorAll(".grid-section");
+    var ultimaSecao = secoes[secoes.length - 1];
+    var titulo = painel ? painel.querySelector(".weather-panel__titulo") : null;
+    var primeiroQuadrado = painel ? painel.querySelector(".weather-panel__dia") : null;
+    if (!painel || !layout || !primeiroCartao || !ultimaSecao || !titulo || !primeiroQuadrado) return;
+
+    // só faz sentido alinhar/redimensionar quando o painel está do lado
+    // (layout em linha) — quando empilha embaixo (telas menores), o CSS
+    // já cuida do espaçamento e do tamanho sozinho.
+    if (getComputedStyle(layout).flexDirection !== "row") {
+      painel.style.marginTop = "";
+      painel.style.width = "";
+      return;
+    }
+
+    var topoLayout = layout.getBoundingClientRect().top;
+    var topoCartao = primeiroCartao.getBoundingClientRect().top;
+    var baseGeradores = ultimaSecao.getBoundingClientRect().bottom;
+
+    // distância entre o topo do painel e o topo do primeiro quadrado
+    // (título + espaçamento) — não muda com a margem, então dá pra usar
+    // como referência fixa pra descontar do cálculo abaixo.
+    var offsetInterno = primeiroQuadrado.getBoundingClientRect().top - painel.getBoundingClientRect().top;
+
+    var novaMargem = topoCartao - topoLayout - offsetInterno;
+    painel.style.marginTop = Math.max(0, novaMargem) + "px";
+
+    // calcula o tamanho de cada quadrado pra que o último termine
+    // exatamente na base da seção Geradores, nunca depois dela.
+    var alturaDisponivel = baseGeradores - topoCartao;
+    var qtdDias = painel.querySelectorAll(".weather-panel__dia").length || 5;
+    var gapPx = 8; // 0.5rem, mesmo valor do gap no CSS
+
+    var espacoQuadrados = alturaDisponivel;
+    var tamanho = (espacoQuadrados - (qtdDias - 1) * gapPx) / qtdDias;
+    tamanho = Math.max(44, Math.min(84, tamanho));
+
+    painel.style.width = Math.round(tamanho) + "px";
+  }
+
   function renderizar(dados) {
     var faixa = document.getElementById("climaFaixa");
-    var wrap = faixa;
+    var wrap = document.getElementById("climaDias");
     if (!faixa || !wrap || !dados || !dados.daily) return;
 
     var d = dados.daily;
@@ -79,16 +124,19 @@
       var min = Math.round(d.temperature_2m_min[i]);
 
       var item = document.createElement("div");
-      item.className = "weather-strip__dia";
+      item.className = "weather-panel__dia";
       item.title = info[1];
       item.innerHTML =
-        "<span class=\"weather-strip__nome\">" + nomeDia(d.time[i], hojeIso) + "</span>" +
-        "<span class=\"weather-strip__icone\" aria-hidden=\"true\">" + info[0] + "</span>" +
-        "<span class=\"weather-strip__temp\"><strong>" + max + "°</strong> " + min + "°</span>";
+        "<span class=\"weather-panel__icone\" aria-hidden=\"true\">" + info[0] + "</span>" +
+        "<span class=\"weather-panel__info\">" +
+        "<span class=\"weather-panel__nome\">" + nomeDia(d.time[i], hojeIso) + "</span>" +
+        "<span class=\"weather-panel__temp\"><strong>" + max + "°</strong> " + min + "°</span>" +
+        "</span>";
       wrap.appendChild(item);
     }
 
     faixa.hidden = false;
+    alinharComSistemas();
 
     if (typeof window.reajustarEscalaPainel === "function") {
       window.reajustarEscalaPainel();
@@ -121,6 +169,7 @@
 
     buscar();
     setInterval(buscar, INTERVALO_ATUALIZACAO_MS);
+    window.addEventListener("resize", alinharComSistemas);
 
     // se a aba ficou minimizada/em segundo plano e a pessoa volta a ela,
     // busca de novo na hora (ex.: deixou de madrugada e voltou de manhã)

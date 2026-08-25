@@ -93,10 +93,20 @@ a { text-decoration: none; color: inherit; }
 
 /* ---------------- Page ---------------- */
 
-.page {
-  max-width: 900px;
+.page-layout {
+  display: flex;
+  align-items: stretch;
+  gap: 1.4rem;
+  max-width: 1080px;
   margin: 0 auto;
-  padding: 2.6rem 1.5rem 3rem;
+  padding: 0 1.5rem;
+}
+
+.page {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 900px;
+  padding: 2.6rem 0 3rem;
 }
 
 .hero {
@@ -293,6 +303,7 @@ a { text-decoration: none; color: inherit; }
   font-family: var(--font-body);
   font-weight: 600;
   font-size: 0.55rem;
+  white-space: nowrap;
   letter-spacing: 0.03em;
   text-transform: uppercase;
   border: 1px solid rgba(255, 185, 0, 0.5);
@@ -986,58 +997,127 @@ kbd {
 }
 
 /* ============================================================
-   Previsão do tempo — seção própria, mesmo padrão dos cartões
+   Previsão do tempo — painel vertical lateral, independente
    ============================================================ */
 
-.weather-strip {
+.weather-panel {
+  width: 84px;
+  flex-shrink: 0;
+  align-self: flex-start;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.6rem;
-  margin-top: 1.1rem;
+  flex-direction: column;
+  margin: 2.6rem 0 3rem;
+  position: sticky;
+  top: 1.5rem;
 }
 
-.weather-strip__dia {
+.weather-panel__titulo {
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  text-align: center;
+  margin: 0 0 0.6rem;
+  position: relative;
+  padding-bottom: 0.45rem;
+}
+
+.weather-panel__titulo::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--accent-line);
+}
+
+.weather-panel__dias {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.weather-panel__dia {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
-  min-width: 76px;
-  padding: 0.7rem 0.6rem;
-  border-radius: var(--radius-md);
+  justify-content: center;
+  gap: 0.1rem;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  border-radius: var(--radius-sm);
   background: var(--surface);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
-  font-size: 0.76rem;
-  color: var(--ink-muted);
-  transition: transform 0.18s cubic-bezier(.2,.8,.2,1), box-shadow 0.18s ease;
+  transition: transform 0.18s cubic-bezier(.2,.8,.2,1), box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
-.weather-strip__dia:hover {
+.weather-panel__dia:hover {
   transform: translateY(-2px);
+  border-color: rgba(0, 126, 202, 0.3);
   box-shadow: var(--shadow-hover);
 }
 
-.weather-strip__nome {
+.weather-panel__icone {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.weather-panel__info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.15;
+}
+
+.weather-panel__nome {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.72rem;
+  font-size: 0.54rem;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.01em;
   color: var(--blue);
 }
 
-.weather-strip__icone {
-  font-size: 1.3rem;
-  line-height: 1;
-  margin: 0.1rem 0;
+.weather-panel__temp {
+  font-size: 0.56rem;
+  color: var(--ink-muted);
+  white-space: nowrap;
 }
 
-.weather-strip__temp {
-  font-size: 0.8rem;
-}
-
-.weather-strip__temp strong {
+.weather-panel__temp strong {
   color: var(--ink);
   font-weight: 700;
+}
+
+/* Abaixo de ~1040px não sobra espaço pra um painel do lado — desce
+   pra debaixo do conteúdo principal, mas continua vertical (um dia
+   por linha), só que compacto e centralizado. */
+@media (max-width: 1040px) {
+  .page-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .weather-panel {
+    width: auto;
+    max-width: none;
+    margin: 0 auto 2.4rem;
+    position: static;
+  }
+
+  .weather-panel__dias {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .weather-panel__dia {
+    width: 62px;
+  }
 }
