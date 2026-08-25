@@ -1758,24 +1758,23 @@ kbd {
 }
 
 /* ============================================================
-   PREVISÃO DO TEMPO — vertical na direita (fora do conteúdo)
+   PREVISÃO DO TEMPO — vertical, fonte maior e mais legível
    ============================================================ */
 
 .weather-strip {
   position: fixed;
-  top: 220px; /* alinha com a seção Sistemas — ajuste se precisar */
-  /* Coloca o painel FORA do conteúdo central, à direita */
+  top: 258px;
   left: calc(50% + (var(--container) / 2) + 16px);
   right: auto;
   z-index: 40;
 
   display: flex;
   flex-direction: column;
-  gap: 0.52rem;
-  width: 178px;
-  padding: 0.85rem 0.7rem;
+  gap: 0.6rem;
+  width: 200px;                 /* um pouco mais largo pra caber texto maior */
+  padding: 1rem 0.8rem;
 
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(18px) saturate(170%);
   -webkit-backdrop-filter: blur(18px) saturate(170%);
   border: 1px solid rgba(255, 255, 255, 0.85);
@@ -1789,7 +1788,7 @@ kbd {
 }
 
 .weather-strip:hover {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   box-shadow:
     0 14px 32px -10px rgba(0, 126, 202, 0.25),
     0 0 0 1px rgba(0, 126, 202, 0.12) inset;
@@ -1810,29 +1809,29 @@ kbd {
   display: none;
 }
 
-/* Título "PRÓXIMOS DIAS" */
+/* Título — mais legível */
 .weather-strip::before {
   content: "PRÓXIMOS DIAS";
   display: block;
   text-align: center;
   font-family: var(--font-display);
-  font-size: 0.58rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  color: var(--ink-muted);
-  margin-bottom: 0.35rem;
-  padding-bottom: 0.45rem;
-  border-bottom: 1px solid rgba(223, 231, 242, 0.75);
+  font-size: 0.68rem;           /* era 0.58rem */
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);        /* mais escuro que ink-muted */
+  margin-bottom: 0.4rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(223, 231, 242, 0.8);
 }
 
 /* Cada dia */
 .weather-strip__dia {
   position: relative;
   display: grid;
-  grid-template-columns: 42px 1fr auto;
+  grid-template-columns: 46px 1fr auto;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.52rem 0.6rem;
+  gap: 0.5rem;
+  padding: 0.62rem 0.65rem;      /* mais espaço interno */
   border-radius: var(--radius-md);
   background: var(--gradient-surface);
   border: 1px solid rgba(255, 255, 255, 0.75);
@@ -1846,7 +1845,6 @@ kbd {
   box-shadow: var(--shadow-hover);
 }
 
-/* Barrinha lateral colorida */
 .weather-strip__dia::before {
   content: "";
   position: absolute;
@@ -1864,19 +1862,19 @@ kbd {
   transform: scaleY(1);
 }
 
-/* Nome do dia */
+/* Nome do dia — bem mais legível */
 .weather-strip__nome {
   font-family: var(--font-display);
-  font-size: 0.67rem;
-  font-weight: 900;
-  letter-spacing: 0.05em;
+  font-size: 0.78rem;           /* era 0.67rem */
+  font-weight: 800;
+  letter-spacing: 0.02em;
   color: var(--ws-cor, var(--blue));
   text-transform: uppercase;
 }
 
-/* Ícone */
+/* Ícone — um pouco maior */
 .weather-strip__icone {
-  font-size: 1.38rem;
+  font-size: 1.55rem;           /* era 1.38rem */
   justify-self: center;
   transition: transform var(--speed) var(--ease-spring);
 }
@@ -1885,29 +1883,40 @@ kbd {
   transform: scale(1.15) rotate(-6deg);
 }
 
-/* Temperatura */
+/* Temperatura — mais legível e com melhor contraste */
 .weather-strip__temp {
-  font-size: 0.82rem;
+  font-size: 0.95rem;           /* era 0.82rem */
   font-weight: 800;
   text-align: right;
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+.weather-strip__temp .wt-max,
+.weather-strip__temp strong {
+  font-weight: 900;
   color: var(--ink);
 }
 
 .weather-strip__temp .wt-min {
+  display: block;
   font-weight: 600;
-  opacity: 0.75;
-  font-size: 0.78rem;
+  font-size: 0.78rem;           /* era 0.78rem, mas agora numa linha própria */
+  color: var(--ink-muted);
+  opacity: 0.85;
+  margin-top: 0.05rem;
 }
 
-/* Legenda */
+/* Legenda — bem mais legível */
 .ws-desc {
   grid-column: 1 / -1;
-  margin-top: 0.15rem;
-  font-size: 0.62rem;
-  font-weight: 800;
-  color: var(--ws-cor, var(--ink-muted));
+  margin-top: 0.2rem;
+  font-size: 0.72rem;           /* era 0.62rem */
+  font-weight: 700;
+  color: var(--ws-cor, var(--ink-soft));
   text-align: center;
-  opacity: 0.9;
+  opacity: 0.95;
+  letter-spacing: 0.01em;
 }
 
 /* Quando não houver espaço na direita, volta pro rodapé */
