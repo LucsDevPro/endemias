@@ -1758,19 +1758,21 @@ kbd {
 }
 
 /* ============================================================
-   PREVISÃO DO TEMPO — Painel vertical ao lado do conteúdo central
+   PREVISÃO DO TEMPO — vertical na direita (fora do conteúdo)
    ============================================================ */
 
 .weather-strip {
   position: fixed;
-  top: 238px;                    /* Ajustado para alinhar com "Sistemas" */
-  right: calc(50% - 490px + 20px); /* Fica colado à direita do painel central */
+  top: 238px; /* alinha com a seção Sistemas — ajuste se precisar */
+  /* Coloca o painel FORA do conteúdo central, à direita */
+  left: calc(50% + (var(--container) / 2) + 16px);
+  right: auto;
   z-index: 40;
 
   display: flex;
   flex-direction: column;
   gap: 0.52rem;
-  width: 182px;
+  width: 178px;
   padding: 0.85rem 0.7rem;
 
   background: rgba(255, 255, 255, 0.72);
@@ -1796,7 +1798,7 @@ kbd {
 @keyframes weatherSlideIn {
   from {
     opacity: 0;
-    transform: translateX(30px);
+    transform: translateX(24px);
   }
   to {
     opacity: 1;
