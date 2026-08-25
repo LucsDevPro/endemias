@@ -88,7 +88,7 @@
     if (!horas || !horas.length) return null;
 
     // dimensões do SVG
-    var W = 260, H = 120;
+    var W = 520, H = 260;
     var padL = 8, padR = 8, padT = 22, padB = 24;
     var gw = W - padL - padR;
     var gh = H - padT - padB;
