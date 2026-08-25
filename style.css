@@ -1763,13 +1763,12 @@ kbd {
 
 .weather-strip {
   position: fixed;
-  top: 50%;
+  top: 245px; /* <--- ALTURA DA SEÇÃO SISTEMAS (Ajuste se precisar) */
   right: 1.2rem;
-  transform: translateY(-50%);
   z-index: 40;
 
   display: flex;
-  flex-direction: column;   /* empilha os dias na vertical */
+  flex-direction: column; 
   flex-wrap: nowrap;
   gap: 0.55rem;
 
@@ -1798,11 +1797,11 @@ kbd {
 @keyframes weatherSlideIn {
   from {
     opacity: 0;
-    transform: translateY(-50%) translateX(40px);
+    transform: translateX(40px); /* Sem o translateY centralizado */
   }
   to {
     opacity: 1;
-    transform: translateY(-50%) translateX(0);
+    transform: translateX(0); /* Sem o translateY centralizado */
   }
 }
 
