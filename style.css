@@ -1758,112 +1758,176 @@ kbd {
 }
 
 /* ============================================================
-   PREVISÃO DO TEMPO — Glass morphism premium
+   PREVISÃO DO TEMPO — Painel vertical flutuante na direita
    ============================================================ */
 
 .weather-strip {
+  position: fixed;
+  top: 50%;
+  right: 1.2rem;
+  transform: translateY(-50%);
+  z-index: 40;
+
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.85rem;
-  margin-top: 1.45rem;
+  flex-direction: column;   /* empilha os dias na vertical */
+  flex-wrap: nowrap;
+  gap: 0.55rem;
+
+  margin: 0;
+  padding: 0.7rem 0.6rem;
+
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 8px 20px -12px rgba(10, 30, 61, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+
+  animation: weatherSlideIn var(--speed-slow) var(--ease-out) 0.4s backwards;
+  transition: box-shadow var(--speed) ease;
+}
+
+.weather-strip:hover {
+  box-shadow:
+    0 16px 36px -16px rgba(0, 126, 202, 0.32),
+    0 0 0 1px rgba(0, 126, 202, 0.1) inset;
+}
+
+@keyframes weatherSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
 }
 
 .weather-strip[hidden] {
   display: none;
 }
 
+/* Título opcional em cima do painel */
+.weather-strip::before {
+  content: "PRÓXIMOS DIAS";
+  display: block;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 0.56rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  color: var(--ink-muted);
+  padding-bottom: 0.15rem;
+  margin-bottom: 0.1rem;
+  border-bottom: 1px solid rgba(223, 231, 242, 0.7);
+}
+
+/* ---- cada dia (compacto, horizontal internamente) ---- */
 .weather-strip__dia {
   position: relative;
-  min-width: 90px;
-  min-height: 118px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: center;
-  gap: 0.3rem;
-  padding: 0.9rem 0.72rem;
-  border-radius: var(--radius-md);
+  gap: 0.5rem;
+
+  min-width: 168px;
+  min-height: 0;
+  padding: 0.5rem 0.6rem;
+
+  border-radius: var(--radius-sm);
   background: var(--gradient-surface);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-xs);
   color: var(--ink-muted);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   cursor: pointer;
+
   transition:
     transform var(--speed) var(--ease-spring),
     box-shadow var(--speed) ease,
     border-color var(--speed) ease;
-  animation: fadeInUp var(--speed-slow) var(--ease-out) backwards;
+
+  animation: fadeInRight var(--speed-slow) var(--ease-out) backwards;
 }
 
-.weather-strip__dia:nth-child(1) { animation-delay: 0s; }
-.weather-strip__dia:nth-child(2) { animation-delay: 0.08s; }
-.weather-strip__dia:nth-child(3) { animation-delay: 0.16s; }
-.weather-strip__dia:nth-child(4) { animation-delay: 0.24s; }
-.weather-strip__dia:nth-child(5) { animation-delay: 0.32s; }
+.weather-strip__dia:nth-child(1) { animation-delay: 0.45s; }
+.weather-strip__dia:nth-child(2) { animation-delay: 0.53s; }
+.weather-strip__dia:nth-child(3) { animation-delay: 0.61s; }
+.weather-strip__dia:nth-child(4) { animation-delay: 0.69s; }
+.weather-strip__dia:nth-child(5) { animation-delay: 0.77s; }
 
+/* barrinha lateral colorida (em vez de topo) */
 .weather-strip__dia::before {
   content: "";
   position: absolute;
   top: 0;
+  bottom: 0;
   left: 0;
-  right: 0;
-  height: 4px;
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  width: 4px;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
   background: var(--ws-cor, var(--blue));
   opacity: 0;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: 
+  transform: scaleY(0);
+  transform-origin: center;
+  transition:
     opacity var(--speed) ease,
     transform var(--speed) var(--ease-spring);
 }
 
 .weather-strip__dia:hover {
-  transform: translateY(-6px) scale(1.03);
+  transform: translateX(-5px) scale(1.03);
   border-color: var(--ws-cor, rgba(0, 126, 202, 0.4));
-  box-shadow: 
-    0 12px 28px -16px var(--ws-cor, rgba(0, 126, 202, 0.35)),
-    0 0 0 1px var(--ws-cor, rgba(0, 126, 202, 0.12)),
-    0 0 0 3px rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 10px 24px -14px var(--ws-cor, rgba(0, 126, 202, 0.4)),
+    0 0 0 1px var(--ws-cor, rgba(0, 126, 202, 0.12));
 }
 
 .weather-strip__dia:hover::before {
   opacity: 1;
-  transform: scaleX(1);
+  transform: scaleY(1);
 }
 
+/* nome do dia (coluna 1) */
 .weather-strip__nome {
+  grid-column: 1;
+  min-width: 34px;
   color: var(--ws-cor, var(--blue));
   font-family: var(--font-display);
-  font-size: 0.73rem;
+  font-size: 0.66rem;
   font-weight: 950;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  text-shadow: 0 1px 2px rgba(0, 126, 202, 0.08);
+  text-align: left;
 }
 
+/* ícone (coluna 2, centralizado) */
 .weather-strip__icone {
+  grid-column: 2;
+  justify-self: center;
   display: inline-block;
-  margin: 0.15rem 0;
-  font-size: 1.6rem;
+  margin: 0;
+  font-size: 1.35rem;
   line-height: 1;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.12));
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.12));
   transition: transform var(--speed) var(--ease-spring);
 }
 
 .weather-strip__dia:hover .weather-strip__icone {
-  transform: translateY(-3px) scale(1.12);
+  transform: scale(1.18) rotate(-4deg);
 }
 
+/* temperatura (coluna 3) */
 .weather-strip__temp {
+  grid-column: 3;
+  text-align: right;
   color: var(--ink-muted);
-  font-size: 0.84rem;
-  line-height: 1.2;
+  font-size: 0.78rem;
+  line-height: 1.15;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .weather-strip__temp strong,
@@ -1878,11 +1942,12 @@ kbd {
   opacity: 0.75;
 }
 
+/* legenda (ocupa a linha toda embaixo) */
 .ws-desc {
-  max-width: 100%;
-  margin-top: 0.05rem;
+  grid-column: 1 / -1;
+  margin-top: 0.1rem;
   color: var(--ws-cor, var(--ink-muted));
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 850;
   line-height: 1.2;
   text-align: center;
@@ -1893,110 +1958,94 @@ kbd {
 }
 
 /* ============================================================
-   RESPONSIVO
+   RESPONSIVO — em telas menores volta pro rodapé (horizontal)
    ============================================================ */
 
-@media (max-width: 840px) {
-  .page {
-    padding-top: 2.6rem;
+@media (max-width: 1180px) {
+  .weather-strip {
+    position: static;
+    transform: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1.45rem;
+    padding: 0;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none;
+    box-shadow: none;
+    animation: none;
   }
 
-  .grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .weather-strip:hover {
+    box-shadow: none;
   }
 
-  .card {
-    min-height: 118px;
+  .weather-strip::before {
+    display: none;   /* remove o título "PRÓXIMOS DIAS" no modo horizontal */
   }
 
   .weather-strip__dia {
-    min-width: 85px;
+    grid-template-columns: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 88px;
+    min-height: 116px;
+    padding: 0.9rem 0.72rem;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow);
+    animation: fadeInUp var(--speed-slow) var(--ease-out) backwards;
+  }
+
+  /* barra volta pro topo no modo horizontal */
+  .weather-strip__dia::before {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: auto;
+    width: auto;
+    height: 4px;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  .weather-strip__dia:hover {
+    transform: translateY(-6px) scale(1.03);
+  }
+
+  .weather-strip__dia:hover::before {
+    transform: scaleX(1);
+  }
+
+  .weather-strip__nome,
+  .weather-strip__icone,
+  .weather-strip__temp {
+    grid-column: auto;
+    text-align: center;
+    justify-self: center;
+  }
+
+  .weather-strip__nome {
+    font-size: 0.73rem;
+    letter-spacing: 0.08em;
+  }
+
+  .weather-strip__icone {
+    margin: 0.15rem 0;
+    font-size: 1.6rem;
+  }
+
+  .weather-strip__temp {
+    font-size: 0.84rem;
   }
 }
 
 @media (max-width: 580px) {
-  body::before {
-    animation: none;
-  }
-
-  .topbar__inner {
-    padding: 0.85rem 1rem;
-  }
-
-  .brand__logo {
-    height: 36px;
-  }
-
-  .brand__name,
-  .brand__divider {
-    display: none;
-  }
-
-  .page {
-    padding: 2.3rem 1rem 2.8rem;
-  }
-
-  .hero {
-    margin-bottom: 1.85rem;
-  }
-
-  .subtitle {
-    font-size: 0.92rem;
-  }
-
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-  }
-
-  .grid-section + .grid-section {
-    margin-top: 2.15rem;
-  }
-
-  .grid-section--destaque {
-    padding: 1.15rem 0.9rem 1.3rem;
-  }
-
-  .card {
-    min-height: 112px;
-    padding: 1rem 0.7rem;
-  }
-
-  .card__icon {
-    width: 42px;
-    height: 42px;
-  }
-
-  .modal-overlay {
-    padding: 0.9rem;
-    align-items: flex-end;
-  }
-
-  .modal {
-    max-height: 92vh;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  }
-
-  .modal__body {
-    padding: 1.1rem;
-  }
-
-  .modal__actions {
-    flex-direction: column;
-  }
-
-  .tool-panel {
-    padding: 1.2rem 1.1rem 1.35rem;
-  }
-
-  .folga-emp {
-    align-items: flex-start;
-  }
-
-  .folga-emp__cargo {
-    max-width: 125px;
-  }
-
   .weather-strip {
     gap: 0.65rem;
   }
@@ -2004,20 +2053,6 @@ kbd {
   .weather-strip__dia {
     flex: 1 1 calc(50% - 0.65rem);
     min-width: 0;
-  }
-}
-
-@media (max-width: 400px) {
-  .grid {
-    gap: 0.6rem;
-  }
-
-  .card__label {
-    font-size: 0.72rem;
-  }
-
-  .weather-strip__dia {
-    padding-inline: 0.6rem;
   }
 }
 
