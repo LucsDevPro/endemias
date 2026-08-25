@@ -1758,50 +1758,49 @@ kbd {
 }
 
 /* ============================================================
-   PREVISÃO DO TEMPO — Painel vertical flutuante na direita
+   PREVISÃO DO TEMPO — Painel vertical ao lado do conteúdo central
    ============================================================ */
 
 .weather-strip {
   position: fixed;
-  top: 245px; /* <--- ALTURA DA SEÇÃO SISTEMAS (Ajuste se precisar) */
-  right: 1.2rem;
+  top: 238px;                    /* Ajustado para alinhar com "Sistemas" */
+  right: calc(50% - 490px + 20px); /* Fica colado à direita do painel central */
   z-index: 40;
 
   display: flex;
-  flex-direction: column; 
-  flex-wrap: nowrap;
-  gap: 0.55rem;
+  flex-direction: column;
+  gap: 0.52rem;
+  width: 182px;
+  padding: 0.85rem 0.7rem;
 
-  margin: 0;
-  padding: 0.7rem 0.6rem;
-
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
   border-radius: var(--radius-lg);
   box-shadow:
-    0 8px 20px -12px rgba(10, 30, 61, 0.28),
-    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+    0 10px 28px -12px rgba(10, 30, 61, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset;
 
-  animation: weatherSlideIn var(--speed-slow) var(--ease-out) 0.4s backwards;
-  transition: box-shadow var(--speed) ease;
+  animation: weatherSlideIn var(--speed-slow) var(--ease-out) 0.3s backwards;
+  transition: all var(--speed) var(--ease-out);
 }
 
 .weather-strip:hover {
+  background: rgba(255, 255, 255, 0.92);
   box-shadow:
-    0 16px 36px -16px rgba(0, 126, 202, 0.32),
-    0 0 0 1px rgba(0, 126, 202, 0.1) inset;
+    0 14px 32px -10px rgba(0, 126, 202, 0.25),
+    0 0 0 1px rgba(0, 126, 202, 0.12) inset;
 }
 
 @keyframes weatherSlideIn {
   from {
     opacity: 0;
-    transform: translateX(40px); /* Sem o translateY centralizado */
+    transform: translateX(30px);
   }
   to {
     opacity: 1;
-    transform: translateX(0); /* Sem o translateY centralizado */
+    transform: translateX(0);
   }
 }
 
@@ -1809,150 +1808,103 @@ kbd {
   display: none;
 }
 
-/* Título opcional em cima do painel */
+/* Título "PRÓXIMOS DIAS" */
 .weather-strip::before {
   content: "PRÓXIMOS DIAS";
   display: block;
   text-align: center;
   font-family: var(--font-display);
-  font-size: 0.56rem;
+  font-size: 0.58rem;
   font-weight: 900;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   color: var(--ink-muted);
-  padding-bottom: 0.15rem;
-  margin-bottom: 0.1rem;
-  border-bottom: 1px solid rgba(223, 231, 242, 0.7);
+  margin-bottom: 0.35rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid rgba(223, 231, 242, 0.75);
 }
 
-/* ---- cada dia (compacto, horizontal internamente) ---- */
+/* Cada dia */
 .weather-strip__dia {
   position: relative;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 42px 1fr auto;
   align-items: center;
-  gap: 0.5rem;
-
-  min-width: 168px;
-  min-height: 0;
-  padding: 0.5rem 0.6rem;
-
-  border-radius: var(--radius-sm);
+  gap: 0.45rem;
+  padding: 0.52rem 0.6rem;
+  border-radius: var(--radius-md);
   background: var(--gradient-surface);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.75);
   box-shadow: var(--shadow-xs);
-  color: var(--ink-muted);
-  font-size: 0.76rem;
-  cursor: pointer;
-
-  transition:
-    transform var(--speed) var(--ease-spring),
-    box-shadow var(--speed) ease,
-    border-color var(--speed) ease;
-
-  animation: fadeInRight var(--speed-slow) var(--ease-out) backwards;
-}
-
-.weather-strip__dia:nth-child(1) { animation-delay: 0.45s; }
-.weather-strip__dia:nth-child(2) { animation-delay: 0.53s; }
-.weather-strip__dia:nth-child(3) { animation-delay: 0.61s; }
-.weather-strip__dia:nth-child(4) { animation-delay: 0.69s; }
-.weather-strip__dia:nth-child(5) { animation-delay: 0.77s; }
-
-/* barrinha lateral colorida (em vez de topo) */
-.weather-strip__dia::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 4px;
-  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-  background: var(--ws-cor, var(--blue));
-  opacity: 0;
-  transform: scaleY(0);
-  transform-origin: center;
-  transition:
-    opacity var(--speed) ease,
-    transform var(--speed) var(--ease-spring);
+  transition: all var(--speed) var(--ease-spring);
 }
 
 .weather-strip__dia:hover {
-  transform: translateX(-5px) scale(1.03);
-  border-color: var(--ws-cor, rgba(0, 126, 202, 0.4));
-  box-shadow:
-    0 10px 24px -14px var(--ws-cor, rgba(0, 126, 202, 0.4)),
-    0 0 0 1px var(--ws-cor, rgba(0, 126, 202, 0.12));
+  transform: translateX(-4px);
+  border-color: var(--ws-cor, var(--blue));
+  box-shadow: var(--shadow-hover);
+}
+
+/* Barrinha lateral colorida */
+.weather-strip__dia::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--ws-cor, var(--blue));
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  transform: scaleY(0.6);
+  transition: transform var(--speed) var(--ease-spring);
 }
 
 .weather-strip__dia:hover::before {
-  opacity: 1;
   transform: scaleY(1);
 }
 
-/* nome do dia (coluna 1) */
+/* Nome do dia */
 .weather-strip__nome {
-  grid-column: 1;
-  min-width: 34px;
-  color: var(--ws-cor, var(--blue));
   font-family: var(--font-display);
-  font-size: 0.66rem;
-  font-weight: 950;
-  letter-spacing: 0.04em;
+  font-size: 0.67rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  color: var(--ws-cor, var(--blue));
   text-transform: uppercase;
-  text-align: left;
 }
 
-/* ícone (coluna 2, centralizado) */
+/* Ícone */
 .weather-strip__icone {
-  grid-column: 2;
+  font-size: 1.38rem;
   justify-self: center;
-  display: inline-block;
-  margin: 0;
-  font-size: 1.35rem;
-  line-height: 1;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.12));
   transition: transform var(--speed) var(--ease-spring);
 }
 
 .weather-strip__dia:hover .weather-strip__icone {
-  transform: scale(1.18) rotate(-4deg);
+  transform: scale(1.15) rotate(-6deg);
 }
 
-/* temperatura (coluna 3) */
+/* Temperatura */
 .weather-strip__temp {
-  grid-column: 3;
+  font-size: 0.82rem;
+  font-weight: 800;
   text-align: right;
-  color: var(--ink-muted);
-  font-size: 0.78rem;
-  line-height: 1.15;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.weather-strip__temp strong,
-.weather-strip__temp .wt-max {
   color: var(--ink);
-  font-weight: 950;
 }
 
 .weather-strip__temp .wt-min {
-  color: var(--ink-muted);
-  font-weight: 700;
+  font-weight: 600;
   opacity: 0.75;
+  font-size: 0.78rem;
 }
 
-/* legenda (ocupa a linha toda embaixo) */
+/* Legenda */
 .ws-desc {
   grid-column: 1 / -1;
-  margin-top: 0.1rem;
+  margin-top: 0.15rem;
+  font-size: 0.62rem;
+  font-weight: 800;
   color: var(--ws-cor, var(--ink-muted));
-  font-size: 0.6rem;
-  font-weight: 850;
-  line-height: 1.2;
   text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   opacity: 0.9;
 }
 
