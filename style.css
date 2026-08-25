@@ -1910,20 +1910,24 @@ kbd {
   opacity: 0.9;
 }
 
-/* ============================================================
-   RESPONSIVO — em telas menores volta pro rodapé (horizontal)
-   ============================================================ */
+/* Quando não houver espaço na direita, volta pro rodapé */
 
-@media (max-width: 1180px) {
+@media (max-width: 1320px) {
   .weather-strip {
     position: static;
+    left: auto;
+    top: auto;
+    width: auto;
     transform: none;
+
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.75rem;
+
     margin-top: 1.45rem;
     padding: 0;
+
     background: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -1937,24 +1941,21 @@ kbd {
   }
 
   .weather-strip::before {
-    display: none;   /* remove o título "PRÓXIMOS DIAS" no modo horizontal */
+    display: none;
   }
 
   .weather-strip__dia {
-    grid-template-columns: none;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.3rem;
+    grid-template-columns: none;
     min-width: 88px;
     min-height: 116px;
     padding: 0.9rem 0.72rem;
     border-radius: var(--radius-md);
     box-shadow: var(--shadow);
-    animation: fadeInUp var(--speed-slow) var(--ease-out) backwards;
   }
 
-  /* barra volta pro topo no modo horizontal */
   .weather-strip__dia::before {
     top: 0;
     left: 0;
@@ -1978,10 +1979,10 @@ kbd {
   .weather-strip__nome,
   .weather-strip__icone,
   .weather-strip__temp {
-    grid-column: auto;
     text-align: center;
     justify-self: center;
   }
+}
 
   .weather-strip__nome {
     font-size: 0.73rem;
