@@ -1,17 +1,24 @@
 // ============================================================
 // Previsão do tempo — Painel de Endemias
 // Versão animada, integrada à identidade visual da Prefeitura
+//
+// ★ Arquivo único e autossuficiente — não precisa mexer em
+//   nenhum outro arquivo (nem CSS, nem HTML).
+//   Só substituir o JS antigo por este.
 // ============================================================
 
 (function () {
   "use strict";
 
+  // Ponta Porã, MS
   var LAT = -22.53;
   var LON = -55.72;
-  var INTERVALO_ATUALIZACAO_MS = 30 * 60 * 1000;
+
+  var INTERVALO_ATUALIZACAO_MS = 30 * 60 * 1000; // 30 min
+
   var DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
-  // [ícone, descrição legenda, classe-anim, cor-destaque]
+  // [ícone, legenda, classe-animação, cor-destaque]
   var CODIGO_TEMPO = {
     0:  ["☀️",  "Céu limpo",     "anim-sol",     "#FFB900"],
     1:  ["🌤️",  "Poucas nuvens", "anim-sol",     "#FFB900"],
@@ -19,7 +26,7 @@
     3:  ["☁️",  "Nublado",       "anim-nuvem",   "#5D6B82"],
     45: ["🌫️",  "Nevoeiro",      "anim-neblina", "#8A96A8"],
     48: ["🌫️",  "Nevoeiro",      "anim-neblina", "#8A96A8"],
-    51: ["🌦️",  "Garoa fraca",   "anim-garoa",   "#64B5F6"],  // garoa = animação própria
+    51: ["🌦️",  "Garoa fraca",   "anim-garoa",   "#64B5F6"],
     53: ["🌦️",  "Garoa",         "anim-garoa",   "#64B5F6"],
     55: ["🌦️",  "Garoa forte",   "anim-garoa",   "#42A5F5"],
     56: ["🌧️",  "Garoa gelada",  "anim-garoa",   "#4DD0E1"],
@@ -43,6 +50,8 @@
     99: ["⛈️",  "C/ granizo",    "anim-tempest", "#5E4FA2"]
   };
 
+  // ---- helpers ----
+
   function nomeDia(isoData, hoje) {
     var p = isoData.split("-");
     var d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
@@ -62,14 +71,15 @@
     requestAnimationFrame(passo);
   }
 
+  // ---- renderização ----
+
   function renderizar(dados) {
     var faixa = document.getElementById("climaFaixa");
-    var wrap = faixa;
-    if (!faixa || !wrap || !dados || !dados.daily) return;
+    if (!faixa || !dados || !dados.daily) return;
 
     var d = dados.daily;
     var hojeIso = d.time[0];
-    wrap.innerHTML = "";
+    faixa.innerHTML = "";
 
     for (var i = 0; i < d.time.length && i < 5; i++) {
       var info   = CODIGO_TEMPO[d.weather_code[i]] || ["🌡️", "—", "", "#5D6B82"];
@@ -90,11 +100,11 @@
           '<strong class="wt-max">' + max + "\u00B0</strong> " +
           '<span class="wt-min">' + min + "\u00B0</span>" +
         "</span>" +
-        // ← legenda embaixo, nova
         '<span class="ws-desc">' + info[1] + "</span>";
 
-      wrap.appendChild(item);
+      faixa.appendChild(item);
 
+      // Contador animado de temperatura
       (function (el, mx, mn, delay) {
         setTimeout(function () {
           var elMax = el.querySelector(".wt-max");
@@ -111,6 +121,8 @@
       window.reajustarEscalaPainel();
     }
   }
+
+  // ---- busca na API ----
 
   function buscar() {
     var url = "https://api.open-meteo.com/v1/forecast" +
@@ -129,14 +141,20 @@
       });
   }
 
+  // ---- inicialização ----
+
   function iniciar() {
     if (!document.getElementById("climaFaixa")) return;
+
     buscar();
     setInterval(buscar, INTERVALO_ATUALIZACAO_MS);
+
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState === "visible") buscar();
     });
   }
+
+  // ---- CSS injetado automaticamente (uma única vez) ----
 
   function injetarCSS() {
     if (document.getElementById("ws-anim-css")) return;
@@ -144,151 +162,151 @@
     s.id = "ws-anim-css";
     s.textContent = [
 
-      /* ---- entrada em cascata ---- */
+      /* ======== ENTRADA EM CASCATA ======== */
       ".ws-anim {",
       "  position: relative;",
       "  animation: wsEntrada .55s cubic-bezier(.34,1.56,.64,1) backwards;",
       "}",
       "@keyframes wsEntrada {",
-      "  from { opacity: 0; transform: translateY(14px) scale(.92); }",
-      "  to   { opacity: 1; transform: translateY(0) scale(1); }",
+      "  from { opacity:0; transform:translateY(14px) scale(.92); }",
+      "  to   { opacity:1; transform:translateY(0) scale(1); }",
       "}",
 
-      /* ---- barrinha colorida no topo ---- */
+      /* ======== BARRINHA COLORIDA NO TOPO ======== */
       ".ws-anim::before {",
-      "  content: '';",
-      "  position: absolute;",
-      "  top: 0; left: 18%; right: 18%;",
-      "  height: 3px;",
-      "  border-radius: 0 0 999px 999px;",
-      "  background: var(--ws-cor);",
-      "  opacity: .85;",
+      "  content:'';",
+      "  position:absolute;",
+      "  top:0; left:18%; right:18%;",
+      "  height:3px;",
+      "  border-radius:0 0 999px 999px;",
+      "  background:var(--ws-cor);",
+      "  opacity:.85;",
       "}",
 
-      /* ---- legenda ---- */
+      /* ======== LEGENDA EMBAIXO ======== */
       ".ws-desc {",
-      "  font-size: 0.62rem;",
-      "  font-weight: 500;",
-      "  color: var(--ws-cor);",
-      "  letter-spacing: 0.01em;",
-      "  text-align: center;",
-      "  line-height: 1.2;",
-      "  margin-top: 0.05rem;",
-      "  opacity: .9;",
-      "  white-space: nowrap;",
-      "  overflow: hidden;",
-      "  text-overflow: ellipsis;",
-      "  max-width: 100%;",
+      "  font-size:.62rem;",
+      "  font-weight:500;",
+      "  color:var(--ws-cor);",
+      "  letter-spacing:.01em;",
+      "  text-align:center;",
+      "  line-height:1.2;",
+      "  margin-top:.05rem;",
+      "  opacity:.9;",
+      "  white-space:nowrap;",
+      "  overflow:hidden;",
+      "  text-overflow:ellipsis;",
+      "  max-width:100%;",
       "}",
 
-      /* ---- HOJE: borda + pulso ---- */
+      /* ======== HOJE ======== */
       ".ws-hoje {",
-      "  border-color: var(--ws-cor) !important;",
+      "  border-color:var(--ws-cor) !important;",
       "  animation: wsEntrada .55s cubic-bezier(.34,1.56,.64,1) backwards,",
       "             wsPulsoHoje 2.4s ease-in-out .8s infinite;",
       "}",
       "@keyframes wsPulsoHoje {",
-      "  0%,100% { box-shadow: var(--shadow); }",
-      "  50%     { box-shadow: 0 0 0 4px rgba(0,126,202,.18), var(--shadow); }",
+      "  0%,100% { box-shadow:var(--shadow); }",
+      "  50%     { box-shadow:0 0 0 4px rgba(0,126,202,.18), var(--shadow); }",
       "}",
 
-      /* ponto piscante no nome do dia de hoje */
+      /* ponto piscante */
       ".ws-hoje .weather-strip__nome::after {",
-      "  content: '';",
-      "  display: inline-block;",
-      "  width: 5px; height: 5px;",
-      "  border-radius: 50%;",
-      "  background: var(--ws-cor);",
-      "  margin-left: 4px;",
-      "  vertical-align: middle;",
-      "  animation: wsPisca 1.6s ease-in-out infinite;",
+      "  content:'';",
+      "  display:inline-block;",
+      "  width:5px; height:5px;",
+      "  border-radius:50%;",
+      "  background:var(--ws-cor);",
+      "  margin-left:4px;",
+      "  vertical-align:middle;",
+      "  animation:wsPisca 1.6s ease-in-out infinite;",
       "}",
       "@keyframes wsPisca {",
-      "  0%,100% { opacity: 1; }",
-      "  50%     { opacity: .2; }",
+      "  0%,100% { opacity:1; }",
+      "  50%     { opacity:.2; }",
       "}",
 
-      /* ---- hover ---- */
+      /* ======== HOVER ======== */
       ".ws-anim:hover {",
-      "  transform: translateY(-4px) scale(1.03);",
-      "  border-color: var(--ws-cor);",
+      "  transform:translateY(-4px) scale(1.03);",
+      "  border-color:var(--ws-cor);",
       "}",
-      ".ws-anim:hover .weather-strip__icone { transform: scale(1.18); }",
+      ".ws-anim:hover .weather-strip__icone {",
+      "  transform:scale(1.18);",
+      "}",
 
-      /* ---- ícone base ---- */
+      /* ======== ÍCONE BASE ======== */
       ".weather-strip__icone {",
-      "  display: inline-block;",
-      "  transform-origin: center;",
-      "  transition: transform .2s ease;",
+      "  display:inline-block;",
+      "  transform-origin:center;",
+      "  transition:transform .2s ease;",
       "}",
 
-      /* ---- temp mínima ---- */
-      ".wt-min { opacity: .7; }",
+      /* ======== TEMP MÍNIMA ======== */
+      ".wt-min { opacity:.7; }",
 
-      /* ---- ☀️ SOL — gira e pulsa devagar ---- */
-      ".anim-sol { animation: wsSol 4s ease-in-out infinite; }",
+      /* ======== ☀️ SOL — gira e pulsa ======== */
+      ".anim-sol { animation:wsSol 4s ease-in-out infinite; }",
       "@keyframes wsSol {",
-      "  0%,100% { transform: scale(1) rotate(0deg); }",
-      "  50%     { transform: scale(1.12) rotate(15deg); }",
+      "  0%,100% { transform:scale(1) rotate(0deg); }",
+      "  50%     { transform:scale(1.12) rotate(15deg); }",
       "}",
 
-      /* ---- ☁️ NUVEM — deriva lateralmente ---- */
-      ".anim-nuvem { animation: wsNuvem 4.5s ease-in-out infinite; }",
+      /* ======== ☁️ NUVEM — flutua ======== */
+      ".anim-nuvem { animation:wsNuvem 4.5s ease-in-out infinite; }",
       "@keyframes wsNuvem {",
-      "  0%,100% { transform: translateX(-2px); }",
-      "  50%     { transform: translateX(2px); }",
+      "  0%,100% { transform:translateX(-2px); }",
+      "  50%     { transform:translateX(2px); }",
       "}",
 
-      /* ----------------------------------------------------------------
-         🌦️ GAROA — movimento muito suave, quase imperceptível
-         Desce só 2px (vs 5px da chuva) e demora 3.5s (vs 1.4s).
-         Transmite "leveza" e diferencia claramente da chuva.
-         ---------------------------------------------------------------- */
-      ".anim-garoa { animation: wsGaroa 3.5s ease-in-out infinite; }",
+      /* ======== 🌦️ GAROA — leve, lenta, quase imperceptível ======== */
+      ".anim-garoa { animation:wsGaroa 3.5s ease-in-out infinite; }",
       "@keyframes wsGaroa {",
-      "  0%,100% { transform: translateY(0) rotate(-1deg); opacity: 1; }",
-      "  50%     { transform: translateY(2px) rotate(1deg); opacity: .82; }",
+      "  0%,100% { transform:translateY(0) rotate(-1deg); opacity:1; }",
+      "  50%     { transform:translateY(2px) rotate(1deg); opacity:.82; }",
       "}",
 
-      /* ---- 🌧️ CHUVA — rápida e mais intensa ---- */
-      ".anim-chuva { animation: wsChuva 1.4s ease-in-out infinite; }",
+      /* ======== 🌧️ CHUVA — rápida e intensa ======== */
+      ".anim-chuva { animation:wsChuva 1.4s ease-in-out infinite; }",
       "@keyframes wsChuva {",
-      "  0%,100% { transform: translateY(0) rotate(-4deg); }",
-      "  50%     { transform: translateY(5px) rotate(4deg); }",
+      "  0%,100% { transform:translateY(0) rotate(-4deg); }",
+      "  50%     { transform:translateY(5px) rotate(4deg); }",
       "}",
 
-      /* ---- 🌨️ NEVE — gira bem devagar ---- */
-      ".anim-neve { animation: wsNeve 10s linear infinite; }",
-      "@keyframes wsNeve { to { transform: rotate(360deg); } }",
+      /* ======== 🌨️ NEVE — gira devagar ======== */
+      ".anim-neve { animation:wsNeve 10s linear infinite; }",
+      "@keyframes wsNeve { to { transform:rotate(360deg); } }",
 
-      /* ---- 🌫️ NEBLINA — respira ---- */
-      ".anim-neblina { animation: wsNeblina 3s ease-in-out infinite; }",
+      /* ======== 🌫️ NEBLINA — respira ======== */
+      ".anim-neblina { animation:wsNeblina 3s ease-in-out infinite; }",
       "@keyframes wsNeblina {",
-      "  0%,100% { opacity: .5; transform: scaleX(1); }",
-      "  50%     { opacity: 1; transform: scaleX(1.06); }",
+      "  0%,100% { opacity:.5; transform:scaleX(1); }",
+      "  50%     { opacity:1;  transform:scaleX(1.06); }",
       "}",
 
-      /* ---- ⛈️ TEMPESTADE — treme ---- */
-      ".anim-tempest { animation: wsTempest .38s ease-in-out infinite; }",
+      /* ======== ⛈️ TEMPESTADE — treme ======== */
+      ".anim-tempest { animation:wsTempest .38s ease-in-out infinite; }",
       "@keyframes wsTempest {",
-      "  0%,100% { transform: translate(0,0); }",
-      "  25%     { transform: translate(-1.5px,1px); }",
-      "  75%     { transform: translate(1.5px,-1px); }",
+      "  0%,100% { transform:translate(0,0); }",
+      "  25%     { transform:translate(-1.5px,1px); }",
+      "  75%     { transform:translate(1.5px,-1px); }",
       "}",
 
-      /* ---- acessibilidade ---- */
-      "@media (prefers-reduced-motion: reduce) {",
+      /* ======== ACESSIBILIDADE ======== */
+      "@media (prefers-reduced-motion:reduce) {",
       "  .ws-anim, .ws-hoje,",
       "  .ws-hoje .weather-strip__nome::after,",
       "  .anim-sol, .anim-nuvem, .anim-garoa, .anim-chuva,",
       "  .anim-neve, .anim-neblina, .anim-tempest {",
-      "    animation: none !important;",
+      "    animation:none !important;",
       "  }",
       "}"
 
     ].join("\n");
     document.head.appendChild(s);
   }
+
+  // ---- boot ----
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () {
