@@ -1921,7 +1921,7 @@ kbd {
 
 /* Quando não houver espaço na direita, volta pro rodapé */
 
-@media (max-width: 1320px) {
+@media (max-width: 1520px) {
   .weather-strip {
     position: static;
     left: auto;
