@@ -94,18 +94,18 @@
   }
 
   const painel = document.createElement('div');
-  painel.style.cssText = 'position:fixed;top:20px;right:20px;width:340px;background:#fff;border:2px solid #2196F3;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,0.25);z-index:999999;font-family:Arial,sans-serif;font-size:13px;padding:14px;max-height:85vh;overflow-y:auto;';
+  painel.style.cssText = 'position:fixed;top:20px;right:20px;width:340px;background:#fff;border:2px solid #2196F3;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,0.25);z-index:999999;font-family:Arial,sans-serif;font-size:14px;padding:14px;max-height:85vh;overflow-y:auto;';
   painel.innerHTML =
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
-      '<div style="font-weight:bold;font-size:15px;color:#2196F3;">🦟 Lançar Ovitrampas</div>' +
-      '<div id="ovi-fechar" style="cursor:pointer;color:#999;font-size:18px;padding:0 4px;">✖</div>' +
+      '<div style="font-weight:bold;font-size:16px;color:#2196F3;">🦟 Lançar Ovitrampas</div>' +
+      '<div id="ovi-fechar" style="cursor:pointer;color:#999;font-size:19px;padding:0 4px;">✖</div>' +
     '</div>' +
     '<div style="margin-bottom:8px;color:#333;">1. Escolha o arquivo da planilha (.xlsx):</div>' +
     '<input type="file" id="ovi-arquivo" accept=".xlsx,.xls,.csv,.tsv" style="width:100%;margin-bottom:10px;" />' +
     '<div id="ovi-status" style="color:#555;margin-bottom:8px;"></div>' +
-    '<button id="ovi-btn-preencher" style="width:100%;padding:10px;margin-bottom:8px;background:#2196F3;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;" disabled>2. Preencher campos na tela</button>' +
-    '<div id="ovi-tabela" style="max-height:220px;overflow-y:auto;margin-bottom:8px;font-size:12px;"></div>' +
-    '<button id="ovi-btn-enviar" style="width:100%;padding:10px;background:#4CAF50;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;" disabled>3. Confirmar e enviar</button>' +
+    '<button id="ovi-btn-preencher" style="width:100%;padding:10px;margin-bottom:8px;background:#2196F3;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;" disabled>2. Preencher campos na tela</button>' +
+    '<div id="ovi-tabela" style="max-height:220px;overflow-y:auto;margin-bottom:8px;font-size:13px;"></div>' +
+    '<button id="ovi-btn-enviar" style="width:100%;padding:10px;background:#4CAF50;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;" disabled>3. Confirmar e enviar</button>' +
     '<div id="ovi-log" style="color:#555;margin-top:8px;white-space:pre-line;"></div>';
   document.body.appendChild(painel);
 

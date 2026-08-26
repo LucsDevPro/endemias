@@ -87,9 +87,9 @@
     var horas = horariosPorDia[isoData];
     if (!horas || !horas.length) return null;
 
-    // dimensões do SVG
-    var W = 520, H = 260;
-    var padL = 8, padR = 8, padT = 22, padB = 24;
+    // dimensões do SVG — tamanho padrão de tooltip (era grande demais)
+    var W = 260, H = 130;
+    var padL = 8, padR = 8, padT = 16, padB = 18;
     var gw = W - padL - padR;
     var gh = H - padT - padB;
 
@@ -324,10 +324,10 @@
 
       /* legenda */
       ".ws-desc {",
-      "  font-size: 0.62rem; font-weight: 500;",
+      "  font-size: 0.88rem; font-weight: 600;",
       "  color: var(--ws-cor); letter-spacing: 0.01em;",
-      "  text-align: center; line-height: 1.2;",
-      "  margin-top: 0.05rem; opacity: .9;",
+      "  text-align: center; line-height: 1.25;",
+      "  margin-top: 0.05rem; opacity: .95;",
       "  white-space: nowrap; overflow: hidden;",
       "  text-overflow: ellipsis; max-width: 100%;",
       "}",
@@ -413,13 +413,13 @@
 
       ".ws-tt-titulo {",
       "  font-family: var(--font-display, sans-serif);",
-      "  font-weight: 700; font-size: 0.72rem;",
+      "  font-weight: 700; font-size: 0.85rem;",
       "  color: var(--ws-cor); text-align: center;",
       "  margin-bottom: 0.15rem; text-transform: uppercase;",
       "  letter-spacing: 0.02em;",
       "}",
       ".ws-tt-hora { font-size: 9px; fill: var(--ink-muted, #5D6B82); }",
-      ".ws-tt-val  { font-size: 9px; font-weight: 700; fill: var(--ink, #0A1E3D); }",
+      ".ws-tt-val  { font-size: 9.5px; font-weight: 700; fill: var(--ink, #0A1E3D); }",
 
       /* acessibilidade */
       "@media (prefers-reduced-motion: reduce) {",
