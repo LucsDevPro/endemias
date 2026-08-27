@@ -1777,7 +1777,7 @@ kbd {
 
 .weather-strip {
   position: fixed;
-  top: 290px;
+  top: 318px;
   left: calc(50% + (var(--container) / 2) + 16px);
   right: auto;
   z-index: 40;
