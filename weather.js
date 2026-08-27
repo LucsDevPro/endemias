@@ -1,5 +1,5 @@
 // ============================================================
-// Previsão do tempo — Painel de Endemias
+// Previsão do tempo — UVZ Connect
 //
 // Open-Meteo (sem chave). Mostra 5 dias + gráfico de temperatura
 // por hora ao passar o mouse (estilo Climatempo).
@@ -89,9 +89,10 @@
     var horas = horariosPorDia[isoData];
     if (!horas || !horas.length) return null;
 
-    // dimensões do SVG — tamanho padrão de tooltip (era grande demais)
-    var W = 260, H = 130;
-    var padL = 8, padR = 8, padT = 16, padB = 18;
+    // dimensões do SVG — compacto, mas com espaço confortável
+    // pro ícone do tempo e a faixa de chance de chuva em cada horário
+    var W = 300, H = 172;
+    var padL = 10, padR = 10, padT = 36, padB = 20;
     var gw = W - padL - padR;
     var gh = H - padT - padB;
 
@@ -104,6 +105,20 @@
     function px(i) { return padL + (n === 1 ? gw / 2 : (i / (n - 1)) * gw); }
     function py(t) { return padT + gh - ((t - minT) / (maxT - minT)) * gh; }
 
+    // faixas de fundo indicando probabilidade de chuva em cada horário
+    // (estilo "clima tempo": quanto mais escura a faixa, maior a chance)
+    var faixasChuva = "";
+    var largColuna = n > 1 ? gw / (n - 1) : gw;
+    for (var f = 0; f < n; f++) {
+      var prob = horas[f].chuva;
+      if (prob < 20) continue;
+      var op = Math.min(0.32, (prob / 100) * 0.4);
+      var xEsq = (px(f) - largColuna / 2).toFixed(1);
+      faixasChuva += '<rect x="' + xEsq + '" y="' + padT + '" width="' +
+        largColuna.toFixed(1) + '" height="' + gh +
+        '" fill="rgba(33,150,243,' + op.toFixed(2) + ')"/>';
+    }
+
     // caminho da linha
     var linha = "";
     var area = "M" + px(0) + "," + (padT + gh);
@@ -115,15 +130,19 @@
     }
     area += " L" + px(n - 1) + "," + (padT + gh) + " Z";
 
-    // pontos + rótulos de hora (só de 3 em 3 pra não poluir)
+    // pontos + ícones/rótulos de hora (só de 3 em 3 pra não poluir)
     var pontos = "";
     var rotulos = "";
     var valores = "";
+    var icones = "";
     for (var j = 0; j < n; j++) {
       var cx = px(j).toFixed(1);
       var cy = py(horas[j].temp).toFixed(1);
       pontos += '<circle cx="' + cx + '" cy="' + cy + '" r="2" fill="' + cor + '"/>';
       if (j % 3 === 0) {
+        var infoHora = CODIGO_TEMPO[horas[j].codigo] || ["🌡️", "", "", cor];
+        icones += '<text x="' + cx + '" y="20" class="ws-tt-icone" ' +
+          'text-anchor="middle">' + infoHora[0] + "</text>";
         rotulos += '<text x="' + cx + '" y="' + (H - 8) +
           '" class="ws-tt-hora" text-anchor="middle">' + horas[j].hora + "h</text>";
         valores += '<text x="' + cx + '" y="' + (parseFloat(cy) - 6) +
@@ -141,10 +160,11 @@
             '<stop offset="100%" stop-color="' + cor + '" stop-opacity="0"/>' +
           '</linearGradient>' +
         '</defs>' +
+        faixasChuva +
         '<path d="' + area + '" fill="url(#wsGrad)"/>' +
         '<path d="' + linha + '" fill="none" stroke="' + cor +
           '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
-        pontos + valores + rotulos +
+        pontos + valores + icones + rotulos +
       "</svg>";
 
     return svg;
@@ -157,7 +177,8 @@
     var tt = garantirTooltip();
     tt.style.setProperty("--ws-cor", cor);
     tt.innerHTML =
-      '<div class="ws-tt-titulo">' + legenda + " &middot; por hora</div>" + svg;
+      '<div class="ws-tt-titulo">' + legenda + " &middot; por hora</div>" + svg +
+      '<div class="ws-tt-legenda"><span><i></i>chance de chuva</span></div>';
     tt.hidden = false;
 
     // posiciona acima do card (ou abaixo se não couber)
@@ -204,11 +225,18 @@
     if (dados.hourly && dados.hourly.time) {
       var ht = dados.hourly.time;
       var htemp = dados.hourly.temperature_2m;
+      var hcod = dados.hourly.weather_code || [];
+      var hchuva = dados.hourly.precipitation_probability || [];
       for (var k = 0; k < ht.length; k++) {
         var iso = ht[k].slice(0, 10);      // "YYYY-MM-DD"
         var hh = parseInt(ht[k].slice(11, 13), 10); // hora
         if (!horariosPorDia[iso]) horariosPorDia[iso] = [];
-        horariosPorDia[iso].push({ hora: hh, temp: htemp[k] });
+        horariosPorDia[iso].push({
+          hora: hh,
+          temp: htemp[k],
+          codigo: hcod[k],
+          chuva: hchuva[k] || 0
+        });
       }
     }
 
@@ -290,7 +318,7 @@
     var url = "https://api.open-meteo.com/v1/forecast" +
       "?latitude=" + LAT + "&longitude=" + LON +
       "&daily=weather_code,temperature_2m_max,temperature_2m_min" +
-      "&hourly=temperature_2m" +          // ← dados por hora p/ o gráfico
+      "&hourly=temperature_2m,weather_code,precipitation_probability" +
       "&timezone=America%2FCampo_Grande&forecast_days=5";
 
     fetch(url, { cache: "no-store" })
@@ -438,8 +466,21 @@
       "  margin-bottom: 0.15rem; text-transform: uppercase;",
       "  letter-spacing: 0.02em;",
       "}",
-      ".ws-tt-hora { font-size: 9px; fill: var(--ink-muted, #5D6B82); }",
-      ".ws-tt-val  { font-size: 9.5px; font-weight: 700; fill: var(--ink, #0A1E3D); }",
+      ".ws-tt-hora { font-size: 10px; fill: var(--ink-muted, #5D6B82); }",
+      ".ws-tt-val  { font-size: 10.5px; font-weight: 700; fill: var(--ink, #0A1E3D); }",
+      ".ws-tt-icone { font-size: 13px; }",
+      ".ws-tt-legenda {",
+      "  display: flex; align-items: center; justify-content: center;",
+      "  gap: 0.3rem; margin-top: 0.1rem;",
+      "  font-size: 0.68rem; color: var(--ink-muted, #5D6B82);",
+      "}",
+      ".ws-tt-legenda span {",
+      "  display: inline-flex; align-items: center; gap: 0.18rem;",
+      "}",
+      ".ws-tt-legenda i {",
+      "  width: 8px; height: 8px; border-radius: 2px;",
+      "  background: rgba(33,150,243,.35); display: inline-block;",
+      "}",
 
       /* acessibilidade */
       "@media (prefers-reduced-motion: reduce) {",

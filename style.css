@@ -415,8 +415,10 @@ textarea {
   max-width: 52ch;
   margin: 0 auto;
   color: var(--ink-muted);
-  font-size: 1.1rem;
-  line-height: 1.7;
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.6;
   opacity: 0;
   animation: fadeIn var(--speed) ease 0.6s forwards;
 }

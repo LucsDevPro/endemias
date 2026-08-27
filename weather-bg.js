@@ -1,5 +1,5 @@
 // ============================================================
-// Efeito de fundo climático — Painel - UVZ
+// Efeito de fundo climático — UVZ Connect
 //
 // Aplica no fundo do site inteiro (todas as páginas) um efeito
 // visual sutil de acordo com o tempo atual em Ponta Porã:
