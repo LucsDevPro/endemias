@@ -67,13 +67,21 @@
       "  50% { transform: translateX(2.5%); }",
       "}",
       "body[data-clima-bg='tempestade'] { animation: none; }",
+      "body[data-clima-bg='tempestade'] .uvz-clima-tint {",
+      "  background: radial-gradient(circle at 50% 0%, rgba(40,50,75,.16) 0%, transparent 60%);",
+      "  animation: uvzTempestadeRespira 5s ease-in-out infinite;",
+      "}",
+      "@keyframes uvzTempestadeRespira {",
+      "  0%, 100% { opacity: .55; } 50% { opacity: 1; }",
+      "}",
       ".uvz-relampago {",
       "  position: fixed; inset: 0; z-index: 0; pointer-events: none;",
       "  background: #fff; opacity: 0; mix-blend-mode: overlay;",
       "}",
       "@media (prefers-reduced-motion: reduce) {",
       "  body[data-clima-bg='sol'] .uvz-clima-tint,",
-      "  body[data-clima-bg='neblina'] .uvz-clima-tint { animation: none; }",
+      "  body[data-clima-bg='neblina'] .uvz-clima-tint,",
+      "  body[data-clima-bg='tempestade'] .uvz-clima-tint { animation: none; }",
       "}"
     ].join("\n");
     document.head.appendChild(s);
@@ -162,20 +170,90 @@
       }
     }
 
+    if (cat === "tempestade" && raioAtivo) desenharRaio();
+
     raf = requestAnimationFrame(passo);
+  }
+
+  // ------------------------------------------------------------
+  // Raio desenhado (zigue-zague) + clarão na tela — tempestade
+  // ------------------------------------------------------------
+  var raioAtivo = null;
+
+  function gerarTracoRaio() {
+    var pontos = [];
+    var x = w * (0.15 + Math.random() * 0.7);
+    var y = 0;
+    var alturaFinal = h * (0.45 + Math.random() * 0.4);
+    pontos.push({ x: x, y: y });
+    while (y < alturaFinal) {
+      y += 22 + Math.random() * 30;
+      x += (Math.random() - 0.5) * 70;
+      pontos.push({ x: x, y: Math.min(y, alturaFinal) });
+    }
+    // ramo secundário, mais curto, saindo de um ponto do meio
+    var ramo = null;
+    if (Math.random() < 0.6 && pontos.length > 3) {
+      var origem = pontos[Math.floor(pontos.length / 2)];
+      ramo = [{ x: origem.x, y: origem.y }];
+      var rx = origem.x, ry = origem.y;
+      var alvo = ry + h * (0.12 + Math.random() * 0.15);
+      while (ry < alvo) {
+        ry += 18 + Math.random() * 22;
+        rx += (Math.random() - 0.5) * 55;
+        ramo.push({ x: rx, y: Math.min(ry, alvo) });
+      }
+    }
+    return { principal: pontos, ramo: ramo };
+  }
+
+  function desenharTraco(pontos, opacidade, largura) {
+    ctx.save();
+    ctx.strokeStyle = "rgba(255,255,255," + opacidade + ")";
+    ctx.shadowColor = "rgba(190,210,255,0.9)";
+    ctx.shadowBlur = 14;
+    ctx.lineWidth = largura;
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(pontos[0].x, pontos[0].y);
+    for (var i = 1; i < pontos.length; i++) ctx.lineTo(pontos[i].x, pontos[i].y);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function desenharRaio() {
+    var decorrido = performance.now() - raioAtivo.inicio;
+    if (decorrido > raioAtivo.duracao) { raioAtivo = null; return; }
+    // clarão rápido: pico logo no início, esmaece depressa
+    var prog = decorrido / raioAtivo.duracao;
+    var opacidade = Math.max(0, 1 - prog * prog * 1.3);
+    desenharTraco(raioAtivo.tracos.principal, opacidade, 2.4);
+    if (raioAtivo.tracos.ramo) desenharTraco(raioAtivo.tracos.ramo, opacidade * 0.75, 1.6);
+  }
+
+  function dispararRelampago() {
+    relampagoEl.style.transition = "none";
+    relampagoEl.style.opacity = String(0.4 + Math.random() * 0.35);
+    requestAnimationFrame(function () {
+      relampagoEl.style.transition = "opacity .5s ease-out";
+      relampagoEl.style.opacity = "0";
+    });
+    raioAtivo = { inicio: performance.now(), duracao: 260, tracos: gerarTracoRaio() };
   }
 
   var proximoRelampago = 0;
   function loopTempestade(t) {
     if (cat !== "tempestade") return;
     if (t > proximoRelampago) {
-      relampagoEl.style.transition = "none";
-      relampagoEl.style.opacity = "0.55";
-      requestAnimationFrame(function () {
-        relampagoEl.style.transition = "opacity .6s ease-out";
-        relampagoEl.style.opacity = "0";
-      });
-      proximoRelampago = t + 6000 + Math.random() * 9000;
+      dispararRelampago();
+      // ~40% de chance de um segundo clarão logo em seguida (raio duplo)
+      if (Math.random() < 0.4) {
+        setTimeout(function () {
+          if (cat === "tempestade") dispararRelampago();
+        }, 90 + Math.random() * 160);
+      }
+      // intervalo bem mais curto e variável — trovoada mais intensa
+      proximoRelampago = t + 2200 + Math.random() * 4500;
     }
     requestAnimationFrame(loopTempestade);
   }
