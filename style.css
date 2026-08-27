@@ -1876,6 +1876,26 @@ kbd {
   transform: scaleY(1);
 }
 
+/* Card com o tema do dia ativo no fundo do site */
+.weather-strip__dia.ws-selecionado {
+  border-color: var(--ws-cor, var(--blue));
+  box-shadow: var(--shadow-hover), 0 0 0 2px var(--ws-cor, var(--blue));
+  background: var(--gradient-surface-strong, var(--gradient-surface));
+}
+
+.weather-strip__dia.ws-selecionado::before {
+  transform: scaleY(1);
+  width: 5px;
+}
+
+.weather-strip__dia.ws-selecionado .weather-strip__nome::after {
+  content: "●";
+  margin-left: 0.35em;
+  font-size: 0.6em;
+  vertical-align: middle;
+  color: var(--ws-cor, var(--blue));
+}
+
 /* Nome do dia — bem mais legível */
 .weather-strip__nome {
   font-family: var(--font-display);

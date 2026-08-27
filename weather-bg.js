@@ -83,6 +83,7 @@
   // Canvas de partículas (chuva / garoa / tempestade / neve)
   // ------------------------------------------------------------
   var canvas, ctx, gotas = [], relampagoEl, w, h, cat, raf;
+  var codigoAoVivo = null;
 
   function montarCamadas() {
     var tint = document.createElement("div");
@@ -213,6 +214,7 @@
     try {
       var cache = JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null");
       if (cache && Date.now() - cache.t < CACHE_MS) {
+        codigoAoVivo = cache.codigo;
         aplicar(cache.codigo);
         return;
       }
@@ -229,6 +231,7 @@
         try {
           sessionStorage.setItem(CACHE_KEY, JSON.stringify({ codigo: codigo, t: Date.now() }));
         } catch (e) { /* ignora */ }
+        codigoAoVivo = codigo;
         aplicar(codigo);
       })
       .catch(function (err) {
@@ -250,6 +253,21 @@
       }
     });
   }
+
+  // ------------------------------------------------------------
+  // API pública — permite que outro script (ex.: o card do dia
+  // na faixa de previsão) troque o tema do fundo manualmente
+  // ------------------------------------------------------------
+  window.uvzClimaBg = {
+    // aplica o tema de um código de tempo específico (ex.: previsão de um dia)
+    mostrarPrevisao: function (codigo) {
+      aplicar(codigo);
+    },
+    // volta para o tempo real (o último valor buscado da API)
+    mostrarAtual: function () {
+      if (codigoAoVivo !== null) aplicar(codigoAoVivo);
+    }
+  };
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", iniciar);

@@ -48,6 +48,8 @@
 
   // guarda os dados por hora entre buscas (chave = "YYYY-MM-DD")
   var horariosPorDia = {};
+  // card do dia que está com o tema aplicado no fundo do site
+  var elementoTemaSelecionado = null;
 
   function nomeDia(isoData, hoje) {
     var p = isoData.split("-");
@@ -211,6 +213,7 @@
     }
 
     wrap.innerHTML = "";
+    elementoTemaSelecionado = null;
 
     for (var i = 0; i < d.time.length && i < 5; i++) {
       var info   = CODIGO_TEMPO[d.weather_code[i]] || ["🌡️", "—", "", "#5D6B82"];
@@ -236,8 +239,8 @@
 
       wrap.appendChild(item);
 
-      // eventos de hover para o gráfico
-      (function (el, isoDia, cor, legenda) {
+      // eventos de hover para o gráfico + clique aplica o tema do dia no fundo
+      (function (el, isoDia, cor, legenda, codigoTempo) {
         el.addEventListener("mouseenter", function () {
           mostrarTooltip(isoDia, cor, legenda, el);
         });
@@ -246,8 +249,25 @@
         el.addEventListener("click", function () {
           if (tooltipEl && !tooltipEl.hidden) esconderTooltip();
           else mostrarTooltip(isoDia, cor, legenda, el);
+
+          // clicar de novo no mesmo dia volta ao tempo real; clicar em
+          // outro dia troca o tema do fundo do site para o daquele dia
+          if (window.uvzClimaBg) {
+            if (elementoTemaSelecionado === el) {
+              el.classList.remove("ws-selecionado");
+              elementoTemaSelecionado = null;
+              window.uvzClimaBg.mostrarAtual();
+            } else {
+              if (elementoTemaSelecionado) {
+                elementoTemaSelecionado.classList.remove("ws-selecionado");
+              }
+              el.classList.add("ws-selecionado");
+              elementoTemaSelecionado = el;
+              window.uvzClimaBg.mostrarPrevisao(codigoTempo);
+            }
+          }
         });
-      })(item, iso, info[3], info[1]);
+      })(item, iso, info[3], info[1], d.weather_code[i]);
 
       (function (el, mx, mn, delay) {
         setTimeout(function () {
