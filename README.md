@@ -70,7 +70,7 @@ Visual institucional em tema claro, com as cores da logo da Prefeitura de Ponta 
 
 Os dois geradores usam a mesma técnica, comprovadamente simples: um `.docx` é, por dentro, um arquivo `.zip` com XML. O `docx-utils.js`:
 
-1. Abre o `.docx` modelo com o **[JSZip](https://stuk.github.io/jszip/)** (única biblioteca externa, carregada via CDN — por isso é necessário estar com internet ao gerar o documento).
+1. Abre o `.docx` modelo com o **[JSZip](https://stuk.github.io/jszip/)** (única biblioteca externa; um build oficial dela vem empacotado no arquivo `jszip.local.js` do próprio projeto — não depende de internet nem de CDN pra gerar o documento).
 2. Lê o XML do documento (e cabeçalhos/rodapés) e troca as tags pelo valor preenchido no formulário.
 3. No caso da Folga, antes disso ele localiza a linha da tabela que contém `<<nome>>` e a duplica — uma cópia por funcionário selecionado, cada uma com suas próprias tags trocadas — depois recoloca essas linhas no lugar da linha-modelo.
 4. Gera o `.docx` final (com compressão, para o Word não reclamar de arquivo corrompido) e dispara o download.

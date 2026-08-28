@@ -236,7 +236,7 @@
     if (!texto) { setStatus("Escreva ou dite o texto da comunicação.", true); return; }
 
     if (typeof window.JSZip === "undefined" || typeof window.DocxUtils === "undefined") {
-      setStatus("Não foi possível carregar os componentes de geração de documento (verifique a conexão com a internet).", true);
+      setStatus("Não foi possível carregar os componentes de geração de documento (verifique se o arquivo jszip.local.js está publicado junto com o site).", true);
       return;
     }
 
