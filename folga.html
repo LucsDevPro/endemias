@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gerador de Folga — UVZ Connect</title>
+<title>Folga — UVZ Connect</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
@@ -25,7 +25,7 @@
 <main class="page page--tool">
 
   <div class="hero">
-    <h1 class="title">Gerador de Folga</h1>
+    <h1 class="title">Folga</h1>
     <p class="subtitle">Preenche o modelo de Comunicação Interna com a lista de funcionários e as datas de folga.</p>
   </div>
 
@@ -70,8 +70,19 @@
       <h3 class="folga-section__title">Adicionar data aos selecionados</h3>
       <div class="folga-row">
         <input type="date" id="folgaData" class="folga-input">
+
+        <label class="folga-periodo">
+          <input type="checkbox" id="folgaPeriodoMatutino">
+          <span>Matutino</span>
+        </label>
+        <label class="folga-periodo">
+          <input type="checkbox" id="folgaPeriodoVespertino">
+          <span>Vespertino</span>
+        </label>
+
         <button type="button" id="folgaAddData" class="folga-btn">Adicionar data</button>
       </div>
+      <p class="folga-periodo__ajuda">Deixe as duas caixas desmarcadas para folga o dia todo.</p>
     </section>
 
     <section class="folga-section">
@@ -89,7 +100,7 @@
   </div>
 
   <footer class="foot">
-    <p>Gerador de Folga — Prefeitura Municipal de Ponta Porã. A lista de funcionários fica salva só neste navegador.</p>
+    <p>Folga — Prefeitura Municipal de Ponta Porã. A lista de funcionários fica salva só neste navegador.</p>
   </footer>
 
 </main>

@@ -97,6 +97,7 @@
   var state = {
     funcionarios: {},   // nome -> cargo
     selecoes: {},       // nome -> [dd/mm/yyyy, ...]
+    marcados: {},        // nome -> true (checkbox marcado, sobrevive a busca/filtro)
     filtroTexto: "",
     filtroCargo: "Todos"
   };
@@ -135,6 +136,13 @@
     return partes[2] + "/" + partes[1] + "/" + partes[0];
   }
 
+  // sufixo do período: "" (dia todo), " (matutino)" ou " (vespertino)"
+  function sufixoPeriodo() {
+    if (dom.periodoMatutino && dom.periodoMatutino.checked) return " (matutino)";
+    if (dom.periodoVespertino && dom.periodoVespertino.checked) return " (vespertino)";
+    return "";
+  }
+
   function compararDatasBR(a, b) {
     function toDate(s) {
       var p = s.split("/");
@@ -164,6 +172,8 @@
     dom.novoCargo = document.getElementById("folgaNovoCargo");
     dom.addFuncionario = document.getElementById("folgaAddFuncionario");
     dom.data = document.getElementById("folgaData");
+    dom.periodoMatutino = document.getElementById("folgaPeriodoMatutino");
+    dom.periodoVespertino = document.getElementById("folgaPeriodoVespertino");
     dom.addData = document.getElementById("folgaAddData");
     dom.preview = document.getElementById("folgaPreview");
     dom.limpar = document.getElementById("folgaLimpar");
@@ -218,6 +228,11 @@
       check.type = "checkbox";
       check.className = "folga-emp__check";
       check.dataset.nome = nome;
+      check.checked = !!state.marcados[nome];
+      check.addEventListener("change", function () {
+        if (check.checked) state.marcados[nome] = true;
+        else delete state.marcados[nome];
+      });
 
       var nomeSpan = el("span", "folga-emp__nome", nome);
 
@@ -236,6 +251,7 @@
         if (confirm("Remover \"" + nome + "\" da lista de funcionários?")) {
           delete state.funcionarios[nome];
           delete state.selecoes[nome];
+          delete state.marcados[nome];
           salvarFuncionarios();
           renderListaFuncionarios();
           renderPreview();
@@ -304,9 +320,7 @@
   // ---------------- Ações ----------------
 
   function funcionariosMarcados() {
-    return Array.prototype.slice.call(dom.lista.querySelectorAll(".folga-emp__check:checked")).map(function (c) {
-      return c.dataset.nome;
-    });
+    return Object.keys(state.marcados);
   }
 
   function adicionarData() {
@@ -319,7 +333,7 @@
       setStatus("Escolha uma data.", true);
       return;
     }
-    var dataBR = dataInputParaBR(dom.data.value);
+    var dataBR = dataInputParaBR(dom.data.value) + sufixoPeriodo();
     marcados.forEach(function (nome) {
       if (!state.selecoes[nome]) state.selecoes[nome] = [];
       if (state.selecoes[nome].indexOf(dataBR) === -1) state.selecoes[nome].push(dataBR);
@@ -343,9 +357,9 @@
 
   function limparTudo() {
     state.selecoes = {};
+    state.marcados = {};
+    renderListaFuncionarios();
     renderPreview();
-    var checks = dom.lista.querySelectorAll(".folga-emp__check:checked");
-    checks.forEach(function (c) { c.checked = false; });
     setStatus("", false);
   }
 
@@ -368,6 +382,7 @@
         var obj = JSON.parse(reader.result);
         if (typeof obj !== "object" || obj === null || Array.isArray(obj)) throw new Error("formato inválido");
         state.funcionarios = obj;
+        limparMarcadosOrfaos();
         salvarFuncionarios();
         renderListaFuncionarios();
         setStatus("Lista importada com sucesso.", false);
@@ -383,9 +398,17 @@
     var obj = {};
     FUNCIONARIOS_PADRAO.forEach(function (par) { obj[par[0]] = par[1]; });
     state.funcionarios = obj;
+    limparMarcadosOrfaos();
     salvarFuncionarios();
     renderListaFuncionarios();
     setStatus("Lista restaurada para o padrão.", false);
+  }
+
+  // remove do "marcados" quem não existe mais na lista de funcionários
+  function limparMarcadosOrfaos() {
+    Object.keys(state.marcados).forEach(function (nome) {
+      if (!state.funcionarios[nome]) delete state.marcados[nome];
+    });
   }
 
   function setStatus(msg, erro) {
@@ -496,7 +519,16 @@
 
     dom.addFuncionario.addEventListener("click", adicionarFuncionario);
     dom.addData.addEventListener("click", adicionarData);
-    dom.limpar.addEventListener("click", limparTudo);
+
+    // matutino e vespertino são mutuamente exclusivos — marcar um desmarca o outro
+    if (dom.periodoMatutino && dom.periodoVespertino) {
+      dom.periodoMatutino.addEventListener("change", function () {
+        if (dom.periodoMatutino.checked) dom.periodoVespertino.checked = false;
+      });
+      dom.periodoVespertino.addEventListener("change", function () {
+        if (dom.periodoVespertino.checked) dom.periodoMatutino.checked = false;
+      });
+    }    dom.limpar.addEventListener("click", limparTudo);
     dom.gerar.addEventListener("click", gerarDocumento);
     dom.exportar.addEventListener("click", exportarLista);
     dom.restaurar.addEventListener("click", restaurarPadrao);

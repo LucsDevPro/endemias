@@ -1132,6 +1132,50 @@ textarea {
   font-weight: 600;
 }
 
+/* Período da folga — matutino / vespertino (checkbox ao lado da data) */
+.folga-periodo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.62rem 0.85rem;
+  border: 1.5px solid rgba(223, 231, 242, 0.9);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    border-color var(--speed) ease,
+    background var(--speed) ease,
+    box-shadow var(--speed) ease;
+}
+
+.folga-periodo:hover {
+  border-color: rgba(0, 126, 202, 0.3);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.folga-periodo input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--blue, #007ECA);
+  cursor: pointer;
+}
+
+.folga-periodo:has(input:checked) {
+  border-color: var(--blue, #007ECA);
+  background: rgba(0, 126, 202, 0.08);
+  box-shadow: 0 0 0 3px rgba(0, 126, 202, 0.12);
+}
+
+.folga-periodo__ajuda {
+  margin: -0.2rem 0 0.65rem;
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+}
+
 .folga-list {
   max-height: 240px;
   overflow-y: auto;
