@@ -175,6 +175,8 @@
     dom.periodoMatutino = document.getElementById("folgaPeriodoMatutino");
     dom.periodoVespertino = document.getElementById("folgaPeriodoVespertino");
     dom.addData = document.getElementById("folgaAddData");
+    dom.desmarcar = document.getElementById("folgaDesmarcar");
+    dom.resumoSelecao = document.getElementById("folgaResumoSelecao");
     dom.preview = document.getElementById("folgaPreview");
     dom.limpar = document.getElementById("folgaLimpar");
     dom.gerar = document.getElementById("folgaGerar");
@@ -232,6 +234,7 @@
       check.addEventListener("change", function () {
         if (check.checked) state.marcados[nome] = true;
         else delete state.marcados[nome];
+        atualizarResumoSelecao();
       });
 
       var nomeSpan = el("span", "folga-emp__nome", nome);
@@ -323,6 +326,26 @@
     return Object.keys(state.marcados);
   }
 
+  // mostra quem está marcado agora, bem visível antes de "Adicionar data"
+  function atualizarResumoSelecao() {
+    if (!dom.resumoSelecao) return;
+    var nomes = Object.keys(state.marcados).sort();
+    if (nomes.length === 0) {
+      dom.resumoSelecao.textContent = "Nenhum funcionário selecionado.";
+      dom.resumoSelecao.classList.remove("folga-selecao--ativa");
+      return;
+    }
+    var rotulo = nomes.length === 1 ? "Selecionado: " : nomes.length + " selecionados: ";
+    dom.resumoSelecao.textContent = rotulo + nomes.join(", ");
+    dom.resumoSelecao.classList.add("folga-selecao--ativa");
+  }
+
+  function desmarcarSelecao() {
+    state.marcados = {};
+    renderListaFuncionarios();
+    atualizarResumoSelecao();
+  }
+
   function adicionarData() {
     var marcados = funcionariosMarcados();
     if (marcados.length === 0) {
@@ -338,8 +361,9 @@
       if (!state.selecoes[nome]) state.selecoes[nome] = [];
       if (state.selecoes[nome].indexOf(dataBR) === -1) state.selecoes[nome].push(dataBR);
     });
+
     renderPreview();
-    setStatus("Data adicionada para " + marcados.length + " funcionário(s).", false);
+    setStatus("Data adicionada para " + marcados.length + " funcionário(s). A seleção continua marcada — desmarque manualmente antes de escolher outro agente.", false);
   }
 
   function adicionarFuncionario() {
@@ -360,6 +384,7 @@
     state.marcados = {};
     renderListaFuncionarios();
     renderPreview();
+    atualizarResumoSelecao();
     setStatus("", false);
   }
 
@@ -506,6 +531,7 @@
     renderFiltroCargo();
     renderListaFuncionarios();
     renderPreview();
+    atualizarResumoSelecao();
     setStatus("", false);
 
     dom.busca.addEventListener("input", function () {
@@ -519,6 +545,7 @@
 
     dom.addFuncionario.addEventListener("click", adicionarFuncionario);
     dom.addData.addEventListener("click", adicionarData);
+    if (dom.desmarcar) dom.desmarcar.addEventListener("click", desmarcarSelecao);
 
     // matutino e vespertino são mutuamente exclusivos — marcar um desmarca o outro
     if (dom.periodoMatutino && dom.periodoVespertino) {

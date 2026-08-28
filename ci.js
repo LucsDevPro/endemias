@@ -7,12 +7,22 @@
 // e a maioria dos navegadores baseados em Chromium) — não passa
 // por nenhum servidor, então não precisa de configuração.
 //
-// O botão "✨ Melhorar texto" é opcional: só aparece funcional
-// se CI_CONFIG.AI_ENDPOINT_URL estiver configurado (ci-config.js)
-// apontando para um Google Apps Script que chama uma IA com a
-// chave protegida no lado do Google (nunca no site). Sem isso
-// configurado, dá pra digitar o Assunto e revisar o Texto à mão
-// normalmente — o gerador de documento funciona de qualquer jeito.
+// O botão "✨ Melhorar texto" tem dois níveis:
+//
+// 1) Correção ortográfica/gramatical automática via LanguageTool
+//    (api.languagetool.org) — serviço público e gratuito, sem
+//    chave nenhuma, funciona direto do navegador sem configurar
+//    nada. Só corrige erros de escrita, não reescreve o texto
+//    nem sugere assunto.
+//
+// 2) Se CI_CONFIG.AI_ENDPOINT_URL estiver configurado (ci-config.js),
+//    usa isso em vez do LanguageTool: aponta pra um Google Apps
+//    Script que chama uma IA generativa (Gemini) com a chave
+//    protegida no lado do Google — nunca no site — e além de
+//    corrigir também reescreve o texto e sugere o assunto.
+//
+// Sem nenhum dos dois, dá pra digitar o Assunto e revisar o Texto
+// à mão normalmente — o gerador de documento funciona de qualquer jeito.
 // ============================================================
 
 (function () {
@@ -120,11 +130,71 @@
       dom.iaStatus.textContent = "Escreva ou dite o texto antes de melhorar.";
       return;
     }
-    if (!iaConfigurada()) {
-      dom.iaStatus.textContent = "Melhoria por IA não configurada — revise e digite o assunto manualmente.";
-      return;
-    }
 
+    if (iaConfigurada()) {
+      melhorarComGemini(texto);
+    } else {
+      corrigirComLanguageTool(texto);
+    }
+  }
+
+  // -------- Nível 1: correção ortográfica/gramatical gratuita --------
+  // api.languagetool.org — serviço público, sem chave, sem cadastro.
+  // Só corrige erros de escrita; não reescreve o texto nem sugere assunto.
+  function corrigirComLanguageTool(texto) {
+    dom.melhorar.disabled = true;
+    dom.iaStatus.textContent = "Corrigindo ortografia e gramática...";
+
+    var params = new URLSearchParams();
+    params.set("text", texto);
+    params.set("language", "pt-BR");
+
+    fetch("https://api.languagetool.org/v2/check", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString()
+    })
+      .then(function (resp) {
+        if (!resp.ok) throw new Error("resposta " + resp.status);
+        return resp.json();
+      })
+      .then(function (dados) {
+        var matches = (dados && dados.matches) || [];
+        if (!matches.length) {
+          dom.iaStatus.textContent = "Nenhum erro de ortografia/gramática encontrado.";
+          return;
+        }
+
+        // aplica as correções de trás pra frente, pra não bagunçar
+        // os índices (offset) dos erros seguintes
+        var corrigido = texto;
+        var aplicadas = 0;
+        matches
+          .slice()
+          .sort(function (a, b) { return b.offset - a.offset; })
+          .forEach(function (m) {
+            if (!m.replacements || !m.replacements.length) return;
+            var valor = m.replacements[0].value;
+            corrigido = corrigido.slice(0, m.offset) + valor + corrigido.slice(m.offset + m.length);
+            aplicadas++;
+          });
+
+        dom.texto.value = corrigido;
+        dom.iaStatus.textContent = aplicadas > 0
+          ? aplicadas + " correção(ões) de ortografia/gramática aplicada(s) — confira o texto e preencha o assunto."
+          : "Erros encontrados, mas sem sugestão automática — revise manualmente.";
+      })
+      .catch(function (err) {
+        console.error(err);
+        dom.iaStatus.textContent = "Não foi possível corrigir agora (verifique a internet e tente de novo).";
+      })
+      .finally(function () {
+        dom.melhorar.disabled = false;
+      });
+  }
+
+  // -------- Nível 2: reescrita + assunto via IA generativa (opcional) --------
+  function melhorarComGemini(texto) {
     dom.melhorar.disabled = true;
     dom.iaStatus.textContent = "Melhorando o texto com IA...";
 
@@ -223,7 +293,7 @@
     configurarMicrofone();
 
     if (!iaConfigurada()) {
-      dom.iaStatus.textContent = "Melhoria por IA não configurada neste site — preencha o assunto manualmente.";
+      dom.iaStatus.textContent = "Corrige ortografia e gramática automaticamente — reescrita e sugestão de assunto por IA não configuradas.";
     }
 
     dom.melhorar.addEventListener("click", melhorarTexto);
