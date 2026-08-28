@@ -9,8 +9,8 @@
 (function () {
   "use strict";
 
-  var LAT = -22.32;
-  var LON = -55.43;
+  var LAT = -22.6258;
+  var LON = -55.6268;
   var INTERVALO_ATUALIZACAO_MS = 30 * 60 * 1000;
   var DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
