@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Folga — UVZ Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="tema.css">
+<link rel="stylesheet" href="tema-claro.css">
+<script src="tema-toggle.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar__inner">
+    <div class="brand">
+      <img class="brand__logo brand__logo--claro-sobre-escuro" src="assets/logo-ponta-pora-claro.png" alt="Prefeitura Municipal de Ponta Porã">
+      <img class="brand__logo brand__logo--original" src="assets/logo-ponta-pora.png" alt="" aria-hidden="true">
+      <span class="brand__divider" aria-hidden="true"></span>
+      <span class="brand__name">Setor de Endemias e Vetores - SEV</span>
+    </div>
+    <a class="topbar__back" href="index.html">← Painel</a>
+  </div>
+</header>
+
+<main class="page page--tool">
+
+  <div class="hero">
+    <h1 class="title">Folga</h1>
+    <p class="subtitle">Preenche o modelo de Comunicação Interna com a lista de funcionários e as datas de folga.</p>
+  </div>
+
+  <div class="tool-panel">
+
+    <section class="folga-section">
+      <div class="folga-row">
+        <label class="folga-field">
+          <span>Número da CI <small>(o modelo já tem "/2026" fixo — digite só o número, ex: 015)</small></span>
+          <input type="text" id="folgaCi" placeholder="Ex: 015">
+        </label>
+      </div>
+    </section>
+
+    <section class="folga-section">
+      <h3 class="folga-section__title">Funcionários</h3>
+
+      <div class="folga-row">
+        <input type="text" id="folgaBusca" class="folga-input" placeholder="🔍 Buscar funcionário...">
+        <select id="folgaFiltroCargo" class="folga-select"></select>
+      </div>
+
+      <div class="folga-row folga-row--add">
+        <input type="text" id="folgaNovoNome" class="folga-input" placeholder="Nome do novo funcionário">
+        <select id="folgaNovoCargo" class="folga-select"></select>
+        <button type="button" id="folgaAddFuncionario" class="folga-btn folga-btn--ghost">+ Adicionar</button>
+      </div>
+
+      <div class="folga-row folga-row--sel">
+        <button type="button" id="folgaMarcarTodos" class="folga-btn folga-btn--ghost fer-sm">Marcar todos (os da busca)</button>
+        <button type="button" id="folgaDesmarcar" class="folga-btn folga-btn--ghost fer-sm">Desmarcar todos</button>
+        <button type="button" id="folgaColarToggle" class="folga-btn folga-btn--ghost fer-sm">📋 Colar lista de nomes</button>
+      </div>
+
+      <div class="folga-colar" id="folgaColarWrap" hidden>
+        <textarea id="folgaColarTexto" class="folga-input folga-colar__txt" rows="5" placeholder="Cole aqui os nomes, um por linha (pode ser só parte do nome, sem acento)…"></textarea>
+        <div class="folga-row">
+          <button type="button" id="folgaColarAplicar" class="folga-btn fer-sm">Marcar esses nomes</button>
+        </div>
+      </div>
+
+      <p class="folga-count" id="folgaContador"></p>
+
+      <div class="folga-list" id="folgaLista"></div>
+
+      <div class="folga-row folga-row--tools">
+        <button type="button" id="folgaExportar" class="folga-link-btn">Exportar lista</button>
+        <button type="button" id="folgaImportar" class="folga-link-btn">Importar lista</button>
+        <button type="button" id="folgaRestaurar" class="folga-link-btn">Restaurar padrão</button>
+        <input type="file" id="folgaImportarInput" accept="application/json" hidden>
+      </div>
+    </section>
+
+    <section class="folga-section">
+      <h3 class="folga-section__title">Datas das folgas</h3>
+
+      <p class="folga-selecao" id="folgaResumoSelecao"></p>
+
+      <div class="folga-row">
+        <input type="date" id="folgaData" class="folga-input">
+
+        <label class="folga-periodo">
+          <input type="checkbox" id="folgaPeriodoMatutino">
+          <span>Matutino</span>
+        </label>
+        <label class="folga-periodo">
+          <input type="checkbox" id="folgaPeriodoVespertino">
+          <span>Vespertino</span>
+        </label>
+
+        <button type="button" id="folgaAddPendente" class="folga-btn fer-sm">＋ Data</button>
+      </div>
+
+      <div class="folga-row">
+        <label class="folga-field">
+          <span>Ou um período — de</span>
+          <input type="date" id="folgaDe">
+        </label>
+        <label class="folga-field">
+          <span>até</span>
+          <input type="date" id="folgaAte">
+        </label>
+        <label class="folga-periodo">
+          <input type="checkbox" id="folgaSoUteis" checked>
+          <span>Só dias úteis (seg–sex)</span>
+        </label>
+        <button type="button" id="folgaAddPeriodo" class="folga-btn fer-sm">＋ Período</button>
+      </div>
+
+      <p class="folga-count" id="folgaPendentesTitulo">Datas a lançar:</p>
+      <div class="folga-pend" id="folgaPendentes"></div>
+
+      <div class="folga-row">
+        <button type="button" id="folgaAddData" class="folga-btn folga-btn--primary">Adicionar aos selecionados</button>
+      </div>
+      <label class="folga-periodo folga-periodo--solto">
+        <input type="checkbox" id="folgaLimparSel" checked>
+        <span>Desmarcar os funcionários depois de adicionar (para já escolher o próximo grupo)</span>
+      </label>
+      <p class="folga-periodo__ajuda">Monte a lista de datas (várias de uma vez, ou um período) e clique em “Adicionar aos selecionados”. Dá para misturar: uma data só de manhã, outra o dia todo (deixe as duas caixas desmarcadas para o dia todo). Se um funcionário já tem aquele dia, o novo período substitui o antigo; manhã e tarde do mesmo dia podem coexistir. Feriados não são descontados automaticamente.</p>
+    </section>
+
+    <section class="folga-section">
+      <h3 class="folga-section__title">Prévia das folgas</h3>
+      <p class="folga-count" id="folgaPreviewResumo"></p>
+      <div class="folga-preview" id="folgaPreview"></div>
+    </section>
+
+    <p class="folga-status" id="folgaStatus"></p>
+
+    <div class="modal__actions">
+      <button type="button" id="folgaLimpar" class="folga-btn folga-btn--ghost">Limpar tudo</button>
+      <button type="button" id="folgaGerar" class="folga-btn folga-btn--primary">Gerar documento (.docx)</button>
+    </div>
+
+  </div>
+
+  <footer class="foot">
+    <p>Folga — Prefeitura Municipal de Ponta Porã. A lista de funcionários fica salva só neste navegador.</p>
+  </footer>
+
+</main>
+
+<script src="jszip.local.js"></script>
+<script src="docx-utils.js"></script>
+<script src="folga.js"></script>
+<script src="clima-core.js"></script>
+<script src="weather-bg.js" defer></script>
+</body>
+</html>

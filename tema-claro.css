@@ -1,0 +1,152 @@
+/* ============================================================
+   TEMA CLARO — mesmas formas "agressivas" do tema escuro, com
+   fundo claro e as cores do logo. Ativado por html[data-tema="claro"]
+   (botão no topo, ver tema-toggle.js). Carregado depois do tema.css.
+   ============================================================ */
+html[data-tema="claro"] {
+  --hud: rgba(0, 126, 202, 0.45);
+}
+
+html[data-tema="claro"] body {
+  background:
+    radial-gradient(900px 500px at 12% -8%, rgba(0, 126, 202, 0.20), transparent 60%),
+    radial-gradient(700px 420px at 92% 6%, rgba(0, 185, 59, 0.12), transparent 60%),
+    radial-gradient(800px 500px at 50% 112%, rgba(255, 185, 0, 0.16), transparent 60%),
+    linear-gradient(180deg, #F4F8FE 0%, #E6EEF9 100%);
+  color: var(--ink);
+}
+html[data-tema="claro"] body::after {
+  background-image:
+    linear-gradient(rgba(0, 43, 104, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 43, 104, 0.06) 1px, transparent 1px);
+}
+html[data-tema="claro"] ::selection { background: var(--navy); color: #fff; }
+
+html[data-tema="claro"] .topbar {
+  background: rgba(255, 255, 255, 0.88);
+  border-bottom-color: rgba(0, 43, 104, 0.25);
+  box-shadow: 0 10px 30px -14px rgba(0, 43, 104, 0.35);
+}
+html[data-tema="claro"] .brand__logo { filter: drop-shadow(0 2px 4px rgba(0, 43, 104, 0.15)); }
+html[data-tema="claro"] .brand__logo--claro-sobre-escuro { display: none; }
+html[data-tema="claro"] .brand__logo--original { display: block; }
+html[data-tema="claro"] .brand__name { color: var(--navy); }
+html[data-tema="claro"] .topbar__back { color: var(--navy); border-color: var(--navy); }
+html[data-tema="claro"] .topbar__back:hover { background: var(--navy); color: #fff; }
+
+html[data-tema="claro"] .hero::before {
+  background:
+    conic-gradient(from 0deg, rgba(0, 185, 59, 0) 0deg, rgba(0, 185, 59, 0.30) 40deg, rgba(0, 185, 59, 0) 62deg, transparent 360deg),
+    repeating-radial-gradient(circle, transparent 0 56px, rgba(0, 43, 104, 0.16) 57px 58px);
+}
+html[data-tema="claro"] .hero__tag { color: #007A29; background: rgba(0, 185, 59, 0.14); border-color: rgba(0, 150, 50, 0.6); }
+html[data-tema="claro"] .title {
+  background: linear-gradient(100deg, #002B68 0%, #0052C9 45%, #007ECA 70%, #E09A00 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  filter: drop-shadow(0 4px 14px rgba(0, 126, 202, 0.3));
+}
+html[data-tema="claro"] .title[data-texto]::before { mix-blend-mode: normal; }
+html[data-tema="claro"] .subtitle { color: var(--ink-muted); }
+
+html[data-tema="claro"] .grid-section__label,
+html[data-tema="claro"] .grid-section__label--live { color: var(--navy); }
+html[data-tema="claro"] .grid-section__label::after { background: linear-gradient(90deg, var(--navy), rgba(0, 43, 104, 0) 85%); }
+html[data-tema="claro"] .grid-section__badge { color: #fff; }
+
+html[data-tema="claro"] .card {
+  background: linear-gradient(150deg, #FFFFFF 0%, #E8F1FC 100%);
+  box-shadow: inset 0 0 0 1px rgba(0, 43, 104, 0.22);
+  color: var(--ink);
+}
+html[data-tema="claro"] .card::after {
+  background: radial-gradient(190px circle at var(--mx, 50%) var(--my, 0%), rgba(0, 126, 202, 0.25), transparent 70%);
+}
+html[data-tema="claro"] .card:hover,
+html[data-tema="claro"] .card:focus-visible {
+  background: linear-gradient(150deg, #FFFFFF 0%, #D6E8FB 100%);
+  box-shadow: inset 0 0 0 2px var(--navy), 0 10px 26px -8px rgba(0, 43, 104, 0.45);
+}
+html[data-tema="claro"] .card__label { color: var(--navy); }
+html[data-tema="claro"] .card__icon { color: var(--blue); background: linear-gradient(135deg, rgba(0, 126, 202, 0.2), rgba(0, 126, 202, 0.06)); box-shadow: inset 0 0 0 1px rgba(0, 126, 202, 0.35); }
+html[data-tema="claro"] .card:hover .card__icon,
+html[data-tema="claro"] .card:focus-visible .card__icon { background: var(--navy); color: var(--amber); box-shadow: 0 0 14px rgba(0, 43, 104, 0.4); }
+html[data-tema="claro"] .card--live .card__icon { color: #00832B; background: linear-gradient(135deg, rgba(0, 185, 59, 0.25), rgba(0, 185, 59, 0.07)); box-shadow: inset 0 0 0 1px rgba(0, 150, 50, 0.4); }
+html[data-tema="claro"] .card--live:hover,
+html[data-tema="claro"] .card--live:focus-visible { box-shadow: inset 0 0 0 2px var(--green), 0 10px 26px -8px rgba(0, 150, 50, 0.45); }
+html[data-tema="claro"] .card--live:hover .card__icon { background: var(--green); color: #02240F; }
+html[data-tema="claro"] .card--tool .card__icon { color: #B87F00; background: linear-gradient(135deg, rgba(255, 185, 0, 0.3), rgba(255, 185, 0, 0.08)); box-shadow: inset 0 0 0 1px rgba(224, 154, 0, 0.5); }
+
+html[data-tema="claro"] .grid-section--destaque {
+  background:
+    radial-gradient(500px 200px at 50% 0%, rgba(0, 185, 59, 0.18), transparent 70%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(226, 240, 232, 0.8));
+  box-shadow: inset 0 0 0 1px rgba(0, 150, 50, 0.5);
+}
+
+html[data-tema="claro"] .foot { border-top-color: rgba(0, 43, 104, 0.25); }
+html[data-tema="claro"] .foot p { color: var(--ink-muted); }
+
+/* previsão */
+html[data-tema="claro"] .clima {
+  background:
+    radial-gradient(520px 220px at 0% 0%, rgba(0, 126, 202, 0.18), transparent 70%),
+    linear-gradient(135deg, #FFFFFF, #E6EFFA);
+  box-shadow: inset 0 0 0 1px rgba(0, 43, 104, 0.28);
+}
+html[data-tema="claro"] .clima__local { color: #8A5A00; border-color: #E09A00; }
+html[data-tema="claro"] .clima__agora { background: linear-gradient(160deg, rgba(0, 126, 202, 0.16), #FFFFFF); }
+html[data-tema="claro"] .clima__agora-temp { color: var(--navy); text-shadow: none; }
+html[data-tema="claro"] .clima__agora-desc { color: var(--ink-soft); }
+html[data-tema="claro"] .clima__agora-dados dt { color: var(--ink-muted); }
+html[data-tema="claro"] .clima__agora-dados dd { color: var(--ink); }
+html[data-tema="claro"] .clima__alerta { color: #6B4700; background: rgba(255, 185, 0, 0.22); }
+html[data-tema="claro"] .clima__alerta--agora { color: #04406B; background: rgba(0, 126, 202, 0.18); }
+html[data-tema="claro"] .weather-strip__dia { background: linear-gradient(170deg, #FFFFFF, #E4EEFA); box-shadow: inset 0 0 0 1px rgba(0, 43, 104, 0.2); color: var(--ink); }
+html[data-tema="claro"] .weather-strip__dia:hover,
+html[data-tema="claro"] .weather-strip__dia.ws-selecionado { background: linear-gradient(170deg, #FFFFFF, #D3E6FA); box-shadow: inset 0 0 0 2px var(--ws-cor, var(--navy)), 0 8px 20px -8px rgba(0, 43, 104, 0.4); }
+html[data-tema="claro"] .weather-strip__nome,
+html[data-tema="claro"] .wt-max { color: var(--navy); }
+html[data-tema="claro"] .weather-strip__nome small,
+html[data-tema="claro"] .wt-min { color: var(--ink-muted); }
+html[data-tema="claro"] .ws-desc { filter: brightness(0.7) saturate(1.3); }
+html[data-tema="claro"] .ws-chuva { color: #04406B; background: rgba(0, 126, 202, 0.18); }
+html[data-tema="claro"] .ws-chuva--seco { color: var(--ink-muted); background: transparent; }
+html[data-tema="claro"] .clima__rodape { color: var(--ink-muted); border-top-color: rgba(0, 43, 104, 0.18); }
+html[data-tema="claro"] .clima__btn { color: var(--navy); border-color: var(--navy); }
+html[data-tema="claro"] .clima__btn:hover { background: var(--navy); color: #fff; }
+html[data-tema="claro"] .clima__tabela { color: var(--ink); }
+html[data-tema="claro"] .clima__tabela th,
+html[data-tema="claro"] .clima__tabela td { border-bottom-color: rgba(0, 43, 104, 0.14); }
+html[data-tema="claro"] .clima__tabela thead th,
+html[data-tema="claro"] .clima__tabela td small,
+html[data-tema="claro"] .clima__nota { color: var(--ink-muted); }
+html[data-tema="claro"] .clima__tabela tbody th { color: var(--ink-soft); }
+html[data-tema="claro"] .clima__media { background: rgba(255, 185, 0, 0.2); }
+html[data-tema="claro"] .clima__nota code { color: #8A5A00; }
+
+html[data-tema="claro"] .ws-tooltip { background: #FFFFFF; border-color: var(--navy); box-shadow: 0 10px 30px -8px rgba(0, 43, 104, 0.4); }
+html[data-tema="claro"] .ws-tooltip::after { background: #FFFFFF; border-color: var(--navy); }
+html[data-tema="claro"] .ws-tt-hora { fill: var(--ink-muted); }
+html[data-tema="claro"] .ws-tt-val { fill: var(--ink); }
+html[data-tema="claro"] .ws-tt-legenda { color: var(--ink-muted); }
+html[data-tema="claro"] .tool-panel { box-shadow: 0 0 0 1px rgba(0, 43, 104, 0.25), 0 24px 50px -26px rgba(0, 43, 104, 0.45); }
+
+/* botão de alternar tema */
+.tema-btn {
+  margin-left: auto;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.4rem 0.7rem;
+  background: transparent;
+  color: var(--amber);
+  border: 1px solid rgba(255, 185, 0, 0.55);
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  font-family: var(--font-display);
+  font-size: 0.74rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+  cursor: pointer;
+}
+.tema-btn:hover { background: var(--amber); color: var(--navy); }
+html[data-tema="claro"] .tema-btn { color: var(--navy); border-color: var(--navy); }
+html[data-tema="claro"] .tema-btn:hover { background: var(--navy); color: #fff; }
+.topbar__inner .tema-btn + .topbar__back { margin-left: 0.5rem; }
+@media (max-width: 580px) { .tema-btn span { display: none; } }
