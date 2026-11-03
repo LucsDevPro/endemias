@@ -828,3 +828,52 @@ body:has(.page--home) .topbar__inner .tema-btn { right: 1.6rem; }
   .topbar__inner .topbar__back::before { display: inline; content: "←"; font-size: 1rem; }
   .topbar__inner .tema-btn { right: 0.7rem; padding: 0.4rem 0.6rem; }
 }
+
+/* ============================================================
+   RECOLHER A PREVISÃO
+   ============================================================ */
+.clima__recolher {
+  flex: 0 0 auto;
+  width: 26px; height: 22px; margin: 0 0 0.45rem auto;
+  background: transparent; color: var(--amber);
+  border: 1px solid rgba(255, 185, 0, 0.6);
+  cursor: pointer; position: relative;
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+}
+.clima__recolher::before { content: "\203A"; font-size: 1.15rem; line-height: 1; font-weight: 900; display: block; }  /* › recolhe para a direita */
+.clima__recolher:hover { background: var(--amber); color: var(--navy); }
+.clima--recolhido .clima__recolher::before { content: "\2039"; }                                                      /* ‹ expande */
+html[data-tema="claro"] .clima__recolher { color: var(--navy); border-color: var(--navy); }
+html[data-tema="claro"] .clima__recolher:hover { background: var(--navy); color: #fff; }
+
+.clima__mini { display: none; }
+
+.clima--recolhido .clima__corpo,
+.clima--recolhido .clima__rodape,
+.clima--recolhido .clima__topo .grid-section__label,
+.clima--recolhido .clima__local { display: none; }
+
+.clima--recolhido .clima__topo { justify-content: center; }
+.clima--recolhido .clima__recolher { margin: 0 0 0.5rem; }
+.clima--recolhido .clima__mini {
+  display: flex; flex-direction: column; align-items: center; gap: 0.35rem;
+  font-family: var(--font-display);
+}
+.clima--recolhido .clima__mini span { font-size: 1.6rem; line-height: 1; }
+.clima--recolhido .clima__mini b { font-size: 1.15rem; font-weight: 900; color: #fff; }
+.clima--recolhido .clima__mini em {
+  font-style: normal; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--amber); writing-mode: vertical-rl; margin-top: 0.4rem;
+}
+html[data-tema="claro"] .clima--recolhido .clima__mini b { color: var(--navy); }
+html[data-tema="claro"] .clima--recolhido .clima__mini em { color: #8A5A00; }
+
+@media (min-width: 1101px) {
+  .page--home:has(.clima--recolhido) { grid-template-columns: minmax(0, 1fr) 64px; }
+  .page--home > .clima.clima--recolhido { padding: 0.6rem 0.3rem; align-items: center; }
+}
+@media (max-width: 1100px) {
+  .clima--recolhido .clima__mini { flex-direction: row; justify-content: center; gap: 0.6rem; }
+  .clima--recolhido .clima__mini em { writing-mode: horizontal-tb; margin: 0; }
+  .clima--recolhido .clima__topo { flex-wrap: nowrap; }
+}

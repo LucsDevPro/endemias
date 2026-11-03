@@ -50,6 +50,10 @@
   };
   var PADRAO_TEMPO = ["🌡️", "—", "", "#9FB0C8"];
 
+  var CHAVE_RECOLHER = "uvzClimaRecolhido";
+  function lerRecolhido() { try { return localStorage.getItem(CHAVE_RECOLHER) === "1"; } catch (e) { return false; } }
+  function gravarRecolhido(v) { try { localStorage.setItem(CHAVE_RECOLHER, v ? "1" : "0"); } catch (e) { /* ignora */ } }
+
   var dadosAtuais = null;
   var elementoTemaSelecionado = null;
 
@@ -287,6 +291,25 @@
     if (b) { b.setAttribute("aria-expanded", "true"); b.textContent = "fechar modelos"; }
   }
 
+  // versão minúscula (painel recolhido): ícone + temperatura de agora
+  function htmlMini(dados) {
+    var a = dados.agora;
+    var cod = a ? a.codigo : dados.dias[0].codigo;
+    var t = a && a.temp !== null ? a.temp : dados.dias[0].max;
+    return '<div class="clima__mini" aria-hidden="true"><span>' + info(cod)[0] + '</span><b>' + t + "\u00B0</b>" +
+      '<em>Previsão</em></div>';
+  }
+
+  function aplicarRecolhido(raiz, recolhido) {
+    raiz.classList.toggle("clima--recolhido", recolhido);
+    var b = document.getElementById("climaRecolher");
+    if (b) {
+      b.setAttribute("aria-expanded", recolhido ? "false" : "true");
+      b.setAttribute("aria-label", recolhido ? "Expandir previsão" : "Recolher previsão");
+    }
+    if (recolhido) { esconderTooltip(); if (typeof fecharModal === "function") fecharModal(); }
+  }
+
   // Alinha o topo do painel com o topo do primeiro botão de "Sistemas"
   // (só no layout de duas colunas; em tela estreita não mexe em nada).
   function alinharPainel() {
@@ -317,7 +340,9 @@
       '<div class="clima__topo">' +
         '<p class="grid-section__label clima__titulo">Previsão</p>' +
         '<span class="clima__local">Ponta Porã · Centro</span>' +
+        '<button type="button" class="clima__recolher" id="climaRecolher" aria-label="Recolher previsão" title="Recolher / expandir a previsão"></button>' +
       "</div>" +
+      htmlMini(dados) +
       '<div class="clima__corpo">' + htmlAgora(dados) +
         '<div class="clima__dias" id="climaDias"></div></div>' +
       '<div class="clima__rodape">' +
@@ -373,6 +398,15 @@
     });
     if (modalEl && !modalEl.hidden) abrirModal();   // atualiza se já estava aberto
 
+    var bRec = document.getElementById("climaRecolher");
+    aplicarRecolhido(raiz, lerRecolhido());
+    bRec.addEventListener("click", function () {
+      var novo = !raiz.classList.contains("clima--recolhido");
+      gravarRecolhido(novo);
+      aplicarRecolhido(raiz, novo);
+      alinharPainel();
+      if (typeof window.reajustarEscalaPainel === "function") window.reajustarEscalaPainel();
+    });
     raiz.hidden = false;
     alinharPainel();
     if (typeof window.reajustarEscalaPainel === "function") window.reajustarEscalaPainel();
