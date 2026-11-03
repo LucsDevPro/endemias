@@ -287,6 +287,25 @@
     if (b) { b.setAttribute("aria-expanded", "true"); b.textContent = "fechar modelos"; }
   }
 
+  // Alinha o topo do painel com o topo do primeiro botão de "Sistemas"
+  // (só no layout de duas colunas; em tela estreita não mexe em nada).
+  function alinharPainel() {
+    var raiz = document.getElementById("clima");
+    var grade = document.querySelector(".page--home .grid-section .grid");
+    if (!raiz || !grade) return;
+    raiz.style.marginTop = "0px";
+    if (window.innerWidth < 1101) { raiz.style.marginTop = ""; return; }
+    // usa posições de layout (offsetTop), que ignoram a animação de entrada
+    function topo(el, ate) {
+      var y = 0;
+      while (el && el !== ate) { y += el.offsetTop; el = el.offsetParent; }
+      return y;
+    }
+    var pagina = document.querySelector(".page--home");
+    var delta = topo(grade, pagina) - topo(raiz, pagina);
+    raiz.style.marginTop = Math.max(0, Math.round(delta)) + "px";
+  }
+
   function renderizar(dados) {
     var raiz = document.getElementById("clima");
     if (!raiz || !dados || !dados.dias || !dados.dias.length) return;
@@ -355,6 +374,7 @@
     if (modalEl && !modalEl.hidden) abrirModal();   // atualiza se já estava aberto
 
     raiz.hidden = false;
+    alinharPainel();
     if (typeof window.reajustarEscalaPainel === "function") window.reajustarEscalaPainel();
   }
 
@@ -373,6 +393,11 @@
       if (document.visibilityState === "visible") buscar(false);
     });
     window.addEventListener("scroll", esconderTooltip, { passive: true });
+    var tAlinhar = null;
+    window.addEventListener("resize", function () {
+      clearTimeout(tAlinhar);
+      tAlinhar = setTimeout(function () { alinharPainel(); if (window.reajustarEscalaPainel) window.reajustarEscalaPainel(); }, 200);
+    });
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar);
