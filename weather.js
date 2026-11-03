@@ -315,14 +315,14 @@
 
     raiz.innerHTML =
       '<div class="clima__topo">' +
-        '<p class="grid-section__label clima__titulo">Previsão do tempo</p>' +
+        '<p class="grid-section__label clima__titulo">Previsão</p>' +
         '<span class="clima__local">Ponta Porã · Centro</span>' +
       "</div>" +
       '<div class="clima__corpo">' + htmlAgora(dados) +
         '<div class="clima__dias" id="climaDias"></div></div>' +
       '<div class="clima__rodape">' +
-        "<span>Média de " + dados.modelos.length + " modelos (" + esc(dados.modelos.join(", ")) +
-          ") · Open-Meteo · atualizado às " + dois(h.getHours()) + ":" + dois(h.getMinutes()) + "</span>" +
+        '<span title="' + esc(dados.modelos.join(", ")) + '">Média de ' + dados.modelos.length +
+          " modelos · Open-Meteo · " + dois(h.getHours()) + ":" + dois(h.getMinutes()) + "</span>" +
         '<button type="button" class="clima__btn" id="climaDetalhesBtn" aria-expanded="false">ver por modelo</button>' +
       "</div>" +
       '';

@@ -792,3 +792,39 @@ body:has(.page--home) .topbar__inner { max-width: none; padding: 0.55rem 1.6rem;
   .page--home .card--live { min-height: 74px; }
   .page--home .grid-section--destaque { padding: 0.7rem 0.9rem 0.8rem; }
 }
+
+/* ============================================================
+   PAINEL DA PREVISÃO: mesma altura dos botões (do topo do Eagente
+   ao fim do Gerador de Mapas) — o painel NÃO aumenta a página
+   ============================================================ */
+@media (min-width: 1101px) {
+  .page--home > .clima { contain: size; min-height: 0; overflow: hidden; padding: 0.7rem 0.8rem 0.55rem; }
+  .page--home .clima__topo { flex-wrap: nowrap; gap: 0.5rem; flex: 0 0 auto; }
+  .page--home .clima__topo .grid-section__label { margin-bottom: 0.45rem; padding-bottom: 0; white-space: nowrap; }
+  .page--home .clima__local { margin-bottom: 0.45rem; padding: 0.1rem 0.45rem; font-size: 0.62rem; letter-spacing: 0.06em; }
+  .page--home .clima__corpo { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; gap: 0.5rem; }
+  .page--home .clima__agora { flex: 0 0 auto; padding: 0.55rem 0.75rem; gap: 0.35rem; }
+  .page--home .clima__agora-icone { font-size: 2rem; }
+  .page--home .clima__agora-temp { font-size: 2.2rem; }
+  .page--home .clima__agora-dados dd { font-size: 0.74rem; }
+  .page--home .clima__alerta { padding: 0.25rem 0.5rem; font-size: 0.68rem; }
+  .page--home .clima__dias { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: 1fr; grid-auto-rows: minmax(0, 1fr); gap: 0.35rem; }
+  .page--home .clima .weather-strip__dia { padding: 0.2rem 0.6rem; min-height: 0; }
+  .page--home .clima__rodape { flex: 0 0 auto; margin-top: 0.45rem; padding-top: 0.4rem; font-size: 0.62rem; }
+  .page--home .clima__btn { padding: 0.2rem 0.55rem; font-size: 0.62rem; }
+}
+
+/* cabeçalho centralizado (logo + nome no meio; botões nas pontas) */
+.topbar__inner { justify-content: center; }
+.topbar__inner .tema-btn { position: absolute; right: 1.5rem; margin: 0; top: 50%; transform: translateY(-50%); }
+.topbar__inner .topbar__back { position: absolute; left: 1.5rem; top: 50%; transform: translateY(-50%); }
+body:has(.page--home) .topbar__inner .tema-btn { right: 1.6rem; }
+.topbar__inner .topbar__back:active { transform: translateY(-50%) scale(0.96); }
+
+/* seta duplicada ("← ← Painel"): fica só a do texto no desktop */
+.topbar__back::before { display: none; }
+@media (max-width: 580px) {
+  .topbar__inner .topbar__back { left: 0.7rem; padding: 0.4rem 0.6rem; font-size: 0; }
+  .topbar__inner .topbar__back::before { display: inline; content: "←"; font-size: 1rem; }
+  .topbar__inner .tema-btn { right: 0.7rem; padding: 0.4rem 0.6rem; }
+}
