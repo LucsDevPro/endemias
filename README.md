@@ -16,7 +16,7 @@ Site estático em HTML/CSS/JS puro — sem dependências de build, pronto para p
 | Ahgora | Registro de ponto | https://app.ahgora.com.br/home |
 | **Sentinela** (destaque) | Vigilância entomológica ao vivo | https://lucsdevpro.github.io/Sentinela/ |
 | **LIRAa** (destaque) | Índice de infestação ao vivo | https://lucsdevpro.github.io/lira/ |
-| **Mapeamento Ovitrampas** (novo) | Painel ao vivo das ovitrampas | https://patrickdias123.github.io/Ovitrampas-Ponta-Por-/ |
+| **Mapeamento Ovitrampas** (novo) | Painel ao vivo das ovitrampas | https://lucsdevpro.github.io/Ovitrampas/ |
 | Sies | Controle de inseticida | http://sies.saude.gov.br/ |
 | Montar Escala | Plantões | https://smsapp.com.br/rh/login_plantao.php |
 | Central | Portal central do sistema | https://www.smsapp.com.br/inicio/index.php |
