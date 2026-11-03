@@ -1,4 +1,4 @@
-// Alterna entre tema escuro (padrão) e claro; lembra a escolha neste navegador.
+// Alterna entre tema claro (padrão) e escuro; lembra a escolha neste navegador.
 (function () {
   "use strict";
   var KEY = "uvzTema";
@@ -8,8 +8,9 @@
   function gravar(v) { try { localStorage.setItem(KEY, v); } catch (e) { /* sem armazenamento */ } }
 
   function aplicar(t) {
-    if (t === "claro") raiz.setAttribute("data-tema", "claro");
-    else raiz.removeAttribute("data-tema");
+    // padrão: tema claro (só fica escuro se a pessoa escolheu)
+    if (t === "escuro") raiz.removeAttribute("data-tema");
+    else raiz.setAttribute("data-tema", "claro");
     var meta = document.querySelector('meta[name="color-scheme"]');
     if (meta) meta.setAttribute("content", t === "claro" ? "light" : "dark");
   }

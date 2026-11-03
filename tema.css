@@ -639,3 +639,156 @@ body::after {
 .card__badge { max-width: calc(100% - 14px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
 .card__badge::before { display: none; }
 @media (max-width: 580px) { .card__badge { font-size: 0.54rem; padding-right: 0.7rem; } }
+
+/* ============================================================
+   TELA INICIAL EM UMA TELA SÓ (cards centralizados + previsão à direita)
+   ============================================================ */
+
+/* última fileira de cards sempre centralizada */
+.grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.85rem; }
+.grid > .card { flex: 0 0 calc((100% - (var(--cols, 5) - 1) * 0.85rem) / var(--cols, 5)); min-width: 0; }
+
+.page--home {
+  max-width: 1500px;
+  padding: 1rem 1.6rem 0.8rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  column-gap: 1.6rem;
+  row-gap: 0.9rem;
+  align-items: start;
+}
+.page--home > .hero { grid-column: 1 / -1; margin-bottom: 0; }
+.page--home > .grid-section { grid-column: 1; margin: 0 !important; }
+.page--home > .clima { grid-column: 2; grid-row: 2 / span 3; margin: 0; align-self: stretch; display: flex; flex-direction: column; }
+.page--home > .foot { grid-column: 1 / -1; margin-top: 0; padding-top: 0.5rem; }
+.page--home .foot p { margin: 0; font-size: 0.78rem; }
+
+/* título e cards mais compactos */
+.page--home .hero__tag { margin-bottom: 0.5rem; padding: 0.2rem 0.7rem; font-size: 0.68rem; }
+.page--home .title { font-size: clamp(2.2rem, 4vw, 3.3rem); margin-bottom: 0.4rem; }
+.page--home .title::after { height: 6px; margin-top: 0.5rem; }
+.page--home .subtitle { font-size: 0.74rem; }
+.page--home .hero::before { width: 380px; height: 380px; margin: -190px 0 0 -190px; }
+.page--home .grid-section__label { margin-bottom: 0.55rem; padding-bottom: 0.2rem; font-size: 0.82rem; }
+.page--home .card { min-height: 88px; padding: 0.65rem 0.5rem; gap: 0.4rem; }
+.page--home .card:has(.card__badge) { padding-top: 1.7rem; }
+.page--home .card__icon { width: 36px; height: 36px; }
+.page--home .card__icon svg { width: 18px; height: 18px; }
+.page--home .card__label { font-size: 0.74rem; }
+.page--home .grid-section--destaque { padding: 0.8rem 0.9rem 0.9rem; }
+
+/* previsão em painel vertical */
+.page--home .clima { padding: 0.9rem 0.9rem 0.7rem; animation: none; }
+.page--home .clima__corpo { grid-template-columns: 1fr; flex: 1; align-content: start; gap: 0.7rem; }
+.page--home .clima__topo { flex-wrap: wrap; gap: 0 0.6rem; }
+
+@media (min-width: 1101px) {
+  .clima__dias { grid-template-columns: 1fr; gap: 0.45rem; }
+  .clima .weather-strip__dia {
+    display: grid;
+    grid-template-columns: 3.4rem 2.1rem 1fr auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 0.55rem; row-gap: 0;
+    padding: 0.45rem 0.7rem;
+    text-align: left;
+  }
+  .clima .weather-strip__nome { grid-column: 1; grid-row: 1 / 3; }
+  .clima .weather-strip__icone { grid-column: 2; grid-row: 1 / 3; font-size: 1.5rem; margin: 0; justify-self: center; }
+  .clima .weather-strip__temp { grid-column: 3; grid-row: 1 / 3; font-size: 1.05rem; }
+  .clima .ws-desc { grid-column: 4; grid-row: 1; text-align: right; font-size: 0.7rem; }
+  .clima .ws-chuva { grid-column: 4; grid-row: 2; margin: 0; justify-self: end; font-size: 0.66rem; }
+  .clima .ws-anim::before { top: 0; bottom: 0; left: 0; right: auto; width: 3px; height: auto; }
+}
+
+/* janela "ver por modelo" */
+.clima-modal {
+  position: fixed; inset: 0; z-index: 2000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+  background: rgba(2, 15, 43, 0.62);
+  backdrop-filter: blur(4px);
+}
+.clima-modal[hidden] { display: none; }
+.clima-modal__box {
+  position: relative; max-width: min(760px, 100%); max-height: 88vh; overflow: auto;
+  padding: 1.1rem 1.2rem 1rem;
+  background: linear-gradient(135deg, #04204F, #020F2B);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px var(--blue), 0 30px 80px -20px rgba(0, 0, 0, 0.8);
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+.clima-modal__box h4 { margin: 0 2rem 0.7rem 0; font-family: var(--font-display); font-size: 0.9rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--amber); }
+.clima-modal__x { position: absolute; top: 0.5rem; right: 1.4rem; background: none; border: 0; color: #fff; font-size: 1.6rem; line-height: 1; cursor: pointer; }
+.clima-modal .clima__tabela { font-size: 0.8rem; }
+html[data-tema="claro"] .clima-modal { background: rgba(0, 43, 104, 0.35); }
+html[data-tema="claro"] .clima-modal__box { background: #fff; color: var(--ink); box-shadow: inset 0 0 0 1px var(--navy), 0 30px 80px -20px rgba(0, 43, 104, 0.5); }
+html[data-tema="claro"] .clima-modal__box h4 { color: #8A5A00; }
+html[data-tema="claro"] .clima-modal__x { color: var(--navy); }
+html[data-tema="claro"] .clima-modal .clima__tabela { color: var(--ink); }
+html[data-tema="claro"] .clima-modal .clima__tabela thead th,
+html[data-tema="claro"] .clima-modal .clima__tabela td small,
+html[data-tema="claro"] .clima-modal .clima__nota { color: var(--ink-muted); }
+html[data-tema="claro"] .clima-modal .clima__tabela tbody th { color: var(--ink-soft); }
+html[data-tema="claro"] .clima-modal .clima__tabela th,
+html[data-tema="claro"] .clima-modal .clima__tabela td { border-bottom-color: rgba(0, 43, 104, 0.14); }
+
+/* telas menores: volta a uma coluna */
+@media (max-width: 1100px) {
+  .page--home { grid-template-columns: 1fr; }
+  .page--home > .clima { grid-column: 1; grid-row: auto; }
+  .grid > .card { flex-basis: calc((100% - (min(var(--cols, 5), 4) - 1) * 0.85rem) / min(var(--cols, 5), 4)); }
+}
+@media (max-width: 580px) {
+  .grid > .card { flex-basis: calc((100% - 0.85rem) / 2); }
+}
+
+/* ============================================================
+   MAIS EFEITOS
+   ============================================================ */
+.grid > .card { animation: cardEntra 0.55s var(--ease-spring) backwards; animation-delay: calc(var(--i, 0) * 45ms + 0.2s); }
+@keyframes cardEntra {
+  from { opacity: 0; transform: translateY(18px) scale(0.9); filter: blur(5px) brightness(1.6); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+#fxParticulas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+
+.fx-scan {
+  position: fixed; left: 0; right: 0; top: -160px; height: 160px;
+  z-index: 0; pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(79, 179, 240, 0.16), rgba(0, 185, 59, 0.10), transparent);
+  animation: fxScan 8s linear infinite;
+}
+@keyframes fxScan { to { transform: translateY(calc(100vh + 320px)); } }
+html[data-tema="claro"] .fx-scan { background: linear-gradient(180deg, transparent, rgba(0, 126, 202, 0.12), rgba(0, 185, 59, 0.08), transparent); }
+
+/* cantos "mira" nos cards em hover */
+.card:hover::before { box-shadow: 0 0 14px rgba(255, 185, 0, 0.6); }
+
+/* destaque do Monitoramento respirando */
+.grid-section--destaque { animation: fadeInUp var(--speed-slow) var(--ease-out) backwards, destaquePulso 4s ease-in-out 1s infinite; }
+@keyframes destaquePulso { 50% { box-shadow: inset 0 0 0 1px rgba(0, 185, 59, 0.9), inset 0 0 30px rgba(0, 185, 59, 0.12); } }
+
+/* painel da previsão: borda de luz percorrendo */
+.clima::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.16) 50%, transparent 60%);
+  background-size: 250% 100%;
+  animation: brilhoVarre 6s ease-in-out infinite;
+}
+@keyframes brilhoVarre { 0% { background-position: 150% 0; } 60%, 100% { background-position: -50% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-scan, .clima::after, .grid > .card, .grid-section--destaque { animation: none !important; }
+  #fxParticulas { display: none; }
+}
+
+/* ocupa a largura toda da tela na tela inicial */
+.page--home { max-width: none; }
+body:has(.page--home) .topbar__inner { max-width: none; padding: 0.55rem 1.6rem; }
+@media (min-width: 1101px) {
+  .page--home .grid[aria-label="Sistemas de acesso"] { --cols: 6 !important; }
+  .page--home .card--live { min-height: 74px; }
+  .page--home .grid-section--destaque { padding: 0.7rem 0.9rem 0.8rem; }
+}

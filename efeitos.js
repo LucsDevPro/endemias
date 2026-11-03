@@ -60,9 +60,84 @@
     });
   }
 
+  // ---- rede de partículas que reage ao mouse (azul, verde e amarelo do logo) ----
+  function particulas() {
+    if (reduz) return;
+    var cv = document.createElement("canvas");
+    cv.id = "fxParticulas";
+    document.body.insertBefore(cv, document.body.firstChild);
+    var ctx = cv.getContext("2d");
+    var w = 0, h = 0, pts = [], mouse = { x: -999, y: -999 };
+    var CORES = ["0,126,202", "0,185,59", "255,185,0"];
+    var rodando = true;
+
+    function dimensionar() {
+      w = cv.width = window.innerWidth;
+      h = cv.height = window.innerHeight;
+      var n = Math.max(28, Math.min(80, Math.round(w * h / 24000)));
+      pts = [];
+      for (var i = 0; i < n; i++) {
+        pts.push({
+          x: Math.random() * w, y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 0.45, vy: (Math.random() - 0.5) * 0.45,
+          r: 1 + Math.random() * 1.8, c: CORES[i % 3]
+        });
+      }
+    }
+
+    function quadro() {
+      if (!rodando) return;
+      ctx.clearRect(0, 0, w, h);
+      for (var i = 0; i < pts.length; i++) {
+        var p = pts[i];
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > w) p.vx *= -1;
+        if (p.y < 0 || p.y > h) p.vy *= -1;
+        ctx.fillStyle = "rgba(" + p.c + ",0.75)";
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.2832); ctx.fill();
+        for (var j = i + 1; j < pts.length; j++) {
+          var q = pts[j], dx = p.x - q.x, dy = p.y - q.y, d = dx * dx + dy * dy;
+          if (d < 14400) {
+            ctx.strokeStyle = "rgba(" + p.c + "," + (0.28 * (1 - d / 14400)).toFixed(3) + ")";
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+          }
+        }
+        var mx = p.x - mouse.x, my = p.y - mouse.y, md = mx * mx + my * my;
+        if (md < 22500) {
+          ctx.strokeStyle = "rgba(255,185,0," + (0.5 * (1 - md / 22500)).toFixed(3) + ")";
+          ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(mouse.x, mouse.y); ctx.stroke();
+        }
+      }
+      requestAnimationFrame(quadro);
+    }
+
+    dimensionar();
+    window.addEventListener("resize", dimensionar, { passive: true });
+    window.addEventListener("pointermove", function (e) { mouse.x = e.clientX; mouse.y = e.clientY; }, { passive: true });
+    document.addEventListener("visibilitychange", function () {
+      rodando = !document.hidden;
+      if (rodando) requestAnimationFrame(quadro);
+    });
+    requestAnimationFrame(quadro);
+  }
+
+  function varredura() {
+    if (reduz) return;
+    var d = document.createElement("div");
+    d.className = "fx-scan";
+    document.body.insertBefore(d, document.body.firstChild);
+  }
+
   function iniciar() {
+    // ordem de entrada dos cards (efeito cascata)
+    document.querySelectorAll(".grid").forEach(function (g) {
+      Array.prototype.forEach.call(g.querySelectorAll(":scope > .card"), function (c, i) { c.style.setProperty("--i", i); });
+    });
     cards().forEach(ligarCard);
     entradaAoRolar();
+    particulas();
+    varredura();
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar);

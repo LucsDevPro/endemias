@@ -52,7 +52,6 @@
 
   var dadosAtuais = null;
   var elementoTemaSelecionado = null;
-  var detalhesAbertos = false;
 
   function info(codigo) { return CODIGO_TEMPO[codigo] || PADRAO_TEMPO; }
 
@@ -258,6 +257,36 @@
       '<p class="clima__nota">“c/ chuva” = quantos modelos preveem ≥ 1 mm no dia. Se algum modelo errar sempre em relação ao que você observa, dá para removê-lo em <code>clima-core.js</code> (lista <code>MODELOS</code>).</p>';
   }
 
+  // ----------------------------------------------------------
+  //  Janela "ver por modelo" (fica no <body>, fora do painel)
+  // ----------------------------------------------------------
+  var modalEl = null;
+
+  function fecharModal() {
+    if (modalEl) modalEl.hidden = true;
+    var b = document.getElementById("climaDetalhesBtn");
+    if (b) { b.setAttribute("aria-expanded", "false"); b.textContent = "ver por modelo"; }
+  }
+
+  function abrirModal() {
+    if (!dadosAtuais) return;
+    if (!modalEl) {
+      modalEl = document.createElement("div");
+      modalEl.className = "clima-modal";
+      modalEl.hidden = true;
+      modalEl.addEventListener("click", function (e) { if (e.target === modalEl) fecharModal(); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") fecharModal(); });
+      document.body.appendChild(modalEl);
+    }
+    modalEl.innerHTML = '<div class="clima-modal__box" role="dialog" aria-label="Previsão por modelo">' +
+      '<button type="button" class="clima-modal__x" aria-label="Fechar">&times;</button>' +
+      '<h4>Previsão por modelo · Ponta Porã · Centro</h4>' + htmlDetalhes(dadosAtuais) + "</div>";
+    modalEl.querySelector(".clima-modal__x").addEventListener("click", fecharModal);
+    modalEl.hidden = false;
+    var b = document.getElementById("climaDetalhesBtn");
+    if (b) { b.setAttribute("aria-expanded", "true"); b.textContent = "fechar modelos"; }
+  }
+
   function renderizar(dados) {
     var raiz = document.getElementById("clima");
     if (!raiz || !dados || !dados.dias || !dados.dias.length) return;
@@ -277,7 +306,7 @@
           ") · Open-Meteo · atualizado às " + dois(h.getHours()) + ":" + dois(h.getMinutes()) + "</span>" +
         '<button type="button" class="clima__btn" id="climaDetalhesBtn" aria-expanded="false">ver por modelo</button>' +
       "</div>" +
-      '<div class="clima__detalhes" id="climaDetalhes" hidden></div>';
+      '';
 
     var wrap = document.getElementById("climaDias");
     elementoTemaSelecionado = null;
@@ -320,16 +349,10 @@
     if (tAgora && tAgora.getAttribute("data-alvo") !== "") animarNumero(tAgora, parseInt(tAgora.getAttribute("data-alvo"), 10));
 
     var btn = document.getElementById("climaDetalhesBtn");
-    var det = document.getElementById("climaDetalhes");
-    function aplicarDetalhes() {
-      det.hidden = !detalhesAbertos;
-      btn.setAttribute("aria-expanded", detalhesAbertos ? "true" : "false");
-      btn.textContent = detalhesAbertos ? "ocultar modelos" : "ver por modelo";
-      if (detalhesAbertos) det.innerHTML = htmlDetalhes(dados);
-      if (typeof window.reajustarEscalaPainel === "function") window.reajustarEscalaPainel();
-    }
-    btn.addEventListener("click", function () { detalhesAbertos = !detalhesAbertos; aplicarDetalhes(); });
-    if (detalhesAbertos) aplicarDetalhes();
+    btn.addEventListener("click", function () {
+      if (modalEl && !modalEl.hidden) fecharModal(); else abrirModal();
+    });
+    if (modalEl && !modalEl.hidden) abrirModal();   // atualiza se já estava aberto
 
     raiz.hidden = false;
     if (typeof window.reajustarEscalaPainel === "function") window.reajustarEscalaPainel();
