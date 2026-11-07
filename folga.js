@@ -149,7 +149,15 @@
   var LIMITE_PERIODO_DIAS = 62;
   var MESES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 
+  var REM_KEY = "painelEndemiasFolgaRemetentes";
+  var REMETENTES_PADRAO = [
+    { setor: "SETOR DE ENDEMIAS E ZOONOSES", nome: "Alexandre Mendonca de Lima" },
+    { setor: "SAÚDE DO TRABALHADOR", nome: "Evelise Tramarin de Araujo Poveda" }
+  ];
+
   var state = {
+    remetentes: [],     // [{setor, nome}] — lista guardada no navegador
+    remetente: 0,       // índice escolhido (volta ao padrão no F5)
     funcionarios: {},   // nome -> cargo
     selecoes: {},       // nome -> [dd/mm/yyyy, ...]
     marcados: {},        // nome -> true (checkbox marcado, sobrevive a busca/filtro)
@@ -279,6 +287,11 @@
 
   function cacheDom() {
     dom.ci = document.getElementById("folgaCi");
+    dom.remetente = document.getElementById("folgaRemetente");
+    dom.remSetor = document.getElementById("folgaRemSetor");
+    dom.remNome = document.getElementById("folgaRemNome");
+    dom.remAdd = document.getElementById("folgaRemAdd");
+    dom.remDel = document.getElementById("folgaRemDel");
     dom.busca = document.getElementById("folgaBusca");
     dom.filtroCargo = document.getElementById("folgaFiltroCargo");
     dom.lista = document.getElementById("folgaLista");
@@ -414,6 +427,55 @@
     dom.contador.textContent = "Exibindo " + filtrados.length + " de " + nomes.length + " funcionário(s)";
   }
 
+  // ---------------- Quem envia ("De:") ----------------
+
+  function carregarRemetentes() {
+    try {
+      var l = JSON.parse(localStorage.getItem(REM_KEY) || "null");
+      if (Array.isArray(l) && l.length && l.every(function (r) { return r && r.setor && r.nome; })) return l;
+    } catch (e) { /* usa o padrão */ }
+    return REMETENTES_PADRAO.map(function (r) { return { setor: r.setor, nome: r.nome }; });
+  }
+  function salvarRemetentes() { try { localStorage.setItem(REM_KEY, JSON.stringify(state.remetentes)); } catch (e) { /* ignora */ } }
+  function remetenteAtual() { return state.remetentes[state.remetente] || state.remetentes[0] || REMETENTES_PADRAO[0]; }
+
+  function renderRemetentes() {
+    var sel = dom.remetente; if (!sel) return;
+    sel.innerHTML = "";
+    state.remetentes.forEach(function (r, i) {
+      var o = document.createElement("option");
+      o.value = String(i); o.textContent = r.setor + " – " + r.nome;
+      sel.appendChild(o);
+    });
+    sel.value = String(state.remetente);
+  }
+
+  function titulo(t) {
+    return t.trim().replace(/\s+/g, " ").toLowerCase().replace(/(^|\s)(\S)/g, function (m, a, b) {
+      return a + b.toUpperCase();
+    }).replace(/\s(De|Da|Do|Das|Dos|E)(?=\s)/g, function (m) { return m.toLowerCase(); });
+  }
+
+  function adicionarRemetente() {
+    var setor = (dom.remSetor.value || "").trim().toUpperCase(), nome = (dom.remNome.value || "").trim();
+    if (!setor || !nome) { setStatus("Informe o setor e o nome de quem envia.", true); return; }
+    nome = nome === nome.toUpperCase() ? titulo(nome) : nome;
+    state.remetentes.push({ setor: setor, nome: nome });
+    state.remetente = state.remetentes.length - 1;
+    salvarRemetentes(); renderRemetentes(); renderPreview();
+    dom.remSetor.value = ""; dom.remNome.value = "";
+    setStatus("Remetente adicionado e selecionado.", false);
+  }
+
+  function removerRemetente() {
+    if (state.remetentes.length <= 1) { setStatus("É preciso manter ao menos um remetente.", true); return; }
+    var r = remetenteAtual();
+    if (!confirm("Remover \"" + r.setor + " – " + r.nome + "\" da lista?")) return;
+    state.remetentes.splice(state.remetente, 1);
+    state.remetente = 0;
+    salvarRemetentes(); renderRemetentes(); renderPreview();
+  }
+
   // ---------------- Modelo ao vivo (papel A4 ao lado) ----------------
 
   var PAPEL_W = 794, PAPEL_H = 1123;   // A4 a 96 dpi (1 px = 15 twips)
@@ -500,7 +562,7 @@
     [1250, 3569, 1250, 3569].forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
     t1.innerHTML = "<colgroup>" + cg + "</colgroup>";
     var r = el("tr"); tdPapel(r, "Número:", "fgp-lab"); tdPapel(r, (ci || "___") + "/2026"); tdPapel(r, "Data:", "fgp-lab"); tdPapel(r, formatarDataExtenso(new Date())); t1.appendChild(r);
-    r = el("tr"); tdPapel(r, "De:", "fgp-lab"); var c = tdPapel(r, "SETOR DE ENDEMIAS E ZOONOSES – "); c.colSpan = 3; c.appendChild(el("b", null, "Alexandre Mendonca de Lima")); t1.appendChild(r);
+    r = el("tr"); tdPapel(r, "De:", "fgp-lab"); var c = tdPapel(r, remetenteAtual().setor + " – "); c.colSpan = 3; c.appendChild(el("b", null, remetenteAtual().nome)); t1.appendChild(r);
     r = el("tr"); tdPapel(r, "Para:", "fgp-lab"); c = tdPapel(r, "SECRETARIA MUNICIPAL DE SAÚDE – "); c.colSpan = 3; c.appendChild(el("b", null, "Mariane Silvestre Quinhones")); t1.appendChild(r);
     corpo.appendChild(t1);
     corpo.appendChild(sp(200));
@@ -748,34 +810,10 @@
 
   // ---------------- Rascunho (só nomes e datas) ----------------
 
-  function salvarRascunho() {
-    try {
-      localStorage.setItem(RASCUNHO_KEY, JSON.stringify({ ci: dom.ci.value, selecoes: state.selecoes }));
-    } catch (e) { /* sem armazenamento: segue sem rascunho */ }
-  }
-
-  function apagarRascunho() {
-    try { localStorage.removeItem(RASCUNHO_KEY); } catch (e) { /* ignora */ }
-  }
-
-  function restaurarRascunho() {
-    try {
-      var raw = localStorage.getItem(RASCUNHO_KEY);
-      if (!raw) return 0;
-      var o = JSON.parse(raw);
-      if (!o || typeof o !== "object") return 0;
-      var sel = {};
-      Object.keys(o.selecoes || {}).forEach(function (nome) {
-        var datas = o.selecoes[nome];
-        if (state.funcionarios[nome] === undefined || !Array.isArray(datas)) return;
-        datas = datas.filter(function (d) { return typeof d === "string" && /^\d{2}\/\d{2}\/\d{4}/.test(d); });
-        if (datas.length) sel[nome] = datas;
-      });
-      state.selecoes = sel;
-      if (o.ci && !dom.ci.value) dom.ci.value = String(o.ci);
-      return Object.keys(sel).length;
-    } catch (e) { return 0; }
-  }
+  // O trabalho (CI, folgas, datas) NÃO é salvo: ao atualizar a página (F5) tudo volta ao começo.
+  function salvarRascunho() { /* de propósito não salva */ }
+  function apagarRascunho() { try { localStorage.removeItem(RASCUNHO_KEY); } catch (e) { /* ignora */ } }
+  function restaurarRascunho() { apagarRascunho(); return 0; }  // limpa rascunhos antigos
 
   function desmarcarSelecao() {
     state.marcados = {};
@@ -982,7 +1020,8 @@
             };
           });
 
-          var subs = { "<<ci>>": ci, "<<hoje>>": formatarDataExtenso(new Date()) };
+          var rem = remetenteAtual();
+          var subs = { "<<ci>>": ci, "<<hoje>>": formatarDataExtenso(new Date()), "<<setor>>": rem.setor, "<<remetente>>": rem.nome };
           Object.keys(arquivos).forEach(function (caminho) {
             var xmlAtual = caminho === "word/document.xml" ? docXml : arquivos[caminho];
             arquivos[caminho] = DocxUtils.substituirTags(xmlAtual, subs);
@@ -1055,6 +1094,11 @@
     if (!dom.lista) return;
 
     state.funcionarios = carregarFuncionarios();
+    state.remetentes = carregarRemetentes();
+    renderRemetentes();
+    dom.remetente.addEventListener("change", function () { state.remetente = parseInt(dom.remetente.value, 10) || 0; renderPreview(); });
+    dom.remAdd.addEventListener("click", adicionarRemetente);
+    dom.remDel.addEventListener("click", removerRemetente);
     popularSelectCargos(dom.novoCargo, CARGOS[0]);
     renderFiltroCargo();
     renderListaFuncionarios();

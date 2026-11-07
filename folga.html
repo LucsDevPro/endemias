@@ -45,11 +45,30 @@
     <div class="fg-esq">
 
       <section class="fg-passo">
-        <h3 class="fg-passo__t"><span class="fg-passo__n">1</span> Número da CI</h3>
-        <label class="fg-ci">
-          <input type="text" id="folgaCi" placeholder="Ex: 015" inputmode="numeric" autocomplete="off">
-          <span class="fg-ci__sufixo">/2026</span>
-        </label>
+        <h3 class="fg-passo__t"><span class="fg-passo__n">1</span> Documento</h3>
+        <div class="fg-doc">
+          <div class="fg-doc__ci">
+            <span class="fg-rot">Número da CI</span>
+            <label class="fg-ci">
+              <input type="text" id="folgaCi" placeholder="015" inputmode="numeric" autocomplete="off">
+              <span class="fg-ci__sufixo">/2026</span>
+            </label>
+          </div>
+          <div class="fg-doc__de">
+            <span class="fg-rot">Quem envia (campo “De:”)</span>
+            <select id="folgaRemetente" class="folga-select" aria-label="Quem envia"></select>
+          </div>
+        </div>
+        <details class="fg-mais">
+          <summary>Adicionar ou remover quem envia</summary>
+          <div class="folga-row folga-row--add">
+            <input type="text" id="folgaRemSetor" class="folga-input" placeholder="Setor (ex: Saúde do trabalhador)">
+            <input type="text" id="folgaRemNome" class="folga-input" placeholder="Nome do coordenador">
+            <button type="button" id="folgaRemAdd" class="folga-btn folga-btn--ghost">+ Adicionar</button>
+            <button type="button" id="folgaRemDel" class="folga-btn folga-btn--ghost">Remover o selecionado</button>
+          </div>
+          <p class="folga-periodo__ajuda">A lista de quem envia fica guardada neste navegador. Ao atualizar a página (F5) o remetente volta para o padrão.</p>
+        </details>
       </section>
 
       <section class="fg-passo">

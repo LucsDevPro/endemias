@@ -263,3 +263,5 @@ Modelo refeito do zero: cabeçalho com o logo da Prefeitura de Ponta Porã (cent
 ## Painel da Folga — tela dividida
 
 À esquerda, passo a passo (1 CI → 2 quem → 3 quando → 4 adicionar); à direita, o modelo A4 ao vivo (`folga-split.css`). O que ainda não foi adicionado aparece em amarelo; ✕ no modelo remove funcionário ou data. O selo mostra se cabe em 1 folha. No celular há abas "Preencher" / "Ver modelo".
+
+**Remetente (De:)** — escolhido na tela (padrão: Setor de Endemias e Zoonoses – Alexandre Mendonca de Lima); dá para adicionar outros coordenadores. O trabalho (CI, folgas, datas) não é salvo: F5 recomeça do zero. Só a lista de funcionários e a de remetentes ficam no navegador.
