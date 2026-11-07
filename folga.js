@@ -779,6 +779,7 @@
     }
 
     setStatus("Gerando documento...", false);
+    var escolhaLayout = null;
 
     var funcionariosOrdenados = nomes.sort().map(function (nome) {
       var datas = state.selecoes[nome].slice().sort(compararDatasBR);
@@ -798,6 +799,24 @@
       .then(function (bytes) {
         return DocxUtils.lerArquivosXml(bytes).then(function (arquivos) {
           var docXml = arquivos["word/document.xml"];
+
+          // ajuste automático para caber numa folha (fonte, alturas e espaços)
+          escolhaLayout = null;
+          if (window.FolgaLayout) {
+            try {
+              escolhaLayout = FolgaLayout.escolherNivel(funcionariosOrdenados);
+              docXml = FolgaLayout.aplicarNivel(docXml, escolhaLayout.nivel);
+              Object.keys(arquivos).forEach(function (caminho) {
+                if (/^word\/header\d+\.xml$/.test(caminho)) {
+                  arquivos[caminho] = FolgaLayout.aplicarCabecalho(arquivos[caminho], escolhaLayout.nivel);
+                }
+              });
+            } catch (e) {
+              console.warn("Ajuste de layout ignorado:", e);
+              docXml = arquivos["word/document.xml"];
+              escolhaLayout = null;
+            }
+          }
 
           docXml = DocxUtils.expandirLinhaTabela(docXml, "<<nome>>", funcionariosOrdenados, function (item) {
             return {
@@ -832,7 +851,13 @@
         document.body.removeChild(a);
         setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
 
-        setStatus("Documento gerado: " + nomeArquivo + " (" + qtd + " funcionário(s)).", false);
+        var aviso = "";
+        if (escolhaLayout && !escolhaLayout.cabe) {
+          aviso = " Atenção: são funcionários/datas demais para uma folha só, o documento deve sair com 2 páginas — considere dividir em dois documentos.";
+        } else if (escolhaLayout && escolhaLayout.indice > 0) {
+          aviso = " Tabela ajustada para caber em uma folha.";
+        }
+        setStatus("Documento gerado: " + nomeArquivo + " (" + qtd + " funcionário(s))." + aviso, !!(escolhaLayout && !escolhaLayout.cabe));
       })
       .catch(function (err) {
         console.error(err);
