@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="tema.css">
 <link rel="stylesheet" href="tema-claro.css">
+<link rel="stylesheet" href="folga-split.css">
 <script src="tema-toggle.js"></script>
 </head>
 <body>
@@ -26,124 +27,148 @@
   </div>
 </header>
 
-<main class="page page--tool">
+<main class="page page--tool page--split">
 
-  <div class="hero">
+  <div class="hero hero--compacto">
     <h1 class="title">Folga</h1>
-    <p class="subtitle">Preenche o modelo de Comunicação Interna com a lista de funcionários e as datas de folga.</p>
+    <p class="subtitle">Escolha quem, escolha quando e veja o documento ficando pronto ao lado.</p>
   </div>
 
-  <div class="tool-panel">
+  <nav class="fg-abas" aria-label="Alternar tela">
+    <button type="button" class="fg-aba fg-aba--ativa" data-aba="editar">① Preencher</button>
+    <button type="button" class="fg-aba" data-aba="modelo">📄 Ver modelo <span class="fg-aba__n" id="fgAbaN"></span></button>
+  </nav>
 
-    <section class="folga-section">
-      <div class="folga-row">
-        <label class="folga-field">
-          <span>Número da CI <small>(o modelo já tem "/2026" fixo — digite só o número, ex: 015)</small></span>
-          <input type="text" id="folgaCi" placeholder="Ex: 015">
+  <div class="fg-grade" data-aba="editar">
+
+    <!-- ======================= ESQUERDA: passo a passo ======================= -->
+    <div class="fg-esq">
+
+      <section class="fg-passo">
+        <h3 class="fg-passo__t"><span class="fg-passo__n">1</span> Número da CI</h3>
+        <label class="fg-ci">
+          <input type="text" id="folgaCi" placeholder="Ex: 015" inputmode="numeric" autocomplete="off">
+          <span class="fg-ci__sufixo">/2026</span>
         </label>
-      </div>
-    </section>
+      </section>
 
-    <section class="folga-section">
-      <h3 class="folga-section__title">Funcionários</h3>
+      <section class="fg-passo">
+        <h3 class="fg-passo__t"><span class="fg-passo__n">2</span> Quem vai folgar?</h3>
 
-      <div class="folga-row">
-        <input type="text" id="folgaBusca" class="folga-input" placeholder="🔍 Buscar funcionário...">
-        <select id="folgaFiltroCargo" class="folga-select"></select>
-      </div>
+        <div class="fg-busca">
+          <input type="text" id="folgaBusca" class="folga-input" placeholder="🔍 Nome + Enter para marcar" autocomplete="off">
+          <select id="folgaFiltroCargo" class="folga-select" aria-label="Filtrar por cargo"></select>
+        </div>
 
-      <div class="folga-row folga-row--add">
-        <input type="text" id="folgaNovoNome" class="folga-input" placeholder="Nome do novo funcionário">
-        <select id="folgaNovoCargo" class="folga-select"></select>
-        <button type="button" id="folgaAddFuncionario" class="folga-btn folga-btn--ghost">+ Adicionar</button>
-      </div>
+        <div class="fg-marcados" id="folgaResumoSelecao" aria-live="polite"></div>
 
-      <div class="folga-row folga-row--sel">
-        <button type="button" id="folgaMarcarTodos" class="folga-btn folga-btn--ghost fer-sm">Marcar todos (os da busca)</button>
-        <button type="button" id="folgaDesmarcar" class="folga-btn folga-btn--ghost fer-sm">Desmarcar todos</button>
-        <button type="button" id="folgaColarToggle" class="folga-btn folga-btn--ghost fer-sm">📋 Colar lista de nomes</button>
-      </div>
+        <div class="folga-list" id="folgaLista"></div>
+        <p class="folga-count" id="folgaContador"></p>
 
-      <div class="folga-colar" id="folgaColarWrap" hidden>
-        <textarea id="folgaColarTexto" class="folga-input folga-colar__txt" rows="5" placeholder="Cole aqui os nomes, um por linha (pode ser só parte do nome, sem acento)…"></textarea>
-        <div class="folga-row">
-          <button type="button" id="folgaColarAplicar" class="folga-btn fer-sm">Marcar esses nomes</button>
+        <div class="fg-acoes">
+          <button type="button" id="folgaMarcarTodos" class="folga-btn folga-btn--ghost fer-sm">Marcar todos da lista</button>
+          <button type="button" id="folgaDesmarcar" class="folga-btn folga-btn--ghost fer-sm">Desmarcar todos</button>
+          <button type="button" id="folgaColarToggle" class="folga-btn folga-btn--ghost fer-sm">📋 Colar nomes</button>
+        </div>
+
+        <div class="folga-colar" id="folgaColarWrap" hidden>
+          <textarea id="folgaColarTexto" class="folga-input folga-colar__txt" rows="5" placeholder="Cole aqui os nomes, um por linha (pode ser só parte do nome, sem acento)…"></textarea>
+          <div class="folga-row">
+            <button type="button" id="folgaColarAplicar" class="folga-btn fer-sm">Marcar esses nomes</button>
+          </div>
+        </div>
+
+        <details class="fg-mais">
+          <summary>Mais opções da lista (novo funcionário, exportar, importar)</summary>
+          <div class="folga-row folga-row--add">
+            <input type="text" id="folgaNovoNome" class="folga-input" placeholder="Nome do novo funcionário">
+            <select id="folgaNovoCargo" class="folga-select"></select>
+            <button type="button" id="folgaAddFuncionario" class="folga-btn folga-btn--ghost">+ Adicionar</button>
+          </div>
+          <div class="folga-row folga-row--tools">
+            <button type="button" id="folgaExportar" class="folga-link-btn">Exportar lista</button>
+            <button type="button" id="folgaImportar" class="folga-link-btn">Importar lista</button>
+            <button type="button" id="folgaRestaurar" class="folga-link-btn">Restaurar padrão</button>
+            <input type="file" id="folgaImportarInput" accept="application/json" hidden>
+          </div>
+        </details>
+      </section>
+
+      <section class="fg-passo">
+        <h3 class="fg-passo__t"><span class="fg-passo__n">3</span> Quando?</h3>
+
+        <div class="fg-modo" role="tablist">
+          <button type="button" class="fg-modo__b fg-modo__b--ativo" data-modo="dia">Um ou vários dias</button>
+          <button type="button" class="fg-modo__b" data-modo="periodo">Período (de … até …)</button>
+        </div>
+
+        <div class="fg-modo__corpo" data-corpo="dia">
+          <div class="folga-row">
+            <input type="date" id="folgaData" class="folga-input">
+            <button type="button" id="folgaAddPendente" class="folga-btn fer-sm">＋ Incluir dia</button>
+          </div>
+        </div>
+
+        <div class="fg-modo__corpo" data-corpo="periodo" hidden>
+          <div class="folga-row">
+            <label class="folga-field"><span>De</span><input type="date" id="folgaDe"></label>
+            <label class="folga-field"><span>Até</span><input type="date" id="folgaAte"></label>
+          </div>
+          <div class="folga-row">
+            <label class="folga-periodo">
+              <input type="checkbox" id="folgaSoUteis" checked>
+              <span>Só dias úteis (seg–sex)</span>
+            </label>
+            <button type="button" id="folgaAddPeriodo" class="folga-btn fer-sm">＋ Incluir período</button>
+          </div>
+        </div>
+
+        <div class="fg-turno">
+          <span class="fg-turno__t">Turno:</span>
+          <label class="folga-periodo"><input type="checkbox" id="folgaPeriodoMatutino"><span>Só manhã</span></label>
+          <label class="folga-periodo"><input type="checkbox" id="folgaPeriodoVespertino"><span>Só tarde</span></label>
+          <small>(nenhum marcado = dia todo)</small>
+        </div>
+
+        <p class="folga-count" id="folgaPendentesTitulo">Datas escolhidas:</p>
+        <div class="folga-pend" id="folgaPendentes"></div>
+      </section>
+
+      <section class="fg-passo fg-passo--final">
+        <h3 class="fg-passo__t"><span class="fg-passo__n">4</span> Lançar no documento</h3>
+        <button type="button" id="folgaAddData" class="folga-btn folga-btn--primary fg-grande">Adicionar aos selecionados</button>
+        <label class="folga-periodo folga-periodo--solto">
+          <input type="checkbox" id="folgaLimparSel" checked>
+          <span>Desmarcar os funcionários depois de adicionar (para já escolher o próximo grupo)</span>
+        </label>
+        <details class="fg-mais">
+          <summary>Como funciona?</summary>
+          <p class="folga-periodo__ajuda">Marque quem vai folgar, escolha os dias (ou um período) e clique em “Adicionar”. Dá para misturar: um dia só de manhã, outro o dia todo. Se alguém já tem aquele dia, o novo substitui o antigo; manhã e tarde do mesmo dia podem coexistir. Feriados não são descontados automaticamente. As linhas em amarelo no modelo ainda não foram adicionadas.</p>
+        </details>
+      </section>
+
+    </div>
+
+    <!-- ======================= DIREITA: modelo ao vivo ======================= -->
+    <aside class="fg-dir">
+      <div class="fg-dir__topo">
+        <div class="fg-dir__info">
+          <strong>Modelo do documento</strong>
+          <span class="fg-selo" id="fgSelo"></span>
+        </div>
+        <div class="fg-dir__botoes">
+          <button type="button" id="folgaLimpar" class="folga-btn folga-btn--ghost fer-sm">Limpar tudo</button>
+          <button type="button" id="folgaGerar" class="folga-btn folga-btn--primary">⬇ Gerar .docx</button>
         </div>
       </div>
-
-      <p class="folga-count" id="folgaContador"></p>
-
-      <div class="folga-list" id="folgaLista"></div>
-
-      <div class="folga-row folga-row--tools">
-        <button type="button" id="folgaExportar" class="folga-link-btn">Exportar lista</button>
-        <button type="button" id="folgaImportar" class="folga-link-btn">Importar lista</button>
-        <button type="button" id="folgaRestaurar" class="folga-link-btn">Restaurar padrão</button>
-        <input type="file" id="folgaImportarInput" accept="application/json" hidden>
-      </div>
-    </section>
-
-    <section class="folga-section">
-      <h3 class="folga-section__title">Datas das folgas</h3>
-
-      <p class="folga-selecao" id="folgaResumoSelecao"></p>
-
-      <div class="folga-row">
-        <input type="date" id="folgaData" class="folga-input">
-
-        <label class="folga-periodo">
-          <input type="checkbox" id="folgaPeriodoMatutino">
-          <span>Matutino</span>
-        </label>
-        <label class="folga-periodo">
-          <input type="checkbox" id="folgaPeriodoVespertino">
-          <span>Vespertino</span>
-        </label>
-
-        <button type="button" id="folgaAddPendente" class="folga-btn fer-sm">＋ Data</button>
-      </div>
-
-      <div class="folga-row">
-        <label class="folga-field">
-          <span>Ou um período — de</span>
-          <input type="date" id="folgaDe">
-        </label>
-        <label class="folga-field">
-          <span>até</span>
-          <input type="date" id="folgaAte">
-        </label>
-        <label class="folga-periodo">
-          <input type="checkbox" id="folgaSoUteis" checked>
-          <span>Só dias úteis (seg–sex)</span>
-        </label>
-        <button type="button" id="folgaAddPeriodo" class="folga-btn fer-sm">＋ Período</button>
-      </div>
-
-      <p class="folga-count" id="folgaPendentesTitulo">Datas a lançar:</p>
-      <div class="folga-pend" id="folgaPendentes"></div>
-
-      <div class="folga-row">
-        <button type="button" id="folgaAddData" class="folga-btn folga-btn--primary">Adicionar aos selecionados</button>
-      </div>
-      <label class="folga-periodo folga-periodo--solto">
-        <input type="checkbox" id="folgaLimparSel" checked>
-        <span>Desmarcar os funcionários depois de adicionar (para já escolher o próximo grupo)</span>
-      </label>
-      <p class="folga-periodo__ajuda">Monte a lista de datas (várias de uma vez, ou um período) e clique em “Adicionar aos selecionados”. Dá para misturar: uma data só de manhã, outra o dia todo (deixe as duas caixas desmarcadas para o dia todo). Se um funcionário já tem aquele dia, o novo período substitui o antigo; manhã e tarde do mesmo dia podem coexistir. Feriados não são descontados automaticamente.</p>
-    </section>
-
-    <section class="folga-section">
-      <h3 class="folga-section__title">Prévia das folgas</h3>
+      <p class="folga-status" id="folgaStatus" aria-live="polite"></p>
       <p class="folga-count" id="folgaPreviewResumo"></p>
-      <div class="folga-preview" id="folgaPreview"></div>
-    </section>
-
-    <p class="folga-status" id="folgaStatus"></p>
-
-    <div class="modal__actions">
-      <button type="button" id="folgaLimpar" class="folga-btn folga-btn--ghost">Limpar tudo</button>
-      <button type="button" id="folgaGerar" class="folga-btn folga-btn--primary">Gerar documento (.docx)</button>
-    </div>
+      <div class="fg-zoom"><button type="button" id="fgZoomInteira" class="ativo">Página inteira</button><button type="button" id="fgZoomLargura">Ampliar</button></div>
+      <div class="fg-papel-caixa" id="fgCaixa">
+        <div class="fg-papel" id="folgaPreview"></div>
+      </div>
+      <p class="fg-dica">Passe o mouse numa data ou num nome do modelo e clique no ✕ para tirar.</p>
+    </aside>
 
   </div>
 

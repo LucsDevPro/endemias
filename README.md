@@ -259,3 +259,7 @@ E acesse `http://localhost:8000`.
 ## Modelo da Folga (assets/modelo-folga.docx)
 
 Modelo refeito do zero: cabeçalho com o logo da Prefeitura de Ponta Porã (centralizado), título "COMUNICAÇÃO INTERNA", tabela de dados (Número/Data/De/Para), tabela de funcionários e tabela de assinaturas — todas com a mesma largura (9638 twips), bordas e fonte (Arial) padronizadas. O `folga-layout.js` ajusta fonte, espaços e logo automaticamente para caber tudo em uma folha A4.
+
+## Painel da Folga — tela dividida
+
+À esquerda, passo a passo (1 CI → 2 quem → 3 quando → 4 adicionar); à direita, o modelo A4 ao vivo (`folga-split.css`). O que ainda não foi adicionado aparece em amarelo; ✕ no modelo remove funcionário ou data. O selo mostra se cabe em 1 folha. No celular há abas "Preencher" / "Ver modelo".

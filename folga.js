@@ -377,6 +377,7 @@
       cargoSelect.addEventListener("change", function () {
         state.funcionarios[nome] = cargoSelect.value;
         salvarFuncionarios();
+        renderPreview();
       });
 
       var remover = el("button", "folga-emp__rm", "✕");
@@ -413,59 +414,201 @@
     dom.contador.textContent = "Exibindo " + filtrados.length + " de " + nomes.length + " funcionário(s)";
   }
 
-  // ---------------- Render: prévia das folgas ----------------
+  // ---------------- Modelo ao vivo (papel A4 ao lado) ----------------
+
+  var PAPEL_W = 794, PAPEL_H = 1123;   // A4 a 96 dpi (1 px = 15 twips)
+
+  // junta datas novas numa lista, trocando as que conflitam (mesma regra de "Adicionar")
+  function mesclar(lista, datas) {
+    lista = lista.slice();
+    datas.forEach(function (d) {
+      lista = lista.filter(function (x) { return !conflita(x, d); });
+      lista.push(d);
+    });
+    return lista;
+  }
+
+  // o que o modelo mostra: folgas já adicionadas + (em amarelo) o que está montado e ainda não foi adicionado
+  function montarVisao() {
+    var visao = {}, novas = {};
+    Object.keys(state.selecoes).forEach(function (n) { visao[n] = state.selecoes[n].slice(); });
+    var datas = datasParaAdicionar();
+    if (datas.length) {
+      Object.keys(state.marcados).forEach(function (n) {
+        if (state.funcionarios[n] === undefined) return;
+        var antes = visao[n] || [];
+        visao[n] = mesclar(antes, datas);
+        datas.forEach(function (d) { if (antes.indexOf(d) === -1) novas[n + "|" + d] = true; });
+      });
+    }
+    return { visao: visao, novas: novas };
+  }
+
+  function tdPapel(tr, texto, cls) {
+    var td = el("td", cls || null);
+    if (texto !== undefined && texto !== null) td.textContent = texto;
+    tr.appendChild(td);
+    return td;
+  }
 
   function renderPreview() {
-    dom.preview.innerHTML = "";
-    var nomes = Object.keys(state.selecoes).sort();
-
-    if (nomes.length === 0) {
-      dom.previewResumo.textContent = "";
-      dom.preview.appendChild(el("p", "folga-preview__vazio", "Nenhuma folga adicionada ainda. Marque funcionários acima, monte as datas e clique em \"Adicionar aos selecionados\"."));
-      return;
-    }
-
-    var totalFolgas = nomes.reduce(function (n, nome) { return n + state.selecoes[nome].length; }, 0);
-    dom.previewResumo.textContent = nomes.length + " funcionário(s) · " + totalFolgas + " folga(s) no documento.";
-
-    nomes.forEach(function (nome) {
-      var card = el("div", "folga-preview__item");
-
-      var head = el("div", "folga-preview__head");
-      var info = el("div");
-      info.appendChild(el("strong", null, nome));
-      info.appendChild(el("span", "folga-preview__cargo", state.funcionarios[nome] || "Cargo não definido"));
-      var rm = el("button", "folga-emp__rm", "✕");
-      rm.type = "button";
-      rm.title = "Remover todas as datas deste funcionário";
-      rm.addEventListener("click", function () {
-        delete state.selecoes[nome];
-        renderPreview();
-        salvarRascunho();
-      });
-      head.appendChild(info);
-      head.appendChild(rm);
-      card.appendChild(head);
-
-      var chips = el("div", "folga-preview__datas");
-      state.selecoes[nome].slice().sort(compararDatasBR).forEach(function (data) {
-        var chip = el("span", "folga-chip");
-        chip.appendChild(document.createTextNode(data + " "));
-        var x = el("button", "folga-chip__x", "✕");
-        x.type = "button";
-        x.addEventListener("click", function () {
-          state.selecoes[nome] = state.selecoes[nome].filter(function (d) { return d !== data; });
-          if (state.selecoes[nome].length === 0) delete state.selecoes[nome];
-          renderPreview();
-          salvarRascunho();
-        });
-        chip.appendChild(x);
-        chips.appendChild(chip);
-      });
-      card.appendChild(chips);
-
-      dom.preview.appendChild(card);
+    if (!dom.preview) return;
+    var v = montarVisao();
+    var nomes = Object.keys(v.visao).sort();
+    var itens = nomes.map(function (n) {
+      return { nome: n, cargo: state.funcionarios[n] || "", tipo: "Banco de horas", datas: v.visao[n].slice().sort(compararDatasBR).join(", ") };
     });
+
+    var esc = null, nv;
+    try { esc = window.FolgaLayout ? FolgaLayout.escolherNivel(itens.length ? itens : [{ nome: "", cargo: "", tipo: "", datas: "" }]) : null; } catch (e) { esc = null; }
+    nv = esc ? esc.nivel : { sz: 20, mar: 60, trh: 560, hdr: 520, esp: 1, top: 1, mgl: 60, assin: 1500, logo: 1 };
+    var cabe = !esc || esc.cabe;
+
+    var px = function (tw) { return (tw / 15).toFixed(2) + "px"; };
+    var P = dom.preview;
+    P.innerHTML = "";
+    P.className = "fg-papel" + (cabe ? "" : " fg-papel--estoura");
+    P.style.setProperty("--sz", (nv.sz * 0.6667).toFixed(2) + "px");
+    P.style.setProperty("--szh", (Math.min(18, nv.sz) * 0.6667).toFixed(2) + "px");
+    P.style.setProperty("--mar", px(nv.mar));
+    P.style.setProperty("--mgl", px(nv.mgl));
+    P.style.setProperty("--trh", px(nv.trh));
+    P.style.setProperty("--hdr", px(nv.hdr));
+    P.style.setProperty("--assin", px(nv.assin));
+    P.style.setProperty("--top-pad", px(454 + Math.round(828000 * nv.logo / 635) + 200));
+
+    // cabeçalho (logo)
+    var cab = el("div", "fgp-cab");
+    var img = document.createElement("img");
+    img.src = "assets/cabecalho-prefeitura.png";
+    img.alt = "Prefeitura Municipal de Ponta Porã";
+    img.style.height = (86.9 * nv.logo).toFixed(1) + "px";
+    cab.appendChild(img);
+    P.appendChild(cab);
+
+    var corpo = el("div", "fgp-corpo");
+    P.appendChild(corpo);
+    var sp = function (tw) { var d = el("div", "fgp-esp"); d.style.height = px(tw * nv.esp); return d; };
+
+    // título
+    corpo.appendChild(el("div", "fgp-titulo", "COMUNICAÇÃO INTERNA"));
+    corpo.appendChild(sp(120));
+
+    // dados
+    var ci = (dom.ci.value || "").trim();
+    var t1 = el("table", "fgp-tab fgp-info"), cg = "";
+    [1250, 3569, 1250, 3569].forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
+    t1.innerHTML = "<colgroup>" + cg + "</colgroup>";
+    var r = el("tr"); tdPapel(r, "Número:", "fgp-lab"); tdPapel(r, (ci || "___") + "/2026"); tdPapel(r, "Data:", "fgp-lab"); tdPapel(r, formatarDataExtenso(new Date())); t1.appendChild(r);
+    r = el("tr"); tdPapel(r, "De:", "fgp-lab"); var c = tdPapel(r, "SETOR DE ENDEMIAS E ZOONOSES – "); c.colSpan = 3; c.appendChild(el("b", null, "Alexandre Mendonca de Lima")); t1.appendChild(r);
+    r = el("tr"); tdPapel(r, "Para:", "fgp-lab"); c = tdPapel(r, "SECRETARIA MUNICIPAL DE SAÚDE – "); c.colSpan = 3; c.appendChild(el("b", null, "Mariane Silvestre Quinhones")); t1.appendChild(r);
+    corpo.appendChild(t1);
+    corpo.appendChild(sp(200));
+
+    corpo.appendChild(el("div", "fgp-assunto", "ASSUNTO: Folga referente ao banco de horas acumulado."));
+    corpo.appendChild(sp(160));
+
+    // funcionários
+    var t2 = el("table", "fgp-tab fgp-func"); cg = "";
+    [2450, 2100, 1150, 1938, 2000].forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
+    t2.innerHTML = "<colgroup>" + cg + "</colgroup>";
+    r = el("tr", "fgp-cabtab");
+    ["NOME", "CARGO", "TIPO DE FOLGA", "DATA DA FOLGA", "ASSINATURA DO SERVIDOR"].forEach(function (t) { tdPapel(r, t); });
+    t2.appendChild(r);
+
+    if (!nomes.length) {
+      r = el("tr", "fgp-vazia");
+      c = tdPapel(r, "Nenhuma folga ainda — marque funcionários, escolha as datas e clique em “Adicionar”."); c.colSpan = 5;
+      t2.appendChild(r);
+    }
+    nomes.forEach(function (nome) {
+      var datas = v.visao[nome].slice().sort(compararDatasBR);
+      var linhaNova = datas.every(function (d) { return v.novas[nome + "|" + d]; });
+      r = el("tr", linhaNova ? "fgp-nova" : null);
+      var cn = tdPapel(r, nome);
+      if (!linhaNova || state.selecoes[nome]) {
+        var rm = el("button", "fgp-x", "✕");
+        rm.type = "button"; rm.title = "Tirar este funcionário do documento";
+        rm.addEventListener("click", function () {
+          delete state.selecoes[nome];
+          salvarRascunho(); renderPreview();
+        });
+        cn.appendChild(rm);
+      }
+      tdPapel(r, state.funcionarios[nome] || "");
+      tdPapel(r, "Banco de horas");
+      var cd = tdPapel(r, null, "fgp-datas");
+      datas.forEach(function (d, i) {
+        var nova = !!v.novas[nome + "|" + d];
+        var sp1 = el("span", "fgp-data" + (nova ? " fgp-data--nova" : ""));
+        sp1.appendChild(document.createTextNode(d));
+        if (!nova) {
+          var x = el("button", "fgp-x fgp-x--data", "✕");
+          x.type = "button"; x.title = "Tirar a data " + d;
+          x.addEventListener("click", function () {
+            state.selecoes[nome] = state.selecoes[nome].filter(function (q) { return q !== d; });
+            if (!state.selecoes[nome].length) delete state.selecoes[nome];
+            salvarRascunho(); renderPreview();
+          });
+          sp1.appendChild(x);
+        }
+        cd.appendChild(sp1);
+        if (i < datas.length - 1) cd.appendChild(document.createTextNode(", "));
+      });
+      tdPapel(r, "");
+      t2.appendChild(r);
+    });
+    corpo.appendChild(t2);
+
+    // assinaturas (no pé da folha)
+    var t3 = el("table", "fgp-tab fgp-assin"); cg = "";
+    [3212, 3213, 3213].forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
+    t3.innerHTML = "<colgroup>" + cg + "</colgroup>";
+    r = el("tr", "fgp-cabtab");
+    ["RESPONSÁVEL DO SETOR", "ASSINATURA GERENCIA", "ASSINATURA SECRETÁRIO SAUDE"].forEach(function (t) { tdPapel(r, t); });
+    t3.appendChild(r);
+    r = el("tr", "fgp-linha-assin");
+    for (var i = 0; i < 3; i++) {
+      var td = el("td"); td.appendChild(el("div", "fgp-risco", "Assinatura")); td.appendChild(el("div", "fgp-dt", "Data: ____/____/______")); r.appendChild(td);
+    }
+    t3.appendChild(r);
+    P.appendChild(t3);
+
+    // resumo, selo e abas
+    var totalFolgas = Object.keys(state.selecoes).reduce(function (n, nome) { return n + state.selecoes[nome].length; }, 0);
+    var qtd = Object.keys(state.selecoes).length;
+    dom.previewResumo.textContent = qtd ? qtd + " funcionário(s) · " + totalFolgas + " folga(s) no documento." : "";
+    var aN = document.getElementById("fgAbaN");
+    if (aN) aN.textContent = qtd ? "(" + qtd + ")" : "";
+    var selo = document.getElementById("fgSelo");
+    if (selo) {
+      if (!nomes.length) { selo.textContent = "vazio"; selo.className = "fg-selo"; }
+      else if (!cabe) { selo.textContent = "⚠ não cabe em 1 folha (vai gerar 2 páginas)"; selo.className = "fg-selo fg-selo--aviso"; }
+      else if (esc && esc.indice > 0) { selo.textContent = "✓ ajustado para 1 folha"; selo.className = "fg-selo fg-selo--ok"; }
+      else { selo.textContent = "✓ cabe em 1 folha"; selo.className = "fg-selo fg-selo--ok"; }
+    }
+    ajustarEscala();
+  }
+
+  // encolhe o papel A4: "página inteira" (cabe na altura da tela) ou "ampliar" (largura toda)
+  var zoomModo = "inteira";
+  function ajustarEscala() {
+    var caixa = document.getElementById("fgCaixa");
+    if (!caixa || !dom.preview) return;
+    var larg = caixa.parentNode.clientWidth - 30;
+    if (!larg) return;
+    var kL = Math.min(1.2, larg / PAPEL_W);
+    var k = kL;
+    if (zoomModo === "inteira" && window.innerWidth > 1020) {
+      var livre = window.innerHeight - 92 - 150;               // topo fixo + cabeçalho do painel
+      var kH = Math.max(0.35, livre / Math.max(PAPEL_H, dom.preview.offsetHeight));
+      k = Math.min(kL, kH);
+    }
+    var h = Math.max(PAPEL_H, dom.preview.offsetHeight);
+    caixa.style.width = Math.round(PAPEL_W * k) + "px";
+    caixa.style.margin = "0 auto";
+    dom.preview.style.transform = "scale(" + k + ")";
+    caixa.style.height = Math.round(h * k) + "px";
   }
 
   // ---------------- Ações ----------------
@@ -474,19 +617,31 @@
     return Object.keys(state.marcados);
   }
 
-  // mostra quem está marcado agora, bem visível antes de "Adicionar data"
+  // quem está marcado agora: chips com ✕ (e atualiza o botão e o modelo)
   function atualizarResumoSelecao() {
     if (!dom.resumoSelecao) return;
     var nomes = Object.keys(state.marcados).sort();
     dom.addData.textContent = nomes.length ? "Adicionar aos " + nomes.length + " selecionado(s)" : "Adicionar aos selecionados";
+    dom.resumoSelecao.innerHTML = "";
     if (nomes.length === 0) {
-      dom.resumoSelecao.textContent = "Nenhum funcionário selecionado.";
-      dom.resumoSelecao.classList.remove("folga-selecao--ativa");
-      return;
+      dom.resumoSelecao.appendChild(el("span", "fg-marcados__vazio", "Ninguém marcado ainda — clique nos nomes da lista."));
+    } else {
+      dom.resumoSelecao.appendChild(el("span", "fg-marcados__t", nomes.length + " marcado(s):"));
+      nomes.forEach(function (nome) {
+        var chip = el("span", "folga-chip");
+        chip.appendChild(document.createTextNode(nome + " "));
+        var x = el("button", "folga-chip__x", "✕");
+        x.type = "button"; x.title = "Desmarcar";
+        x.addEventListener("click", function () {
+          delete state.marcados[nome];
+          renderListaFuncionarios();
+          atualizarResumoSelecao();
+        });
+        chip.appendChild(x);
+        dom.resumoSelecao.appendChild(chip);
+      });
     }
-    var rotulo = nomes.length === 1 ? "Selecionado: " : nomes.length + " selecionados: ";
-    dom.resumoSelecao.textContent = rotulo + nomes.join(", ");
-    dom.resumoSelecao.classList.add("folga-selecao--ativa");
+    renderPreview();
   }
 
   function marcarTodosFiltrados() {
@@ -537,7 +692,8 @@
   function renderPendentes() {
     dom.pendentes.innerHTML = "";
     if (!state.pendentes.length) {
-      dom.pendentes.appendChild(el("span", "folga-pend__vazio", "Nenhuma data na lista ainda — use “＋ Data” ou “＋ Período”."));
+      dom.pendentes.appendChild(el("span", "folga-pend__vazio", "Nenhuma data escolhida ainda — use “＋ Incluir dia” ou “＋ Incluir período”."));
+      renderPreview();
       return;
     }
     state.pendentes.slice().sort(compararDatasBR).forEach(function (data) {
@@ -554,6 +710,7 @@
       chip.appendChild(x);
       dom.pendentes.appendChild(chip);
     });
+    renderPreview();
   }
 
   function adicionarPendente() {
@@ -656,10 +813,8 @@
         var removidos = lista.filter(function (x) { return conflita(x, d); });
         // conta como "atualizado" só se o dia já existia de forma diferente
         if (removidos.length && !(removidos.length === 1 && removidos[0] === d)) trocadas++;
-        lista = lista.filter(function (x) { return !conflita(x, d); });
-        lista.push(d);
       });
-      state.selecoes[nome] = lista;
+      state.selecoes[nome] = mesclar(lista, datas);
     });
 
     state.pendentes = [];
@@ -865,6 +1020,34 @@
       });
   }
 
+  // ---------------- Tela dividida: abas (celular) e modo de data ----------------
+
+  function ligarTelaDividida() {
+    var grade = document.querySelector(".fg-grade");
+    document.querySelectorAll(".fg-aba").forEach(function (b) {
+      b.addEventListener("click", function () {
+        document.querySelectorAll(".fg-aba").forEach(function (x) { x.classList.toggle("fg-aba--ativa", x === b); });
+        if (grade) grade.setAttribute("data-aba", b.getAttribute("data-aba"));
+        setTimeout(ajustarEscala, 30);
+      });
+    });
+    document.querySelectorAll(".fg-modo__b").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var modo = b.getAttribute("data-modo");
+        document.querySelectorAll(".fg-modo__b").forEach(function (x) { x.classList.toggle("fg-modo__b--ativo", x === b); });
+        document.querySelectorAll(".fg-modo__corpo").forEach(function (c) { c.hidden = c.getAttribute("data-corpo") !== modo; });
+      });
+    });
+    var zi = document.getElementById("fgZoomInteira"), zl = document.getElementById("fgZoomLargura");
+    function modoZoom(m) { zoomModo = m; zi.classList.toggle("ativo", m === "inteira"); zl.classList.toggle("ativo", m === "largura"); ajustarEscala(); }
+    if (zi && zl) { zi.addEventListener("click", function () { modoZoom("inteira"); }); zl.addEventListener("click", function () { modoZoom("largura"); }); }
+    window.addEventListener("resize", ajustarEscala);
+    if (window.ResizeObserver) {
+      var caixa = document.getElementById("fgCaixa");
+      if (caixa && caixa.parentNode) new ResizeObserver(ajustarEscala).observe(caixa.parentNode);
+    }
+  }
+
   // ---------------- Início ----------------
 
   function iniciar() {
@@ -905,7 +1088,11 @@
       setStatus(state.marcados[nome] ? nome + " marcado." : nome + " desmarcado.", false);
       dom.busca.focus();
     });
-    dom.ci.addEventListener("input", salvarRascunho);
+    dom.ci.addEventListener("input", function () { salvarRascunho(); renderPreview(); });
+    dom.data.addEventListener("input", renderPreview);
+    dom.periodoMatutino.addEventListener("change", function () { renderPendentes(); });
+    dom.periodoVespertino.addEventListener("change", function () { renderPendentes(); });
+    ligarTelaDividida();
 
     dom.marcarTodos.addEventListener("click", marcarTodosFiltrados);
     dom.colarToggle.addEventListener("click", function () {
