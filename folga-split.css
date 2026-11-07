@@ -319,3 +319,11 @@ html[data-tema="claro"] .fg-abas { background: rgba(238,243,249,.92); }
 .fg-abas .fg-aba--ativa, .fg-modo__b--ativo { background: #002B68; border-color: #002B68; }
 .fg-aba { border-color: #002B68; }
 .fg-doc__de .folga-select { font-size: .82rem; }
+
+/* ---- papel: mesmas cores do modelo .docx (azul-marinho, filete amarelo) ---- */
+.fgp-titulo { background: #002B68; color: #fff; border: 1px solid #002B68; border-bottom: 3px solid #FFB900; }
+.fgp-tab td { border-color: #002B68; }
+.fgp-lab { background: #EEF4FB; color: #002B68; }
+.fgp-func .fgp-cabtab td, .fgp-assin .fgp-cabtab td { background: #DCEBF7; color: #002B68; }
+.fgp-risco { border-top-color: #002B68; }
+.fgp-nova td { background: #FFF6DB; }

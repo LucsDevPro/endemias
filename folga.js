@@ -152,7 +152,9 @@
   var REM_KEY = "painelEndemiasFolgaRemetentes";
   var REMETENTES_PADRAO = [
     { setor: "SETOR DE ENDEMIAS E ZOONOSES", nome: "Alexandre Mendonca de Lima" },
-    { setor: "SAÚDE DO TRABALHADOR", nome: "Evelise Tramarin de Araujo Poveda" }
+    { setor: "SAÚDE DO TRABALHADOR", nome: "Evelise Tramarin de Araujo Poveda" },
+    { setor: "VIGILÂNCIA EPIDEMIOLÓGICA", nome: "Renata Grance Carvalho Gomes" },
+    { setor: "SANITÁRIO E AMBIENTAL", nome: "Eveline Coelho Alves Pereira" }
   ];
 
   var state = {
@@ -432,7 +434,13 @@
   function carregarRemetentes() {
     try {
       var l = JSON.parse(localStorage.getItem(REM_KEY) || "null");
-      if (Array.isArray(l) && l.length && l.every(function (r) { return r && r.setor && r.nome; })) return l;
+      if (Array.isArray(l) && l.length && l.every(function (r) { return r && r.setor && r.nome; })) {
+        // coordenadores novos do padrão entram também para quem já tinha a lista salva
+        REMETENTES_PADRAO.forEach(function (p) {
+          if (!l.some(function (r) { return semAcento(r.nome) === semAcento(p.nome); })) l.push({ setor: p.setor, nome: p.nome });
+        });
+        return l;
+      }
     } catch (e) { /* usa o padrão */ }
     return REMETENTES_PADRAO.map(function (r) { return { setor: r.setor, nome: r.nome }; });
   }
