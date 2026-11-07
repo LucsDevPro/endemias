@@ -29,18 +29,18 @@
   var MARGEM_LATERAL = 100; // tcMar left/right do modelo
 
   // Níveis, do mais confortável ao mais compacto.
-  //  sz   = tamanho da fonte (meios-pontos)     mar = margem interna da célula (topo/base)
-  //  sp   = espaço antes/depois do parágrafo    trh = altura mínima da linha
-  //  top  = fator nas alturas do bloco de cima  assin = altura da linha de assinatura
-  //  vazio = altura exata (twips) dos parágrafos vazios (null = como no modelo)
-  //  base = altura (twips) de tudo que NÃO é linha de funcionário (calibrado no LibreOffice)
+  //  sz = fonte das linhas de funcionário (meios-pontos)   mar = margem interna (topo/base) das linhas de funcionário
+  //  sp = espaço antes/depois do parágrafo                 trh = altura mínima da linha   hdr = altura do cabeçalho da tabela
+  //  esp = fator nos espaços vazios entre blocos           top = fator nas alturas dos blocos de cima
+  //  mgl = margem interna (topo/base) das demais tabelas   assin = altura da linha de assinaturas
+  //  logo = fator do tamanho do logo                       base = altura (twips) de tudo que NÃO é linha de funcionário (calibrado no LibreOffice)
   var NIVEIS = [
-    { sz: 22, mar: 100, sp: 80, trh: 576, top: 1.00, assin: 1261, vazio: null, hdr: 720, logo: 1.00, base: 12444 },
-    { sz: 20, mar: 70,  sp: 50, trh: 480, top: 0.80, assin: 1100, vazio: 200,  hdr: 560, logo: 0.90, base: 11292 },
-    { sz: 18, mar: 50,  sp: 30, trh: 400, top: 0.65, assin: 950,  vazio: 120,  hdr: 460, logo: 0.75, base: 10145 },
-    { sz: 16, mar: 35,  sp: 20, trh: 330, top: 0.55, assin: 850,  vazio: 60,   hdr: 400, logo: 0.62, base: 9234 },
-    { sz: 15, mar: 25,  sp: 10, trh: 290, top: 0.45, assin: 760,  vazio: 20,   hdr: 360, logo: 0.52, base: 8598 },
-    { sz: 14, mar: 15,  sp: 0,  trh: 250, top: 0.40, assin: 700,  vazio: 10,   hdr: 320, logo: 0.45, base: 8342 }
+    { sz: 20, mar: 60, sp: 0, trh: 560, hdr: 520, esp: 1.00, top: 1.00, mgl: 60, assin: 1500, logo: 1.00, base: 7032 },
+    { sz: 18, mar: 45, sp: 0, trh: 440, hdr: 440, esp: 0.75, top: 0.85, mgl: 45, assin: 1250, logo: 0.90, base: 6168 },
+    { sz: 17, mar: 35, sp: 0, trh: 380, hdr: 400, esp: 0.55, top: 0.75, mgl: 35, assin: 1050, logo: 0.80, base: 5492 },
+    { sz: 16, mar: 28, sp: 0, trh: 330, hdr: 360, esp: 0.40, top: 0.65, mgl: 28, assin: 900,  logo: 0.70, base: 4988 },
+    { sz: 15, mar: 20, sp: 0, trh: 290, hdr: 330, esp: 0.30, top: 0.60, mgl: 20, assin: 800,  logo: 0.60, base: 4578 },
+    { sz: 14, mar: 12, sp: 0, trh: 250, hdr: 300, esp: 0.20, top: 0.55, mgl: 12, assin: 720,  logo: 0.50, base: 4148 }
   ];
 
   var FOLGA_SEGURANCA = 0.975; // margem de segurança (Word e LibreOffice diferem um pouco)
@@ -106,12 +106,13 @@
   // ---------------------------------------------------------
   //  Aplicação do nível no XML do documento
   // ---------------------------------------------------------
-  function trocarTodos(xml, de, para) { return xml.split(de).join(para); }
+  var LOGO_ALTURA_EMU = 828000;    // altura do logo no modelo (nível 0)
+  var DIST_CABECALHO = 454;        // distância do cabeçalho à borda da página (twips)
 
   function acharLinha(xml, textoDentro) {
     var pos = 0;
     while (true) {
-      var ts = xml.indexOf("<w:tr", pos);
+      var ts = xml.indexOf("<w:tr>", pos);
       if (ts === -1) return null;
       var te = xml.indexOf("</w:tr>", ts);
       if (te === -1) return null;
@@ -121,67 +122,61 @@
     }
   }
 
-  function ajustarLinhaTabela(linhaXml, n, alturaMinima) {
-    var r = linhaXml;
-    r = r.replace(/<w:trHeight w:val="\d+"\/>/, '<w:trHeight w:val="' + alturaMinima + '"/>');
-    r = r.replace(/<w:sz w:val="\d+"\/>/g, '<w:sz w:val="' + n.sz + '"/>');
-    r = r.replace(/<w:top w:w="\d+" w:type="dxa"\/>/g, '<w:top w:w="' + n.mar + '" w:type="dxa"/>');
-    r = r.replace(/<w:bottom w:w="\d+" w:type="dxa"\/>/g, '<w:bottom w:w="' + n.mar + '" w:type="dxa"/>');
-    r = r.replace(/<w:spacing w:before="\d+" w:after="\d+"\/>/g,
-      '<w:spacing w:before="' + n.sp + '" w:after="' + n.sp + '"/>');
-    return r;
+  function margensTabela(xml, mar) {
+    return xml.replace(/<w:top w:w="\d+" w:type="dxa"\/>/g, '<w:top w:w="' + mar + '" w:type="dxa"/>')
+              .replace(/<w:bottom w:w="\d+" w:type="dxa"\/>/g, '<w:bottom w:w="' + mar + '" w:type="dxa"/>');
   }
 
-  // fixa larguras (para o resultado ser igual no Word e no LibreOffice)
-  function fixarColunas(tabelaXml) {
-    var t = tabelaXml;
-    t = t.replace(/<w:tblW [^>]*\/>/, '<w:tblW w:w="' + LARGURA_TABELA + '" w:type="dxa"/>');
-    t = t.replace(/<w:tblLayout [^>]*\/>/g, "");
-    t = t.replace(/(<\/w:tblBorders>)/, '$1<w:tblLayout w:type="fixed"/>');
-    t = t.replace(/<w:tblGrid>[\s\S]*?<\/w:tblGrid>/,
-      "<w:tblGrid>" + COLUNAS.map(function (w) { return '<w:gridCol w:w="' + w + '"/>'; }).join("") + "</w:tblGrid>");
-    // largura de cada célula, pela posição dentro da linha
-    t = t.replace(/<w:tr[ >][\s\S]*?<\/w:tr>/g, function (linha) {
-      var i = 0;
-      return linha.replace(/<w:tcW w:w="\d+" w:type="dxa"\/>/g, function () {
-        var w = COLUNAS[i] !== undefined ? COLUNAS[i] : COLUNAS[COLUNAS.length - 1];
-        i++;
-        return '<w:tcW w:w="' + w + '" w:type="dxa"/>';
-      });
-    });
-    return t;
+  function ajustarLinhaTabela(linhaXml, sz, sp, altura) {
+    return linhaXml
+      .replace(/<w:trHeight w:val="\d+"/, '<w:trHeight w:val="' + altura + '"')
+      .replace(/<w:sz w:val="\d+"\/><w:szCs w:val="\d+"\/>/g, '<w:sz w:val="' + sz + '"/><w:szCs w:val="' + sz + '"/>')
+      .replace(/<w:spacing w:before="\d+" w:after="\d+"\/>/g, '<w:spacing w:before="' + sp + '" w:after="' + sp + '"/>');
   }
 
-  var PARAGRAFO_VAZIO = /<w:p(?: [^>]*)?><w:pPr><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"\/>(?:<w:sz w:val="20"\/><w:szCs w:val="20"\/>)?<\/w:rPr><\/w:pPr><\/w:p>/g;
+  function escalar(xml, de, fator, minimo) {
+    return xml.split(de).join(String(Math.max(minimo || 0, Math.round(parseInt(de.replace(/\D/g, ""), 10) * fator))));
+  }
 
   // Aplica o nível ao XML do modelo (ANTES de expandir as linhas de funcionários).
   function aplicarNivel(xml, nivel) {
     var out = xml;
 
-    // 1) tabela de funcionários: colunas fixas + linha modelo + cabeçalho
-    var ini = out.indexOf("<w:tbl>", out.indexOf("ASSUNTO"));
-    var fim = ini === -1 ? -1 : out.indexOf("</w:tbl>", ini) + 8;
-    if (ini !== -1 && fim > ini) {
-      var tab = fixarColunas(out.slice(ini, fim));
-      var lm = acharLinha(tab, "&lt;&lt;nome&gt;&gt;");
-      if (lm) tab = tab.slice(0, lm.ini) + ajustarLinhaTabela(lm.xml, nivel, nivel.trh) + tab.slice(lm.fim);
-      var lh = acharLinha(tab, ">NOME<");
-      if (lh) tab = tab.slice(0, lh.ini) + ajustarLinhaTabela(lh.xml, nivel, nivel.hdr) + tab.slice(lh.fim);
-      out = out.slice(0, ini) + tab + out.slice(fim);
-    }
+    // 1) separa a tabela de funcionários (tem a linha modelo <<nome>>)
+    var lm = acharLinha(out, "&lt;&lt;nome&gt;&gt;");
+    if (!lm) throw new Error("Linha modelo <<nome>> não encontrada.");
+    var ti = out.lastIndexOf("<w:tbl>", lm.ini);
+    var tf = out.indexOf("</w:tbl>", lm.fim) + 8;
+    var antes = out.slice(0, ti), tab = out.slice(ti, tf), depois = out.slice(tf);
 
-    // 2) restante só muda a partir do nível 1 (nível 0 = modelo original)
-    if (nivel.vazio !== null) {
-      [887, 404, 863, 1120].forEach(function (h) {
-        out = trocarTodos(out, '<w:trHeight w:val="' + h + '"/>', '<w:trHeight w:val="' + Math.round(h * nivel.top) + '"/>');
+    // 2) demais partes do documento (blocos de cima, espaços, assinaturas)
+    function restante(x) {
+      x = margensTabela(x, nivel.mgl);
+      x = x.replace(/w:line="(\d+)" w:lineRule="exact"/g, function (_, v) {
+        return 'w:line="' + Math.max(10, Math.round(v * nivel.esp)) + '" w:lineRule="exact"';
       });
-      out = trocarTodos(out, '<w:trHeight w:val="1261"/>', '<w:trHeight w:val="' + nivel.assin + '"/>');
-      out = out.replace(PARAGRAFO_VAZIO, function (p) {
-        var abre = p.match(/^<w:p(?: [^>]*)?>/)[0];
-        return abre + '<w:pPr><w:spacing w:before="0" w:after="0" w:line="' + nivel.vazio +
-          '" w:lineRule="exact"/><w:rPr><w:sz w:val="2"/></w:rPr></w:pPr></w:p>';
+      x = x.replace(/<w:trHeight w:val="(\d+)" w:hRule="atLeast"\/>/g, function (_, v) {
+        v = parseInt(v, 10);
+        var novo = v === 1500 ? nivel.assin : Math.max(240, Math.round(v * nivel.top));
+        return '<w:trHeight w:val="' + novo + '" w:hRule="atLeast"/>';
       });
+      return x;
     }
+    antes = restante(antes);
+    depois = restante(depois);
+
+    // 3) tabela de funcionários: linha modelo e cabeçalho
+    tab = margensTabela(tab, nivel.mar);
+    var l1 = acharLinha(tab, "&lt;&lt;nome&gt;&gt;");
+    tab = tab.slice(0, l1.ini) + ajustarLinhaTabela(l1.xml, nivel.sz, nivel.sp, nivel.trh) + tab.slice(l1.fim);
+    var l0 = acharLinha(tab, ">NOME<");
+    if (l0) tab = tab.slice(0, l0.ini) + ajustarLinhaTabela(l0.xml, Math.min(18, nivel.sz), nivel.sp, nivel.hdr) + tab.slice(l0.fim);
+
+    out = antes + tab + depois;
+
+    // 4) margem de cima da página acompanha o tamanho do logo
+    var altLogo = Math.round(LOGO_ALTURA_EMU * nivel.logo / 635);   // EMU -> twips
+    out = out.replace(/(<w:pgMar w:top=")\d+(")/, '$1' + (DIST_CABECALHO + altLogo + 200) + '$2');
     return out;
   }
 

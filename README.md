@@ -255,3 +255,7 @@ python3 -m http.server 8000
 ```
 
 E acesse `http://localhost:8000`.
+
+## Modelo da Folga (assets/modelo-folga.docx)
+
+Modelo refeito do zero: cabeçalho com o logo da Prefeitura de Ponta Porã (centralizado), título "COMUNICAÇÃO INTERNA", tabela de dados (Número/Data/De/Para), tabela de funcionários e tabela de assinaturas — todas com a mesma largura (9638 twips), bordas e fonte (Arial) padronizadas. O `folga-layout.js` ajusta fonte, espaços e logo automaticamente para caber tudo em uma folha A4.
