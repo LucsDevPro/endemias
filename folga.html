@@ -117,15 +117,15 @@
         <h3 class="fg-passo__t"><span class="fg-passo__n">3</span> Quando? <small class="fg-passo__d">(lança na hora)</small></h3>
 
         <div class="fg-modo" role="tablist">
-          <button type="button" class="fg-modo__b fg-modo__b--ativo" data-modo="dia">Um ou vários dias</button>
+          <button type="button" class="fg-modo__b fg-modo__b--ativo" data-modo="dia">Escolher dias no calendário</button>
           <button type="button" class="fg-modo__b" data-modo="periodo">Período (de … até …)</button>
         </div>
 
         <div class="fg-modo__corpo" data-corpo="dia">
-          <div class="folga-row">
-            <input type="date" id="folgaData" class="folga-input">
-            <button type="button" id="folgaAddPendente" class="folga-btn fer-sm">＋ Lançar dia</button>
-          </div>
+          <p class="fg-cal__titulo">Selecione as datas das folgas <small>(clique em quantos dias quiser)</small></p>
+          <div class="fg-cal" id="fgCal"></div>
+          <input type="date" id="folgaData" hidden>
+          <button type="button" id="folgaAddPendente" class="folga-btn fg-grande fg-lancar">＋ Lançar dias</button>
         </div>
 
         <div class="fg-modo__corpo" data-corpo="periodo" hidden>

@@ -158,6 +158,9 @@
   ];
 
   var state = {
+    calSel: [],         // dias clicados no calendário (ISO yyyy-mm-dd)
+    calMes: null,       // {a, m} mês exibido
+    calUltimo: null,    // último dia clicado (para Shift+clique)
     ultimos: [],        // último grupo lançado (para "marcar de novo")
     remetentes: [],     // [{setor, nome}] — lista guardada no navegador
     remetente: 0,       // índice escolhido (volta ao padrão no F5)
@@ -762,6 +765,7 @@
       });
     }
     renderPreview();
+    renderCalendario();
   }
 
   function marcarTodosFiltrados() {
@@ -835,13 +839,103 @@
   }
 
   function adicionarPendente() {
-    if (!dom.data.value) { setStatus("Escolha uma data.", true); return; }
+    if (!state.calSel.length && !dom.data.value) { setStatus("Clique nos dias da folga no calendário.", true); return; }
     if (!funcionariosMarcados().length) { setStatus("Marque primeiro quem vai folgar (passo 2).", true); return; }
-    var d = dataInputParaBR(dom.data.value) + sufixoPeriodo();
-    if (state.pendentes.indexOf(d) === -1) state.pendentes.push(d);
-    dom.data.value = "";
+    var suf = sufixoPeriodo();
+    if (dom.data.value) { var dd = dataInputParaBR(dom.data.value) + suf; if (state.pendentes.indexOf(dd) === -1) state.pendentes.push(dd); dom.data.value = ""; }
+    state.calSel.forEach(function (iso) {
+      var d = parseISO(iso); if (!d) return;
+      var t = fmtBR(d) + suf;
+      if (state.pendentes.indexOf(t) === -1) state.pendentes.push(t);
+    });
+    state.calSel = []; state.calUltimo = null;
     adicionarData();               // lança direto no documento
+    renderCalendario();
     dom.busca.focus();
+  }
+
+  // ---------------- Calendário de seleção múltipla ----------------
+
+  var NOMES_MES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+  function isoDe(a, m, d) { return a + "-" + String(m + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0"); }
+
+  function renderCalendario() {
+    var box = document.getElementById("fgCal");
+    if (!box) return;
+    if (!state.calMes) { var h = new Date(); state.calMes = { a: h.getFullYear(), m: h.getMonth() }; }
+    var a = state.calMes.a, m = state.calMes.m;
+    box.innerHTML = "";
+
+    var topo = el("div", "fg-cal__topo");
+    var ant = el("button", "fg-cal__nav", "‹"); ant.type = "button"; ant.title = "Mês anterior";
+    var prox = el("button", "fg-cal__nav", "›"); prox.type = "button"; prox.title = "Próximo mês";
+    ant.addEventListener("click", function () { state.calMes = m === 0 ? { a: a - 1, m: 11 } : { a: a, m: m - 1 }; renderCalendario(); });
+    prox.addEventListener("click", function () { state.calMes = m === 11 ? { a: a + 1, m: 0 } : { a: a, m: m + 1 }; renderCalendario(); });
+    topo.appendChild(ant);
+    topo.appendChild(el("strong", null, NOMES_MES[m] + " " + a));
+    topo.appendChild(prox);
+    box.appendChild(topo);
+
+    var grade = el("div", "fg-cal__grade");
+    ["D", "S", "T", "Q", "Q", "S", "S"].forEach(function (d, i) { grade.appendChild(el("span", "fg-cal__sem" + (i === 0 || i === 6 ? " fg-cal__fds" : ""), d)); });
+    var primeiro = new Date(a, m, 1).getDay(), dias = new Date(a, m + 1, 0).getDate();
+    var hoje = new Date(), isoHoje = isoDe(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    for (var v = 0; v < primeiro; v++) grade.appendChild(el("span", "fg-cal__vazio"));
+    for (var d = 1; d <= dias; d++) {
+      (function (d) {
+        var iso = isoDe(a, m, d), dow = new Date(a, m, d).getDay();
+        var b = el("button", "fg-cal__dia" + (dow === 0 || dow === 6 ? " fg-cal__fds" : "") + (iso === isoHoje ? " fg-cal__hoje" : "") + (state.calSel.indexOf(iso) !== -1 ? " fg-cal__sel" : ""), String(d));
+        b.type = "button";
+        b.setAttribute("aria-pressed", state.calSel.indexOf(iso) !== -1 ? "true" : "false");
+        b.addEventListener("click", function (e) { clicarDia(iso, e.shiftKey); });
+        grade.appendChild(b);
+      })(d);
+    }
+    box.appendChild(grade);
+
+    var rod = el("div", "fg-cal__rodape");
+    if (!state.calSel.length) {
+      rod.appendChild(el("span", "fg-cal__dica", "Nenhum dia escolhido. Dica: Shift + clique seleciona um intervalo."));
+    } else {
+      state.calSel.slice().sort().forEach(function (iso) {
+        var dd = parseISO(iso);
+        var chip = el("span", "folga-chip");
+        chip.appendChild(el("span", "folga-chip__dia", DIAS_SEMANA[dd.getDay()]));
+        chip.appendChild(document.createTextNode(fmtBR(dd) + " "));
+        var x = el("button", "folga-chip__x", "✕"); x.type = "button"; x.title = "Tirar este dia";
+        x.addEventListener("click", function () { state.calSel = state.calSel.filter(function (q) { return q !== iso; }); renderCalendario(); renderPreview(); });
+        chip.appendChild(x);
+        rod.appendChild(chip);
+      });
+      var lim = el("button", "folga-link-btn", "limpar dias"); lim.type = "button";
+      lim.addEventListener("click", function () { state.calSel = []; state.calUltimo = null; renderCalendario(); renderPreview(); });
+      rod.appendChild(lim);
+    }
+    box.appendChild(rod);
+
+    var btn = document.getElementById("folgaAddPendente");
+    if (btn) {
+      var nm = funcionariosMarcados().length, nd = state.calSel.length;
+      btn.textContent = nd ? "＋ Lançar " + nd + " dia" + (nd > 1 ? "s" : "") + (nm ? " para " + nm + " funcionário" + (nm > 1 ? "s" : "") : "") : "＋ Lançar dias";
+    }
+  }
+
+  function clicarDia(iso, shift) {
+    var i = state.calSel.indexOf(iso);
+    if (shift && state.calUltimo && state.calUltimo !== iso) {
+      var a = parseISO(state.calUltimo), b = parseISO(iso);
+      if (a > b) { var t = a; a = b; b = t; }
+      var uteis = dom.soUteis ? false : false;
+      for (var d = new Date(a); d <= b; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) {
+        var k = isoDe(d.getFullYear(), d.getMonth(), d.getDate());
+        if (state.calSel.indexOf(k) === -1) state.calSel.push(k);
+      }
+    } else if (i === -1) state.calSel.push(iso);
+    else state.calSel.splice(i, 1);
+    state.calUltimo = iso;
+    renderCalendario();
+    renderPreview();
   }
 
   function adicionarPeriodo() {
@@ -886,6 +980,11 @@
   // e ainda não tiver sido incluída (mantém o fluxo antigo de 1 clique).
   function datasParaAdicionar() {
     var lista = state.pendentes.slice();
+    state.calSel.forEach(function (iso) {
+      var dd = parseISO(iso); if (!dd) return;
+      var t = fmtBR(dd) + sufixoPeriodo();
+      if (lista.indexOf(t) === -1) lista.push(t);
+    });
     if (dom.data.value) {
       var d = dataInputParaBR(dom.data.value) + sufixoPeriodo();
       if (lista.indexOf(d) === -1) lista.push(d);
@@ -956,6 +1055,7 @@
     state.selecoes = {};
     state.marcados = {};
     state.pendentes = [];
+    state.calSel = []; state.calUltimo = null;
     apagarRascunho();
     state.ultimos = [];
     renderUltimos();
@@ -1160,6 +1260,7 @@
     if (!dom.lista) return;
 
     state.funcionarios = carregarFuncionarios();
+    renderCalendario();
     state.remetentes = carregarRemetentes();
     renderRemetentes();
     dom.remetente.addEventListener("change", function () { state.remetente = parseInt(dom.remetente.value, 10) || 0; renderPreview(); });
