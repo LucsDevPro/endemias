@@ -365,3 +365,10 @@ html[data-tema="claro"] .fg-abas { background: rgba(238,243,249,.92); }
 .fg-passo .folga-btn--lancar, #folgaAddPendente, #folgaAddPeriodo { background: #00A846 !important; border: 0 !important; color: #fff !important; }
 #folgaAddPendente:hover, #folgaAddPeriodo:hover { background: #008F3B !important; }
 .fg-passo .folga-emp__nome { flex: 1 1 10rem; min-width: 9rem; }
+
+.fg-ultimos { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .7rem; margin: .8rem 0 .2rem; padding: .55rem .75rem; border-radius: 12px; background: #E8F8EE; border: 1px solid #BFE8CC; }
+.fg-ultimos[hidden] { display: none; }
+.fg-ultimos__t { font-size: .85rem; font-weight: 700; color: #00762F; }
+.fgp-mais { position: absolute; right: 3px; bottom: 3px; padding: 1px 7px; border: 0; border-radius: 99px; background: #00A846; color: #fff; font: inherit; font-size: 10px; font-weight: 700; cursor: pointer; opacity: .85; }
+.fgp-mais:hover { opacity: 1; background: #008F3B; }
+.fgp-mais { right: -64px; bottom: auto; top: 50%; transform: translateY(-50%); font-size: 11px; padding: 3px 8px; white-space: nowrap; z-index: 3; }

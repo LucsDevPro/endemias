@@ -158,6 +158,7 @@
   ];
 
   var state = {
+    ultimos: [],        // último grupo lançado (para "marcar de novo")
     remetentes: [],     // [{setor, nome}] — lista guardada no navegador
     remetente: 0,       // índice escolhido (volta ao padrão no F5)
     funcionarios: {},   // nome -> cargo
@@ -529,7 +530,33 @@
     delete state.marcados[nome];
     renderListaFuncionarios();
     atualizarResumoSelecao();      // também redesenha o modelo
+    renderUltimos();
     setStatus(nome + " removido do documento.", false);
+  }
+
+  // marca de novo só estas pessoas (para lançar mais dias sem procurar na lista)
+  function remarcar(nomes) {
+    state.marcados = {};
+    nomes.forEach(function (n) { if (state.funcionarios[n] !== undefined) state.marcados[n] = true; });
+    renderListaFuncionarios();
+    atualizarResumoSelecao();
+    var q = Object.keys(state.marcados);
+    setStatus(q.length ? (q.length === 1 ? q[0] : q.length + " funcionários") + " marcado(s) — escolha o dia e clique em Lançar." : "", false);
+    if (dom.data) dom.data.focus();
+  }
+
+  function renderUltimos() {
+    var box = document.getElementById("fgUltimos");
+    if (!box) return;
+    box.innerHTML = "";
+    var nomes = state.ultimos.filter(function (n) { return state.selecoes[n]; });
+    if (!nomes.length) { box.hidden = true; return; }
+    box.hidden = false;
+    box.appendChild(el("span", "fg-ultimos__t", "Último lançado: " + (nomes.length > 2 ? nomes.length + " funcionários" : nomes.join(", "))));
+    var b = el("button", "folga-btn folga-btn--ghost fer-sm", "↺ Lançar mais dias para " + (nomes.length === 1 ? "ele(a)" : "eles"));
+    b.type = "button";
+    b.addEventListener("click", function () { remarcar(nomes); });
+    box.appendChild(b);
   }
 
   function tdPapel(tr, texto, cls) {
@@ -613,6 +640,7 @@
       var datas = v.visao[nome].slice().sort(compararDatasBR);
       var linhaNova = datas.every(function (d) { return v.novas[nome + "|" + d]; });
       r = el("tr", linhaNova ? "fgp-nova" : null);
+      var maisBtn = null;
       var cn = tdPapel(r, nome);
       {
         var rm = el("button", "fgp-x", "✕");
@@ -621,6 +649,10 @@
           removerFuncionarioDoDocumento(nome);
         });
         cn.appendChild(rm);
+        var mais = el("button", "fgp-mais", "＋ dia");
+        mais.type = "button"; mais.title = "Lançar mais dias para " + nome;
+        mais.addEventListener("click", function () { remarcar([nome]); });
+        maisBtn = mais;
       }
       tdPapel(r, state.funcionarios[nome] || "");
       tdPapel(r, "Banco de horas");
@@ -642,7 +674,8 @@
         cd.appendChild(sp1);
         if (i < datas.length - 1) cd.appendChild(document.createTextNode(", "));
       });
-      tdPapel(r, "");
+      var cAss = tdPapel(r, "");
+      if (maisBtn) cAss.appendChild(maisBtn);
       t2.appendChild(r);
     });
     corpo.appendChild(t2);
@@ -884,10 +917,12 @@
     });
 
     state.pendentes = [];
+    state.ultimos = marcados.slice();
     dom.data.value = "";
     renderPendentes();
     renderPreview();
     renderListaFuncionarios();
+    renderUltimos();
     salvarRascunho();
 
     var msg = "✓ " + datas.join(", ") + " lançada(s) para " + marcados.length + " funcionário(s)";
@@ -922,6 +957,8 @@
     state.marcados = {};
     state.pendentes = [];
     apagarRascunho();
+    state.ultimos = [];
+    renderUltimos();
     renderListaFuncionarios();
     renderPendentes();
     renderPreview();
