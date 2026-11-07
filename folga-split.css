@@ -327,3 +327,36 @@ html[data-tema="claro"] .fg-abas { background: rgba(238,243,249,.92); }
 .fgp-func .fgp-cabtab td, .fgp-assin .fgp-cabtab td { background: #DCEBF7; color: #002B68; }
 .fgp-risco { border-top-color: #002B68; }
 .fgp-nova td { background: #FFF6DB; }
+
+/* ---- tabelas menos "quadradas": só linhas finas, sem moldura lateral ---- */
+.fgp-tab td { border: 1px solid #C3D4E6; }
+.fgp-tab td:first-child { border-left: 0; }
+.fgp-tab td:last-child { border-right: 0; }
+.fgp-tab tr:first-of-type td { border-top: 1.5px solid #002B68; }
+.fgp-tab tr:last-of-type td { border-bottom: 1.5px solid #002B68; }
+.fgp-titulo { border: 0; border-bottom: 3px solid #FFB900; }
+
+/* ✕ do modelo: sempre visível e fácil de clicar */
+.fgp-x { opacity: .75; width: 26px; height: 26px; font-size: 15px; top: 50%; right: auto; left: -34px; transform: translateY(-50%); box-shadow: 0 1px 4px rgba(0,0,0,.3); z-index: 3; }
+.fgp-x:hover { opacity: 1 !important; transform: translateY(-50%) scale(1.15); }
+.fgp-x--data { width: 20px; height: 20px; font-size: 12px; top: -11px; left: auto; right: -11px; transform: none; }
+.fgp-x--data:hover { transform: scale(1.15); }
+.fgp-func tr:not(.fgp-cabtab) td:first-child { overflow: visible; }
+.fg-papel-caixa { overflow: hidden; }
+
+/* selo "no documento" na lista */
+.folga-emp__doc {
+  border: 0; border-radius: 99px; padding: .15rem .6rem; cursor: pointer;
+  background: #E8F8EE; color: #00762F; font: inherit; font-size: .72rem; font-weight: 800; white-space: nowrap;
+}
+.folga-emp__doc:hover { background: #D6453D; color: #fff; }
+
+/* design geral mais suave */
+.fg-passo, .fg-dir { border-radius: 18px; }
+.fg-passo .folga-input, .fg-passo .folga-select, .fg-passo .folga-field input { border-radius: 12px; }
+.fg-passo .folga-btn, .fg-dir .folga-btn { border-radius: 12px; }
+.fg-passo .folga-list { border-radius: 14px; }
+.fg-modo { border-radius: 12px; }
+.fg-papel-caixa { border-radius: 14px; }
+.fgp-x--data { position: static; display: inline-block; vertical-align: middle; width: 15px; height: 15px; font-size: 9px; margin-left: 3px; opacity: .55; box-shadow: none; transform: none; }
+.fgp-x--data:hover { opacity: 1 !important; transform: scale(1.2); }

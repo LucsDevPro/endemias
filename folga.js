@@ -395,6 +395,14 @@
         renderPreview();
       });
 
+      var noDoc = null;
+      if (state.selecoes[nome]) {
+        noDoc = el("button", "folga-emp__doc", "no documento ✕");
+        noDoc.type = "button";
+        noDoc.title = "Tirar do documento";
+        noDoc.addEventListener("click", function (e) { e.stopPropagation(); removerFuncionarioDoDocumento(nome); });
+      }
+
       var remover = el("button", "folga-emp__rm", "✕");
       remover.type = "button";
       remover.title = "Remover funcionário da lista";
@@ -414,13 +422,14 @@
       // clicar em qualquer parte da linha (menos cargo e ✕) marca/desmarca
       linha.addEventListener("click", function (e) {
         var t = e.target;
-        if (t === check || t === cargoSelect || t === remover) return;
+        if (t === check || t === cargoSelect || t === remover || t === noDoc) return;
         check.checked = !check.checked;
         check.dispatchEvent(new Event("change"));
       });
 
       linha.appendChild(check);
       linha.appendChild(nomeSpan);
+      if (noDoc) linha.appendChild(noDoc);
       linha.appendChild(cargoSelect);
       linha.appendChild(remover);
       dom.lista.appendChild(linha);
@@ -514,6 +523,15 @@
     return { visao: visao, novas: novas };
   }
 
+  // tira a pessoa do documento (folgas já lançadas) e também da seleção atual
+  function removerFuncionarioDoDocumento(nome) {
+    delete state.selecoes[nome];
+    delete state.marcados[nome];
+    renderListaFuncionarios();
+    atualizarResumoSelecao();      // também redesenha o modelo
+    setStatus(nome + " removido do documento.", false);
+  }
+
   function tdPapel(tr, texto, cls) {
     var td = el("td", cls || null);
     if (texto !== undefined && texto !== null) td.textContent = texto;
@@ -596,12 +614,11 @@
       var linhaNova = datas.every(function (d) { return v.novas[nome + "|" + d]; });
       r = el("tr", linhaNova ? "fgp-nova" : null);
       var cn = tdPapel(r, nome);
-      if (!linhaNova || state.selecoes[nome]) {
+      {
         var rm = el("button", "fgp-x", "✕");
         rm.type = "button"; rm.title = "Tirar este funcionário do documento";
         rm.addEventListener("click", function () {
-          delete state.selecoes[nome];
-          salvarRascunho(); renderPreview();
+          removerFuncionarioDoDocumento(nome);
         });
         cn.appendChild(rm);
       }
@@ -618,7 +635,7 @@
           x.addEventListener("click", function () {
             state.selecoes[nome] = state.selecoes[nome].filter(function (q) { return q !== d; });
             if (!state.selecoes[nome].length) delete state.selecoes[nome];
-            salvarRascunho(); renderPreview();
+            salvarRascunho(); renderPreview(); renderListaFuncionarios();
           });
           sp1.appendChild(x);
         }
@@ -867,6 +884,7 @@
     dom.data.value = "";
     renderPendentes();
     renderPreview();
+    renderListaFuncionarios();
     salvarRascunho();
 
     var msg = datas.length + " data(s) adicionada(s) para " + marcados.length + " funcionário(s)";
