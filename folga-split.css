@@ -360,3 +360,8 @@ html[data-tema="claro"] .fg-abas { background: rgba(238,243,249,.92); }
 .fg-papel-caixa { border-radius: 14px; }
 .fgp-x--data { position: static; display: inline-block; vertical-align: middle; width: 15px; height: 15px; font-size: 9px; margin-left: 3px; opacity: .55; box-shadow: none; transform: none; }
 .fgp-x--data:hover { opacity: 1 !important; transform: scale(1.2); }
+.fg-fluxo { margin: .7rem 0 0; font-size: .82rem; color: #5B6B86; }
+.fg-passo__d { font-weight: 600; letter-spacing: 0; text-transform: none; color: #5B6B86; }
+.fg-passo .folga-btn--lancar, #folgaAddPendente, #folgaAddPeriodo { background: #00A846 !important; border: 0 !important; color: #fff !important; }
+#folgaAddPendente:hover, #folgaAddPeriodo:hover { background: #008F3B !important; }
+.fg-passo .folga-emp__nome { flex: 1 1 10rem; min-width: 9rem; }

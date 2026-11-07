@@ -397,7 +397,7 @@
 
       var noDoc = null;
       if (state.selecoes[nome]) {
-        noDoc = el("button", "folga-emp__doc", "no documento ✕");
+        noDoc = el("button", "folga-emp__doc", "✓ lançado ✕");
         noDoc.type = "button";
         noDoc.title = "Tirar do documento";
         noDoc.addEventListener("click", function (e) { e.stopPropagation(); removerFuncionarioDoDocumento(nome); });
@@ -708,7 +708,7 @@
   function atualizarResumoSelecao() {
     if (!dom.resumoSelecao) return;
     var nomes = Object.keys(state.marcados).sort();
-    dom.addData.textContent = nomes.length ? "Adicionar aos " + nomes.length + " selecionado(s)" : "Adicionar aos selecionados";
+    if (dom.addData) dom.addData.textContent = nomes.length ? "Adicionar aos " + nomes.length + " selecionado(s)" : "Adicionar aos selecionados";
     dom.resumoSelecao.innerHTML = "";
     if (nomes.length === 0) {
       dom.resumoSelecao.appendChild(el("span", "fg-marcados__vazio", "Ninguém marcado ainda — clique nos nomes da lista."));
@@ -777,6 +777,7 @@
   // ---------------- Datas pendentes ----------------
 
   function renderPendentes() {
+    if (!dom.pendentes) { renderPreview(); return; }
     dom.pendentes.innerHTML = "";
     if (!state.pendentes.length) {
       dom.pendentes.appendChild(el("span", "folga-pend__vazio", "Nenhuma data escolhida ainda — use “＋ Incluir dia” ou “＋ Incluir período”."));
@@ -802,18 +803,19 @@
 
   function adicionarPendente() {
     if (!dom.data.value) { setStatus("Escolha uma data.", true); return; }
+    if (!funcionariosMarcados().length) { setStatus("Marque primeiro quem vai folgar (passo 2).", true); return; }
     var d = dataInputParaBR(dom.data.value) + sufixoPeriodo();
     if (state.pendentes.indexOf(d) === -1) state.pendentes.push(d);
     dom.data.value = "";
-    renderPendentes();
-    setStatus("", false);
-    dom.data.focus();
+    adicionarData();               // lança direto no documento
+    dom.busca.focus();
   }
 
   function adicionarPeriodo() {
     var ini = parseISO(dom.de.value), fim = parseISO(dom.ate.value);
     if (!ini || !fim) { setStatus("Escolha as datas “de” e “até” do período.", true); return; }
     if (fim < ini) { setStatus("A data “até” não pode ser antes da data “de”.", true); return; }
+    if (!funcionariosMarcados().length) { setStatus("Marque primeiro quem vai folgar (passo 2).", true); return; }
     var total = Math.round((fim - ini) / 86400000) + 1;
     if (total > LIMITE_PERIODO_DIAS) {
       setStatus("Período muito longo (" + total + " dias). O máximo é " + LIMITE_PERIODO_DIAS + " dias por vez.", true);
@@ -829,8 +831,9 @@
     }
     dom.de.value = "";
     dom.ate.value = "";
-    renderPendentes();
-    setStatus(n + " dia(s) incluído(s) na lista" + (ignorados ? " (" + ignorados + " de fim de semana ignorado(s))" : "") + ".", false);
+    adicionarData();               // lança direto no documento
+    if (ignorados) setStatus(dom.status.textContent + " (" + ignorados + " dia(s) de fim de semana ignorado(s).)", false);
+    dom.busca.focus();
   }
 
   // ---------------- Rascunho (só nomes e datas) ----------------
@@ -887,14 +890,14 @@
     renderListaFuncionarios();
     salvarRascunho();
 
-    var msg = datas.length + " data(s) adicionada(s) para " + marcados.length + " funcionário(s)";
+    var msg = "✓ " + datas.join(", ") + " lançada(s) para " + marcados.length + " funcionário(s)";
     if (trocadas) msg += " (" + trocadas + " dia(s) que já existiam foram atualizados)";
     msg += ".";
     if (dom.limparSel.checked) {
       state.marcados = {};
       renderListaFuncionarios();
       atualizarResumoSelecao();
-      msg += " Seleção limpa — marque o próximo grupo.";
+      msg += " Pode marcar o próximo funcionário.";
     }
     setStatus(msg, false);
   }
@@ -1181,7 +1184,7 @@
     });
 
     dom.addFuncionario.addEventListener("click", adicionarFuncionario);
-    dom.addData.addEventListener("click", adicionarData);
+    if (dom.addData) dom.addData.addEventListener("click", adicionarData);
     if (dom.desmarcar) dom.desmarcar.addEventListener("click", desmarcarSelecao);
 
     // matutino e vespertino são mutuamente exclusivos — marcar um desmarca o outro

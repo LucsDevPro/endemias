@@ -114,7 +114,7 @@
       </section>
 
       <section class="fg-passo">
-        <h3 class="fg-passo__t"><span class="fg-passo__n">3</span> Quando?</h3>
+        <h3 class="fg-passo__t"><span class="fg-passo__n">3</span> Quando? <small class="fg-passo__d">(lança na hora)</small></h3>
 
         <div class="fg-modo" role="tablist">
           <button type="button" class="fg-modo__b fg-modo__b--ativo" data-modo="dia">Um ou vários dias</button>
@@ -124,7 +124,7 @@
         <div class="fg-modo__corpo" data-corpo="dia">
           <div class="folga-row">
             <input type="date" id="folgaData" class="folga-input">
-            <button type="button" id="folgaAddPendente" class="folga-btn fer-sm">＋ Incluir dia</button>
+            <button type="button" id="folgaAddPendente" class="folga-btn fer-sm">＋ Lançar dia</button>
           </div>
         </div>
 
@@ -138,7 +138,7 @@
               <input type="checkbox" id="folgaSoUteis" checked>
               <span>Só dias úteis (seg–sex)</span>
             </label>
-            <button type="button" id="folgaAddPeriodo" class="folga-btn fer-sm">＋ Incluir período</button>
+            <button type="button" id="folgaAddPeriodo" class="folga-btn fer-sm">＋ Lançar período</button>
           </div>
         </div>
 
@@ -149,22 +149,14 @@
           <small>(nenhum marcado = dia todo)</small>
         </div>
 
-        <p class="folga-count" id="folgaPendentesTitulo">Datas escolhidas:</p>
-        <div class="folga-pend" id="folgaPendentes"></div>
-      </section>
-
-      <section class="fg-passo fg-passo--final">
-        <h3 class="fg-passo__t"><span class="fg-passo__n">4</span> Lançar no documento</h3>
-        <button type="button" id="folgaAddData" class="folga-btn folga-btn--primary fg-grande">Adicionar aos selecionados</button>
         <label class="folga-periodo folga-periodo--solto">
           <input type="checkbox" id="folgaLimparSel" checked>
-          <span>Desmarcar os funcionários depois de adicionar (para já escolher o próximo grupo)</span>
+          <span>Desmarcar o funcionário depois de lançar (já fica pronto para o próximo)</span>
         </label>
-        <details class="fg-mais">
-          <summary>Como funciona?</summary>
-          <p class="folga-periodo__ajuda">Marque quem vai folgar, escolha os dias (ou um período) e clique em “Adicionar”. Dá para misturar: um dia só de manhã, outro o dia todo. Se alguém já tem aquele dia, o novo substitui o antigo; manhã e tarde do mesmo dia podem coexistir. Feriados não são descontados automaticamente. As linhas em amarelo no modelo ainda não foram adicionadas.</p>
-        </details>
+        <p class="fg-fluxo">Marque quem vai folgar → escolha o dia → clique em <b>＋ Lançar dia</b>. Ele já entra no documento ao lado.</p>
       </section>
+
+      <button type="button" id="folgaAddData" hidden>Adicionar</button>
 
     </div>
 
