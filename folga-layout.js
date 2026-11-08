@@ -24,7 +24,7 @@
   var ALTURA_UTIL = 16838 - 1134;
 
   // Colunas da tabela de funcionários (soma = 9638 = largura útil da página)
-  var COLUNAS = [2450, 2100, 1150, 1938, 2000];
+  var COLUNAS = [2450, 2000, 1450, 1938, 1800];
   var LARGURA_TABELA = 9638;
   var MARGEM_LATERAL = 100; // tcMar left/right do modelo
 

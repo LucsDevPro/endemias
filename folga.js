@@ -162,6 +162,8 @@
     calSel: [],         // dias clicados no calendário (ISO yyyy-mm-dd)
     calMes: null,       // {a, m} mês exibido
     calUltimo: null,    // último dia clicado (para Shift+clique)
+    tipoAtual: "Banco de horas",   // tipo da próxima folga lançada (volta ao padrão no F5)
+    tipos: {},                     // tipo por funcionário já lançado
     ultimos: [],        // último grupo lançado (para "marcar de novo")
     remetentes: [],     // [{setor, nome}] — lista guardada no navegador
     remetente: 0,       // índice escolhido (volta ao padrão no F5)
@@ -500,6 +502,17 @@
     salvarRemetentes(); renderRemetentes(); renderPreview();
   }
 
+  // ---------------- Tipo de folga ----------------
+  function tipoDe(nome) { return state.tipos[nome] || "Banco de horas"; }
+
+  // texto do ASSUNTO conforme os tipos usados no documento
+  function assuntoTexto(tipos) {
+    var banco = tipos.indexOf("Banco de horas") !== -1, eleicao = tipos.indexOf("Folga eleição 2026") !== -1;
+    if (banco && eleicao) return "Folga referente ao banco de horas acumulado e à eleição 2026.";
+    if (eleicao) return "Folga referente à eleição 2026.";
+    return "Folga referente ao banco de horas acumulado.";
+  }
+
   // ---------------- Modelo ao vivo (papel A4 ao lado) ----------------
 
   var PAPEL_W = 794, PAPEL_H = 1123;   // A4 a 96 dpi (1 px = 15 twips)
@@ -516,7 +529,8 @@
 
   // o que o modelo mostra: folgas já adicionadas + (em amarelo) o que está montado e ainda não foi adicionado
   function montarVisao() {
-    var visao = {}, novas = {};
+    var visao = {}, novas = {}, tipos = {};
+    Object.keys(state.selecoes).forEach(function (n) { tipos[n] = tipoDe(n); });
     Object.keys(state.selecoes).forEach(function (n) { visao[n] = state.selecoes[n].slice(); });
     var datas = datasParaAdicionar();
     if (datas.length) {
@@ -524,10 +538,11 @@
         if (state.funcionarios[n] === undefined) return;
         var antes = visao[n] || [];
         visao[n] = mesclar(antes, datas);
+        tipos[n] = state.tipoAtual;
         datas.forEach(function (d) { if (antes.indexOf(d) === -1) novas[n + "|" + d] = true; });
       });
     }
-    return { visao: visao, novas: novas };
+    return { visao: visao, novas: novas, tipos: tipos };
   }
 
   // tira a pessoa do documento (folgas já lançadas) e também da seleção atual
@@ -577,7 +592,7 @@
     var v = montarVisao();
     var nomes = Object.keys(v.visao).sort();
     var itens = nomes.map(function (n) {
-      return { nome: n, cargo: state.funcionarios[n] || "", tipo: "Banco de horas", datas: v.visao[n].slice().sort(compararDatasBR).join(", ") };
+      return { nome: n, cargo: state.funcionarios[n] || "", tipo: v.tipos[n], datas: v.visao[n].slice().sort(compararDatasBR).join(", ") };
     });
 
     var esc = null, nv;
@@ -626,12 +641,12 @@
     corpo.appendChild(t1);
     corpo.appendChild(sp(200));
 
-    corpo.appendChild(el("div", "fgp-assunto", "ASSUNTO: Folga referente ao banco de horas acumulado."));
+    corpo.appendChild(el("div", "fgp-assunto", "ASSUNTO: " + assuntoTexto(nomes.map(function (n) { return v.tipos[n]; }))));
     corpo.appendChild(sp(160));
 
     // funcionários
     var t2 = el("table", "fgp-tab fgp-func"); cg = "";
-    [2450, 2100, 1150, 1938, 2000].forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
+    [2450, 2000, 1450, 1938, 1800].forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
     t2.innerHTML = "<colgroup>" + cg + "</colgroup>";
     r = el("tr", "fgp-cabtab");
     ["NOME", "CARGO", "TIPO DE FOLGA", "DATA DA FOLGA", "ASSINATURA DO SERVIDOR"].forEach(function (t) { tdPapel(r, t); });
@@ -661,7 +676,7 @@
         maisBtn = mais;
       }
       tdPapel(r, state.funcionarios[nome] || "");
-      tdPapel(r, "Banco de horas");
+      tdPapel(r, v.tipos[nome]);
       var cd = tdPapel(r, null, "fgp-datas");
       datas.forEach(function (d, i) {
         var nova = !!v.novas[nome + "|" + d];
@@ -1045,6 +1060,7 @@
         if (removidos.length && !(removidos.length === 1 && removidos[0] === d)) trocadas++;
       });
       state.selecoes[nome] = mesclar(lista, datas);
+      state.tipos[nome] = state.tipoAtual;
     });
 
     state.pendentes = [];
@@ -1177,7 +1193,7 @@
       return {
         nome: nome,
         cargo: state.funcionarios[nome] || "",
-        tipo: "Banco de horas",
+        tipo: tipoDe(nome),
         datas: datas.join(", ")
       };
     });
@@ -1219,7 +1235,7 @@
           });
 
           var rem = remetenteAtual();
-          var subs = { "<<ci>>": ci, "<<hoje>>": formatarDataExtenso(new Date()), "<<setor>>": rem.setor, "<<remetente>>": rem.nome };
+          var subs = { "<<ci>>": ci, "<<hoje>>": formatarDataExtenso(new Date()), "<<setor>>": rem.setor, "<<assunto>>": assuntoTexto(funcionariosOrdenados.map(function (f) { return f.tipo; })), "<<remetente>>": rem.nome };
           Object.keys(arquivos).forEach(function (caminho) {
             var xmlAtual = caminho === "word/document.xml" ? docXml : arquivos[caminho];
             arquivos[caminho] = DocxUtils.substituirTags(xmlAtual, subs);
@@ -1268,10 +1284,17 @@
         setTimeout(ajustarEscala, 30);
       });
     });
-    document.querySelectorAll(".fg-modo__b").forEach(function (b) {
+    document.querySelectorAll("#fgTipo .fg-modo__b").forEach(function (b) {
+      b.addEventListener("click", function () {
+        state.tipoAtual = b.getAttribute("data-tipo");
+        document.querySelectorAll("#fgTipo .fg-modo__b").forEach(function (x) { x.classList.toggle("fg-modo__b--ativo", x === b); });
+        renderPreview();
+      });
+    });
+    document.querySelectorAll(".fg-modo:not(.fg-modo--tipo) .fg-modo__b").forEach(function (b) {
       b.addEventListener("click", function () {
         var modo = b.getAttribute("data-modo");
-        document.querySelectorAll(".fg-modo__b").forEach(function (x) { x.classList.toggle("fg-modo__b--ativo", x === b); });
+        document.querySelectorAll(".fg-modo:not(.fg-modo--tipo) .fg-modo__b").forEach(function (x) { x.classList.toggle("fg-modo__b--ativo", x === b); });
         document.querySelectorAll(".fg-modo__corpo").forEach(function (c) { c.hidden = c.getAttribute("data-corpo") !== modo; });
       });
     });
