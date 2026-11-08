@@ -120,6 +120,12 @@
             <select id="folgaNovoCargo" class="folga-select"></select>
             <button type="button" id="folgaAddFuncionario" class="folga-btn folga-btn--ghost">+ Adicionar</button>
           </div>
+          <details class="fg-mais fg-mais--mat">
+            <summary>Colar matrículas da planilha</summary>
+            <textarea id="folgaMatTexto" class="folga-input folga-colar__txt" rows="5" placeholder="Cole aqui: uma linha por agente, matrícula e nome (do Excel, em qualquer ordem). Ex:&#10;99999	LUCAS VIEIRA LOPES"></textarea>
+            <div class="folga-row"><button type="button" id="folgaMatAplicar" class="folga-btn fer-sm">Aplicar matrículas</button></div>
+            <p class="folga-periodo__ajuda">Também dá para digitar a matrícula direto no campo "matrícula" de cada agente na lista. Ela aparece no documento: NOME (matrícula).</p>
+          </details>
           <div class="folga-row folga-row--tools">
             <button type="button" id="folgaExportar" class="folga-link-btn">Exportar lista</button>
             <button type="button" id="folgaImportar" class="folga-link-btn">Importar lista</button>

@@ -144,6 +144,7 @@
   ];
 
   var STORAGE_KEY = "painelEndemiasFuncionarios";
+  var MAT_KEY = "painelEndemiasMatriculas";
   var RASCUNHO_KEY = "painelEndemiasFolgaRascunho";
   var DIAS_SEMANA = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
   var LIMITE_PERIODO_DIAS = 62;
@@ -167,6 +168,7 @@
     tipos: {},                     // tipo por funcionário já lançado
     multi: false,       // proteção: por padrão só 1 agente marcado por vez
     ultimos: [],        // último grupo lançado (para "marcar de novo")
+    matriculas: {},     // nome -> matrícula (guardada no navegador)
     remetentes: [],     // [{setor, nome}] — lista guardada no navegador
     remetente: 0,       // índice escolhido (volta ao padrão no F5)
     funcionarios: {},   // nome -> cargo
@@ -231,6 +233,50 @@
     } catch (e) {
       alert("Não foi possível salvar a lista neste navegador (armazenamento local indisponível).");
     }
+  }
+
+  // ---------------- Matrículas ----------------
+  function carregarMatriculas() {
+    try { var m = JSON.parse(localStorage.getItem(MAT_KEY) || "{}"); return (m && typeof m === "object" && !Array.isArray(m)) ? m : {}; }
+    catch (e) { return {}; }
+  }
+  function salvarMatriculas() { try { localStorage.setItem(MAT_KEY, JSON.stringify(state.matriculas)); } catch (e) { /* ignora */ } }
+
+  // nome como aparece no documento: "NOME DO AGENTE (matrícula)"
+  function nomeDoc(nome) {
+    var m = String(state.matriculas[nome] || "").trim();
+    return m ? nome + " (" + m + ")" : nome;
+  }
+
+  // Aplica uma lista colada (do Excel: matrícula e nome, em qualquer ordem, separados por tab, ; ou espaços)
+  function importarMatriculas(texto) {
+    var chaves = {};
+    Object.keys(state.funcionarios).forEach(function (n) { chaves[semAcento(n)] = n; });
+    var ok = 0, naoAchou = [], ambiguo = [];
+    String(texto || "").split(/\r?\n/).forEach(function (linha) {
+      linha = linha.trim(); if (!linha) return;
+      var partes = linha.split(/\t|;|\s{2,}|\s-\s/).map(function (p) { return p.trim(); }).filter(Boolean);
+      var mat = "", nome = "";
+      if (partes.length >= 2) {
+        partes.forEach(function (p) { if (/^[\d.\-\/xX]+$/.test(p) && /\d/.test(p)) mat = p; else nome = nome ? nome + " " + p : p; });
+      } else {
+        var m = linha.match(/^(\d[\d.\-\/]*)\s+(.+)$/) || linha.match(/^(.+?)\s+(\d[\d.\-\/]*)$/);
+        if (m) { if (/^\d/.test(m[1])) { mat = m[1]; nome = m[2]; } else { nome = m[1]; mat = m[2]; } }
+      }
+      if (!mat || !nome) { naoAchou.push(linha); return; }
+      var k = semAcento(nome), alvo = chaves[k];
+      if (!alvo) {
+        var cand = Object.keys(chaves).filter(function (c) { return c.indexOf(k) !== -1 || k.indexOf(c) !== -1; });
+        if (cand.length === 1) alvo = chaves[cand[0]]; else if (cand.length > 1) { ambiguo.push(nome); return; }
+      }
+      if (!alvo) { naoAchou.push(nome); return; }
+      state.matriculas[alvo] = mat; ok++;
+    });
+    salvarMatriculas(); renderListaFuncionarios(); renderPreview();
+    var msg = ok + " matrícula(s) aplicada(s).";
+    if (naoAchou.length) msg += " Não encontrados: " + naoAchou.slice(0, 5).join(", ") + (naoAchou.length > 5 ? "…" : "") + ".";
+    if (ambiguo.length) msg += " Nomes parecidos demais: " + ambiguo.slice(0, 3).join(", ") + ".";
+    setStatus(msg, ok === 0);
   }
 
   // ---------------- Utilidades ----------------
@@ -405,6 +451,17 @@
         renderPreview();
       });
 
+      var matInput = document.createElement("input");
+      matInput.type = "text"; matInput.className = "folga-emp__mat"; matInput.placeholder = "matrícula";
+      matInput.value = state.matriculas[nome] || ""; matInput.inputMode = "numeric"; matInput.maxLength = 15;
+      matInput.title = "Matrícula (aparece no documento ao lado do nome)";
+      matInput.addEventListener("click", function (e) { e.stopPropagation(); });
+      matInput.addEventListener("input", function () {
+        var v = matInput.value.trim();
+        if (v) state.matriculas[nome] = v; else delete state.matriculas[nome];
+        salvarMatriculas(); renderPreview();
+      });
+
       var noDoc = null;
       if (state.selecoes[nome]) {
         noDoc = el("button", "folga-emp__doc", "✓ lançado ✕");
@@ -419,6 +476,7 @@
       remover.addEventListener("click", function () {
         if (confirm("Remover \"" + nome + "\" da lista de funcionários?")) {
           delete state.funcionarios[nome];
+          delete state.matriculas[nome]; salvarMatriculas();
           delete state.selecoes[nome];
           delete state.marcados[nome];
           salvarFuncionarios();
@@ -432,7 +490,7 @@
       // clicar em qualquer parte da linha (menos cargo e ✕) marca/desmarca
       linha.addEventListener("click", function (e) {
         var t = e.target;
-        if (t === check || t === cargoSelect || t === remover || t === noDoc) return;
+        if (t === check || t === cargoSelect || t === remover || t === noDoc || t === matInput) return;
         check.checked = !check.checked;
         check.dispatchEvent(new Event("change"));
       });
@@ -440,6 +498,7 @@
       linha.appendChild(check);
       linha.appendChild(nomeSpan);
       if (noDoc) linha.appendChild(noDoc);
+      linha.appendChild(matInput);
       linha.appendChild(cargoSelect);
       linha.appendChild(remover);
       dom.lista.appendChild(linha);
@@ -521,7 +580,7 @@
 
   function aplicarModoVarios() {
     var ligado = state.multi;
-    [dom.marcarTodos, dom.colarToggle].forEach(function (b) { if (b) b.hidden = !ligado; });
+    [dom.marcarTodos, dom.colarToggle, dom.desmarcar].forEach(function (b) { if (b) b.hidden = !ligado; });
     if (!ligado && dom.colarWrap) dom.colarWrap.hidden = true;
     var caixa = document.getElementById("folgaMulti");
     if (caixa) caixa.checked = ligado;
@@ -618,7 +677,7 @@
     var v = montarVisao();
     var nomes = Object.keys(v.visao).sort();
     var itens = nomes.map(function (n) {
-      return { nome: n, cargo: state.funcionarios[n] || "", tipo: v.tipos[n], datas: v.visao[n].slice().sort(compararDatasBR).join(", ") };
+      return { nome: nomeDoc(n), cargo: state.funcionarios[n] || "", tipo: v.tipos[n], datas: v.visao[n].slice().sort(compararDatasBR).join(", ") };
     });
 
     var esc = null, nv;
@@ -695,7 +754,7 @@
       var linhaNova = datas.every(function (d) { return v.novas[nome + "|" + d]; });
       r = el("tr", linhaNova ? "fgp-nova" : null);
       var maisBtn = null;
-      var cn = tdPapel(r, nome);
+      var cn = tdPapel(r, nomeDoc(nome));
       {
         var rm = el("button", "fgp-x", "✕");
         rm.type = "button"; rm.title = "Tirar este funcionário do documento";
@@ -1153,7 +1212,9 @@
   }
 
   function exportarLista() {
-    var blob = new Blob([JSON.stringify(state.funcionarios, null, 2)], { type: "application/json" });
+    var dados = {}; Object.keys(state.funcionarios).forEach(function (n) { dados[n] = state.funcionarios[n]; });
+    dados.__matriculas = state.matriculas;
+    var blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" });
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     a.href = url;
@@ -1170,6 +1231,8 @@
       try {
         var obj = JSON.parse(reader.result);
         if (typeof obj !== "object" || obj === null || Array.isArray(obj)) throw new Error("formato inválido");
+        if (obj.__matriculas && typeof obj.__matriculas === "object") { state.matriculas = obj.__matriculas; salvarMatriculas(); }
+        delete obj.__matriculas;
         state.funcionarios = obj;
         limparMarcadosOrfaos();
         salvarFuncionarios();
@@ -1229,7 +1292,7 @@
     var funcionariosOrdenados = nomes.sort().map(function (nome) {
       var datas = state.selecoes[nome].slice().sort(compararDatasBR);
       return {
-        nome: nome,
+        nome: nomeDoc(nome),
         cargo: state.funcionarios[nome] || "",
         tipo: state.tipoAtual,
         datas: datas.join(", ")
@@ -1381,6 +1444,7 @@
     if (!dom.lista) return;
 
     state.funcionarios = carregarFuncionarios();
+    state.matriculas = carregarMatriculas();
     renderCalendario();
     var caixaMulti = document.getElementById("folgaMulti");
     if (caixaMulti) caixaMulti.addEventListener("change", function () {
@@ -1396,6 +1460,8 @@
     state.remetentes = carregarRemetentes();
     renderRemetentes();
     dom.remetente.addEventListener("change", function () { state.remetente = parseInt(dom.remetente.value, 10) || 0; renderPreview(); });
+    var bm = document.getElementById("folgaMatAplicar");
+    if (bm) bm.addEventListener("click", function () { importarMatriculas(document.getElementById("folgaMatTexto").value); });
     dom.remAdd.addEventListener("click", adicionarRemetente);
     dom.remDel.addEventListener("click", removerRemetente);
     popularSelectCargos(dom.novoCargo, CARGOS[0]);

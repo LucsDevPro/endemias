@@ -488,3 +488,31 @@ html[data-tema="claro"] .fg-abas { background: rgba(238,243,249,.92); }
 .fg-ci input { box-sizing: border-box; }
 .fg-tipo { margin-bottom: .9rem; }
 .fg-passo { min-width: 0; max-width: 100%; box-sizing: border-box; }
+
+.folga-emp__mat { width: 5.4rem; flex: none; padding: .3rem .45rem; border: 1.5px solid #C5D2E4; border-radius: 9px; background: #fff; color: #0A1E3D; font: inherit; font-size: .8rem; font-weight: 700; text-align: center; }
+.folga-emp__mat:focus { outline: 2px solid #007ECA; border-color: #007ECA; }
+.fg-mais--mat { margin: .5rem 0; }
+
+/* lista de agentes: nome em cima; matrícula, cargo e ✕ embaixo (cabe na coluna estreita) */
+.fg-passo .folga-emp { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .5rem; }
+.fg-passo .folga-emp__nome { flex: 1 1 calc(100% - 3.5rem); min-width: 0; }
+.fg-passo .folga-emp__doc { order: 2; }
+.fg-passo .folga-emp__mat { margin-left: 1.9rem; }
+.fg-passo .folga-emp__cargo { flex: 1 1 8rem; min-width: 0; max-width: none; }
+.fg-passo .folga-emp__rm { margin-left: auto; }
+
+/* passo 1 mais compacto no computador: CI e remetente lado a lado */
+@media (min-width: 1021px) {
+  .fg-doc { display: grid !important; grid-template-columns: 8.2rem 1fr; gap: .6rem; align-items: end; }
+  .fg-doc > div { margin-bottom: 0; }
+  .fg-col1 .fg-modo__b { padding: .45rem .4rem; font-size: .85rem; }
+  .fg-col1 .fg-tipo { margin-bottom: .6rem; }
+  .fg-col1 .fg-ci input { font-size: 1.05rem; padding: .35rem .6rem; }
+  .fg-col1 .fg-ci__sufixo { font-size: 1.05rem; padding: 0 .55rem; }
+  .fg-doc__de .folga-select { font-size: .75rem; padding: .5rem .4rem; }
+}
+
+.fg-passo .folga-emp { padding: .35rem .6rem; gap: .2rem .45rem; }
+.fg-passo .folga-emp__mat, .fg-passo .folga-emp__cargo { padding-top: .2rem; padding-bottom: .2rem; font-size: .76rem; }
+.fg-acoes:not(:has(button:not([hidden]))) { display: none; }
+.fg-multi { margin-top: .5rem; }
