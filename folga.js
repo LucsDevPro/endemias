@@ -758,7 +758,8 @@
     caixa.style.height = Math.round(h * k) + "px";
   }
 
-  // lupa: mostra o modelo grande, em tela cheia
+  // lupa: mostra o modelo em tamanho real (A4 = 794 x 1123 px a 96 dpi), com rolagem; botão alterna "ajustar à tela"
+  var lupaReal = true;
   function abrirLupa() {
     var lupa = document.getElementById("fgLupa"), area = document.getElementById("fgLupaArea");
     if (!lupa || !dom.preview) return;
@@ -767,7 +768,7 @@
     copia.removeAttribute("id");
     Array.prototype.forEach.call(copia.querySelectorAll(".fgp-x, .fgp-mais"), function (b) { b.parentNode.removeChild(b); });
     var h = Math.max(PAPEL_H, dom.preview.offsetHeight);
-    var k = Math.min((window.innerWidth - 40) / PAPEL_W, (window.innerHeight - 90) / h, 1.6);
+    var k = lupaReal ? 1 : Math.min((window.innerWidth - 40) / PAPEL_W, (window.innerHeight - 90) / h);
     copia.style.transform = "scale(" + k + ")";
     copia.style.position = "absolute"; copia.style.left = "0"; copia.style.top = "0";
     var moldura = el("div", "fg-lupa__papel");
@@ -775,6 +776,8 @@
     moldura.style.height = Math.round(h * k) + "px";
     moldura.appendChild(copia);
     area.appendChild(moldura);
+    var t = document.getElementById("fgLupaTam");
+    if (t) t.textContent = lupaReal ? "↔ Ajustar à tela" : "▣ Tamanho real (A4)";
     lupa.hidden = false;
   }
   function fecharLupa() { var l = document.getElementById("fgLupa"); if (l) l.hidden = true; }
@@ -1307,6 +1310,8 @@
     if (amp) amp.addEventListener("click", abrirLupa);
     var lx = document.getElementById("fgLupaX"), lupa = document.getElementById("fgLupa");
     if (lx) lx.addEventListener("click", fecharLupa);
+    var lt = document.getElementById("fgLupaTam");
+    if (lt) lt.addEventListener("click", function () { lupaReal = !lupaReal; abrirLupa(); });
     if (lupa) lupa.addEventListener("click", function (e) { if (e.target === lupa || e.target.id === "fgLupaArea") fecharLupa(); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") fecharLupa(); });
     window.addEventListener("resize", ajustarTela);
