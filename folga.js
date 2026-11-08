@@ -888,7 +888,7 @@
       var linhaNova = datas.every(function (d) { return v.novas[nome + "|" + d]; });
       r = el("tr", linhaNova ? "fgp-nova" : null);
       var maisBtn = null;
-      var cn = tdPapel(r, nomeDoc(nome));
+      var cn = tdPapel(r, nome);
       {
         var rm = el("button", "fgp-x", "✕");
         rm.type = "button"; rm.title = "Tirar este funcionário do documento";
