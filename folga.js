@@ -165,6 +165,7 @@
     calUltimo: null,    // último dia clicado (para Shift+clique)
     tipoAtual: "Banco de horas",   // tipo da próxima folga lançada (volta ao padrão no F5)
     tipos: {},                     // tipo por funcionário já lançado
+    multi: false,       // proteção: por padrão só 1 agente marcado por vez
     ultimos: [],        // último grupo lançado (para "marcar de novo")
     remetentes: [],     // [{setor, nome}] — lista guardada no navegador
     remetente: 0,       // índice escolhido (volta ao padrão no F5)
@@ -387,8 +388,9 @@
       check.dataset.nome = nome;
       check.checked = !!state.marcados[nome];
       check.addEventListener("change", function () {
-        if (check.checked) state.marcados[nome] = true;
+        if (check.checked) marcarFuncionario(nome);
         else delete state.marcados[nome];
+        renderListaFuncionarios();
         atualizarResumoSelecao();
       });
 
@@ -503,6 +505,30 @@
     salvarRemetentes(); renderRemetentes(); renderPreview();
   }
 
+  // ---------------- Proteção: um agente por vez ----------------
+  // Por padrão só UM funcionário fica marcado: marcar outro desmarca o anterior.
+  // Para lançar as mesmas datas para vários de uma vez, é preciso ligar o "modo vários agentes".
+  function marcarFuncionario(nome) {
+    if (!state.multi) state.marcados = {};
+    state.marcados[nome] = true;
+  }
+
+  function exigirModoVarios() {
+    if (state.multi) return false;
+    setStatus("Para marcar vários agentes de uma vez, ligue “Lançar para vários agentes” (cuidado: as mesmas datas vão para todos).", true);
+    return true;
+  }
+
+  function aplicarModoVarios() {
+    var ligado = state.multi;
+    [dom.marcarTodos, dom.colarToggle].forEach(function (b) { if (b) b.hidden = !ligado; });
+    if (!ligado && dom.colarWrap) dom.colarWrap.hidden = true;
+    var caixa = document.getElementById("folgaMulti");
+    if (caixa) caixa.checked = ligado;
+    var aviso = document.getElementById("fgAvisoMulti");
+    if (aviso) aviso.hidden = !ligado;
+  }
+
   // ---------------- Tipo de folga ----------------
   function tipoDe() { return state.tipoAtual; }   // um documento = um tipo só (eleição vai para outro setor)
 
@@ -557,6 +583,7 @@
   // marca de novo só estas pessoas (para lançar mais dias sem procurar na lista)
   function remarcar(nomes) {
     state.marcados = {};
+    if (!state.multi) nomes = nomes.slice(0, 1);
     nomes.forEach(function (n) { if (state.funcionarios[n] !== undefined) state.marcados[n] = true; });
     renderListaFuncionarios();
     atualizarResumoSelecao();
@@ -825,6 +852,7 @@
   }
 
   function marcarTodosFiltrados() {
+    if (exigirModoVarios()) return;
     var lista = nomesFiltrados();
     lista.forEach(function (n) { state.marcados[n] = true; });
     renderListaFuncionarios();
@@ -834,6 +862,7 @@
 
   // Cola uma lista de nomes (um por linha) e marca quem for encontrado.
   function marcarPorLista() {
+    if (exigirModoVarios()) return;
     var linhas = dom.colarTexto.value.split(/\n|;/).map(function (l) {
       return l.replace(/^\s*(\d+\s*[.)\-–]\s*|[-•*]\s*)/, "").trim();
     }).filter(Boolean);
@@ -1059,6 +1088,7 @@
       setStatus("Escolha ao menos uma data (ou um período).", true);
       return;
     }
+    if (marcados.length > 1 && !confirm("Você vai lançar " + datas.length + " data(s) para " + marcados.length + " agentes:\n\n• " + marcados.join("\n• ") + "\n\nAs MESMAS datas vão para todos. Confirmar?")) return;
 
     var trocadas = 0;
     marcados.forEach(function (nome) {
@@ -1352,6 +1382,17 @@
 
     state.funcionarios = carregarFuncionarios();
     renderCalendario();
+    var caixaMulti = document.getElementById("folgaMulti");
+    if (caixaMulti) caixaMulti.addEventListener("change", function () {
+      state.multi = caixaMulti.checked;
+      if (!state.multi && Object.keys(state.marcados).length > 1) {
+        state.marcados = {};
+        renderListaFuncionarios(); atualizarResumoSelecao();
+        setStatus("Modo de um agente por vez: marque o agente que vai folgar.", false);
+      }
+      aplicarModoVarios();
+    });
+    aplicarModoVarios();
     state.remetentes = carregarRemetentes();
     renderRemetentes();
     dom.remetente.addEventListener("change", function () { state.remetente = parseInt(dom.remetente.value, 10) || 0; renderPreview(); });
@@ -1382,7 +1423,7 @@
         return;
       }
       var nome = lista[0];
-      if (state.marcados[nome]) delete state.marcados[nome]; else state.marcados[nome] = true;
+      if (state.marcados[nome]) delete state.marcados[nome]; else marcarFuncionario(nome);
       state.filtroTexto = "";
       dom.busca.value = "";
       renderListaFuncionarios();

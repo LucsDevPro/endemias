@@ -471,3 +471,7 @@ html[data-tema="claro"] .fg-abas { background: rgba(238,243,249,.92); }
 .fg-papel > .fgp-cab, .fg-papel > .fgp-corpo, .fg-papel > .fgp-assin { position: relative; z-index: 1; }
 .fg-papel > .fgp-cab { position: absolute; }
 .fg-papel:not(.fg-papel--estoura) > .fgp-assin { position: absolute; }
+
+.fg-multi { margin: .6rem 0 .2rem; }
+.fg-avisomulti { margin: .3rem 0 .4rem; padding: .45rem .7rem; border-radius: 10px; background: #FFF6DB; border: 1px solid #FFB900; color: #7A5200; font-size: .8rem; font-weight: 700; }
+.fg-avisomulti[hidden], .fg-acoes [hidden] { display: none !important; }
