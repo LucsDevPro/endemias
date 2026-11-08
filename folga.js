@@ -507,7 +507,7 @@
 
   // texto do ASSUNTO conforme o tipo do documento
   function assuntoTexto(tipo) {
-    if (tipo === "Folga eleição 2026") return "Folga referente à eleição 2026.";
+    if (tipo === "Folga eleição 2026") return "Folga referente à participação nas Eleições de 2026.";
     return "Folga referente ao banco de horas acumulado.";
   }
 
