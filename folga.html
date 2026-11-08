@@ -63,6 +63,7 @@
               <input type="text" id="folgaCi" placeholder="015" inputmode="numeric" autocomplete="off">
               <span class="fg-ci__sufixo">/2026</span>
             </label>
+            <span class="fg-ci__dica" id="fgCiDica" hidden></span>
           </div>
           <div class="fg-doc__de">
             <span class="fg-rot">Quem envia (campo “De:”)</span>
@@ -202,6 +203,8 @@
         </div>
         <div class="fg-dir__botoes">
           <button type="button" id="folgaLimpar" class="folga-btn folga-btn--ghost fer-sm">Limpar tudo</button>
+          <button type="button" id="folgaHistorico" class="folga-btn folga-btn--ghost fer-sm fg-ico" title="Histórico de folgas / controle do nº da CI" aria-label="Histórico de CIs">🕘</button>
+          <button type="button" id="folgaImprimir" class="folga-btn folga-btn--ghost fer-sm fg-ico" title="Imprimir direto, sem salvar arquivo" aria-label="Imprimir">🖨</button>
           <button type="button" id="folgaGerar" class="folga-btn folga-btn--primary">⬇ Gerar .docx</button>
         </div>
       </div>
@@ -221,6 +224,27 @@
   </footer>
 
 </main>
+
+  <div class="fg-hist" id="fgHist" hidden>
+    <div class="fg-hist__card" role="dialog" aria-label="Histórico de folgas">
+      <div class="fg-hist__topo">
+        <h3>🕘 Histórico de folgas</h3>
+        <button type="button" id="fgHistX" class="fg-hist__fechar" aria-label="Fechar">✕</button>
+      </div>
+      <p class="fg-hist__resumo" id="fgHistResumo"></p>
+      <div class="fg-hist__barra">
+        <input type="text" id="fgHistBusca" class="folga-input" placeholder="🔍 Buscar por CI, nome ou tipo" autocomplete="off">
+        <button type="button" id="fgHistCsv" class="folga-btn folga-btn--ghost fer-sm">⬇ Exportar planilha (CSV)</button>
+      </div>
+      <div class="fg-hist__tabela">
+        <table>
+          <thead><tr><th>CI</th><th>Quando</th><th>Tipo</th><th>Agentes</th><th>Datas</th><th></th><th></th></tr></thead>
+          <tbody id="fgHistCorpo"></tbody>
+        </table>
+      </div>
+      <p class="fg-hist__nota">Guardado só neste navegador. Cada documento gerado (⬇) ou impresso (🖨) vira um registro; a mesma CI regerada com o mesmo conteúdo não duplica.</p>
+    </div>
+  </div>
 
   <div class="fg-lupa" id="fgLupa" hidden>
     <button type="button" class="fg-lupa__tam" id="fgLupaTam">↔ Ajustar à tela</button>

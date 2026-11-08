@@ -524,3 +524,25 @@ body.ver-funcao .folga-emp__cargo { display: block !important; }
 .fg-ver { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem 1rem; margin: 0 0 .5rem; font-size: .82rem; font-weight: 600; color: #0A1E3D; }
 .fg-ver label { display: inline-flex; align-items: center; gap: .35rem; cursor: pointer; }
 .fg-ver__nota { font-weight: 400; font-size: .74rem; opacity: .65; }
+
+/* Histórico de CIs + botões pequenos */
+.fg-ico { padding-left: .6rem !important; padding-right: .6rem !important; font-size: 1rem; line-height: 1; }
+.fg-ci__dica { display: block; margin-top: .25rem; font-size: .74rem; opacity: .85; }
+.fg-ci__dica .folga-link-btn { font-size: .74rem; padding: 0; }
+.fg-hist { position: fixed; inset: 0; z-index: 210; background: rgba(2,15,43,.7); backdrop-filter: blur(3px); display: grid; place-items: center; padding: 16px; }
+.fg-hist[hidden] { display: none; }
+.fg-hist__card { background: #fff; color: #0A1E3D; width: min(1000px, 100%); max-height: 90vh; display: flex; flex-direction: column; border-radius: 16px; padding: 1rem 1.2rem; box-shadow: 0 24px 70px rgba(0,0,0,.5); }
+.fg-hist__topo { display: flex; justify-content: space-between; align-items: center; }
+.fg-hist__topo h3 { margin: 0; font-size: 1.1rem; color: #002B68; }
+.fg-hist__fechar { border: 0; background: #FFB900; color: #002B68; font-weight: 800; border-radius: 99px; width: 2rem; height: 2rem; cursor: pointer; }
+.fg-hist__resumo { margin: .4rem 0; font-weight: 700; font-size: .88rem; color: #007ECA; }
+.fg-hist__barra { display: flex; gap: .5rem; margin-bottom: .6rem; flex-wrap: wrap; }
+.fg-hist__barra .folga-input { flex: 1 1 14rem; }
+.fg-hist__tabela { overflow: auto; border: 1px solid #D3DDEA; border-radius: 10px; flex: 1; }
+.fg-hist__tabela table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.fg-hist__tabela th { position: sticky; top: 0; background: #002B68; color: #fff; text-align: left; padding: .45rem .55rem; font-size: .72rem; letter-spacing: .04em; }
+.fg-hist__tabela td { padding: .4rem .55rem; border-top: 1px solid #E3EAF3; vertical-align: top; color: #0A1E3D; }
+.fg-hist__tabela tr:nth-child(even) td { background: #F5F8FC; }
+.fgh-ci { font-weight: 800; white-space: nowrap; color: #002B68; }
+.fgh-x { border: 0; background: transparent; color: #c0392b; font-weight: 800; cursor: pointer; }
+.fg-hist__nota { margin: .6rem 0 0; font-size: .74rem; opacity: .7; }

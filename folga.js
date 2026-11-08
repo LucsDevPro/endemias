@@ -1012,6 +1012,141 @@
   }
   function fecharLupa() { var l = document.getElementById("fgLupa"); if (l) l.hidden = true; }
 
+  // ---------------- Histórico de CIs e impressão direta ----------------
+  var HIST_KEY = "painelEndemiasFolgaHistorico";
+  function carregarHistorico() {
+    try { var h = JSON.parse(localStorage.getItem(HIST_KEY) || "[]"); return Array.isArray(h) ? h : []; } catch (e) { return []; }
+  }
+  function salvarHistorico(h) { try { localStorage.setItem(HIST_KEY, JSON.stringify(h)); } catch (e) { /* ignora */ } }
+  function numCi(ci) { var m = String(ci || "").match(/\d+/); return m ? parseInt(m[0], 10) : NaN; }
+  function chaveCi(ci) { var n = numCi(ci); return isNaN(n) ? String(ci || "").trim().toUpperCase() : String(n); }
+  function agentesAtuais() {
+    return Object.keys(state.selecoes).sort().map(function (n) {
+      return { nome: n, datas: state.selecoes[n].slice().sort(compararDatasBR) };
+    });
+  }
+  function assinaturaAgentes(ag) { return ag.map(function (a) { return a.nome + "|" + a.datas.join(","); }).join(";"); }
+  function proximaCi() {
+    var h = carregarHistorico(), max = NaN, larg = 3;
+    h.forEach(function (e) { var n = numCi(e.ci); if (!isNaN(n) && (isNaN(max) || n > max)) { max = n; larg = Math.max(3, (String(e.ci).match(/\d+/) || [""])[0].length); } });
+    if (isNaN(max)) return { ultima: "", proxima: "" };
+    var p = String(max + 1); while (p.length < larg) p = "0" + p;
+    var u = String(max); while (u.length < larg) u = "0" + u;
+    return { ultima: u, proxima: p };
+  }
+  function atualizarDicaCi() {
+    var d = document.getElementById("fgCiDica"); if (!d) return;
+    var n = proximaCi(); d.textContent = "";
+    if (!n.proxima) { d.hidden = true; return; }
+    d.hidden = false;
+    d.appendChild(document.createTextNode("Última registrada: " + n.ultima + " · "));
+    var b = el("button", "folga-link-btn", "usar " + n.proxima); b.type = "button";
+    b.addEventListener("click", function () { dom.ci.value = n.proxima; renderPreview(); });
+    d.appendChild(b);
+  }
+  // CI já registrada com outro conteúdo? pede confirmação (true = pode seguir)
+  function confirmarCiRepetida() {
+    var ci = (dom.ci.value || "").trim(), chave = chaveCi(ci);
+    var ag = agentesAtuais(), sig = assinaturaAgentes(ag);
+    var outro = carregarHistorico().filter(function (e) { return e.chave === chave && (e.tipo !== state.tipoAtual || e.sig !== sig); })[0];
+    if (!outro) return true;
+    return window.confirm("A CI " + ci + "/2026 já foi registrada em " + new Date(outro.quando).toLocaleDateString("pt-BR") + " (" + outro.tipo + ", " + outro.agentes.length + " agente(s)).\n\nGerar mesmo assim? (vai ficar como outro registro com o mesmo número)");
+  }
+  function registrarHistorico(acao) {
+    var ci = (dom.ci.value || "").trim(); if (!ci) return;
+    var h = carregarHistorico(), ag = agentesAtuais(), sig = assinaturaAgentes(ag), chave = chaveCi(ci), rem = remetenteAtual();
+    var e = h.filter(function (x) { return x.chave === chave && x.tipo === state.tipoAtual && x.sig === sig; })[0];
+    if (e) {
+      e.quando = new Date().toISOString();
+      if (e.acoes.indexOf(acao) === -1) e.acoes.push(acao);
+    } else {
+      h.push({ id: Date.now(), ci: ci, chave: chave, quando: new Date().toISOString(), tipo: state.tipoAtual, remetente: rem.setor + " – " + rem.nome, agentes: ag, sig: sig, acoes: [acao] });
+    }
+    salvarHistorico(h); atualizarDicaCi();
+  }
+  function datasUnicas(e) {
+    var u = {}; e.agentes.forEach(function (a) { a.datas.forEach(function (d) { u[d] = 1; }); });
+    return Object.keys(u).sort(compararDatasBR);
+  }
+  function renderHistorico() {
+    var box = document.getElementById("fgHistCorpo"); if (!box) return;
+    var termo = semAcento((document.getElementById("fgHistBusca") || {}).value || "");
+    var h = carregarHistorico().slice().sort(function (a, b) {
+      var na = numCi(a.ci), nb = numCi(b.ci);
+      if (!isNaN(na) && !isNaN(nb) && na !== nb) return nb - na;
+      return String(b.quando).localeCompare(String(a.quando));
+    });
+    var n = proximaCi();
+    var res = document.getElementById("fgHistResumo");
+    res.textContent = h.length ? ("Última CI: " + n.ultima + " · próxima sugerida: " + n.proxima + " · " + h.length + " registro(s)") : "Nenhuma CI registrada ainda. Cada documento gerado ou impresso entra aqui.";
+    box.innerHTML = "";
+    h.filter(function (e) {
+      if (!termo) return true;
+      return semAcento(e.ci + " " + e.tipo + " " + e.remetente + " " + e.agentes.map(function (a) { return a.nome; }).join(" ")).indexOf(termo) !== -1;
+    }).forEach(function (e) {
+      var tr = el("tr");
+      tr.appendChild(el("td", "fgh-ci", e.ci + "/2026"));
+      var dt = new Date(e.quando);
+      tr.appendChild(el("td", null, dt.toLocaleDateString("pt-BR") + " " + dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })));
+      tr.appendChild(el("td", null, e.tipo));
+      tr.appendChild(el("td", null, e.agentes.map(function (a) { return a.nome; }).join(", ")));
+      tr.appendChild(el("td", null, datasUnicas(e).join(", ")));
+      tr.appendChild(el("td", null, e.acoes.map(function (a) { return a === "impressão" ? "🖨" : "⬇"; }).join(" ")));
+      var td = el("td"); var x = el("button", "fgh-x", "✕"); x.type = "button"; x.title = "Apagar este registro";
+      x.addEventListener("click", function () {
+        if (!window.confirm("Apagar o registro da CI " + e.ci + "/2026 do histórico?")) return;
+        salvarHistorico(carregarHistorico().filter(function (q) { return q.id !== e.id; })); renderHistorico(); atualizarDicaCi();
+      });
+      td.appendChild(x); tr.appendChild(td); box.appendChild(tr);
+    });
+  }
+  function abrirHistorico() { var p = document.getElementById("fgHist"); if (!p) return; renderHistorico(); p.hidden = false; }
+  function fecharHistorico() { var p = document.getElementById("fgHist"); if (p) p.hidden = true; }
+  function exportarHistoricoCsv() {
+    var linhas = [["CI", "Data", "Tipo", "De", "Agente", "Datas da folga"]];
+    carregarHistorico().sort(function (a, b) { return (numCi(a.ci) || 0) - (numCi(b.ci) || 0); }).forEach(function (e) {
+      e.agentes.forEach(function (a) { linhas.push([e.ci + "/2026", new Date(e.quando).toLocaleString("pt-BR"), e.tipo, e.remetente, a.nome, a.datas.join(", ")]); });
+    });
+    var csv = "﻿" + linhas.map(function (l) { return l.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(";"); }).join("\r\n");
+    var url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    var a = document.createElement("a"); a.href = url; a.download = "historico-folgas.csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+  }
+
+  // Impressão direta: imprime o modelo (A4, tamanho real) sem gerar arquivo
+  function imprimirDocumento() {
+    var ci = (dom.ci.value || "").trim();
+    if (!ci) { setStatus("Informe o número da CI.", true); return; }
+    if (!Object.keys(state.selecoes).length) { setStatus("Adicione pelo menos uma folga antes de imprimir.", true); return; }
+    var v = montarVisao();
+    if (Object.keys(v.novas).length) { setStatus("Há datas ainda não lançadas (em amarelo). Clique em “Lançar” antes de imprimir.", true); return; }
+    if (!confirmarCiRepetida()) return;
+    var copia = dom.preview.cloneNode(true);
+    copia.removeAttribute("id");
+    Array.prototype.forEach.call(copia.querySelectorAll(".fgp-x, .fgp-mais"), function (b) { b.parentNode.removeChild(b); });
+    copia.style.transform = "none";
+    var f = document.createElement("iframe");
+    f.setAttribute("aria-hidden", "true");
+    f.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
+    document.body.appendChild(f);
+    var d = f.contentDocument;
+    d.open();
+    d.write('<!doctype html><html><head><meta charset="utf-8"><title>CI ' + ci.replace(/[<>&]/g, "") + '/2026 - Folga</title><link rel="stylesheet" href="folga-split.css"><style>@page{size:A4;margin:0}html,body{margin:0;padding:0;background:#fff}.fg-papel{position:relative!important;left:0!important;top:0!important;transform:none!important;box-shadow:none!important;width:794px!important;height:1122px!important;min-height:0!important;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}</style></head><body class="folga-page"></body></html>');
+    d.close();
+    d.body.appendChild(d.importNode(copia, true));
+    var imgs = Array.prototype.slice.call(d.images);
+    var esperas = imgs.map(function (im) { return im.complete ? Promise.resolve() : new Promise(function (ok) { im.onload = im.onerror = ok; }); });
+    var cssPronto = new Promise(function (ok) { var l = d.querySelector("link"); if (!l || l.sheet) return ok(); l.onload = l.onerror = ok; });
+    Promise.all(esperas.concat([cssPronto])).then(function () {
+      setTimeout(function () {
+        try { f.contentWindow.focus(); f.contentWindow.print(); registrarHistorico("impressão"); setStatus("Enviado para a impressora (CI " + ci + "/2026). Dica: na janela de impressão, desmarque “Cabeçalhos e rodapés”.", false); }
+        catch (e) { setStatus("Não foi possível abrir a impressão: " + e.message, true); }
+        setTimeout(function () { if (f.parentNode) f.parentNode.removeChild(f); }, 60000);
+      }, 250);
+    });
+  }
+
   // ---------------- Ações ----------------
 
   function funcionariosMarcados() {
@@ -1417,6 +1552,7 @@
       setStatus("Adicione pelo menos uma folga antes de gerar o documento.", true);
       return;
     }
+    if (!confirmarCiRepetida()) return;
     if (typeof window.JSZip === "undefined" || typeof window.DocxUtils === "undefined") {
       setStatus("Não foi possível carregar os componentes de geração de documento (verifique se o arquivo jszip.local.js está publicado junto com o site).", true);
       return;
@@ -1509,6 +1645,7 @@
         a.click();
         document.body.removeChild(a);
         setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        registrarHistorico("docx");
 
         var aviso = "";
         if (escolhaLayout && !escolhaLayout.cabe) {
@@ -1681,6 +1818,15 @@
     }
     dom.limpar.addEventListener("click", limparTudo);
     dom.gerar.addEventListener("click", gerarDocumento);
+    (function () {
+      function lig(id, fn) { var b = document.getElementById(id); if (b) b.addEventListener("click", fn); }
+      lig("folgaImprimir", imprimirDocumento); lig("folgaHistorico", abrirHistorico); lig("fgHistX", fecharHistorico);
+      lig("fgHistCsv", exportarHistoricoCsv);
+      var bu = document.getElementById("fgHistBusca"); if (bu) bu.addEventListener("input", renderHistorico);
+      var ov = document.getElementById("fgHist"); if (ov) ov.addEventListener("click", function (e) { if (e.target === ov) fecharHistorico(); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") fecharHistorico(); });
+      atualizarDicaCi();
+    })();
     dom.exportar.addEventListener("click", exportarLista);
     dom.restaurar.addEventListener("click", restaurarPadrao);
     dom.importar.addEventListener("click", function () { dom.importarInput.click(); });
