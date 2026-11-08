@@ -24,7 +24,7 @@
   var ALTURA_UTIL = 16838 - 1134;
 
   // Colunas da tabela de funcionários (soma = 9638 = largura útil da página)
-  var COLUNAS = [2450, 2000, 1450, 1938, 1800];
+  var COLUNAS = [2150, 2050, 1850, 1788, 1800];
   var LARGURA_TABELA = 9638;
   var MARGEM_LATERAL = 100; // tcMar left/right do modelo
 
@@ -35,8 +35,8 @@
   //  mgl = margem interna (topo/base) das demais tabelas   assin = altura da linha de assinaturas
   //  logo = fator do tamanho do logo                       base = altura (twips) de tudo que NÃO é linha de funcionário (calibrado no LibreOffice)
   var NIVEIS = [
-    { sz: 20, mar: 60, sp: 0, trh: 560, hdr: 520, esp: 1.00, top: 1.00, mgl: 60, assin: 1500, logo: 1.00, base: 7352 },
-    { sz: 18, mar: 45, sp: 0, trh: 440, hdr: 440, esp: 0.75, top: 0.85, mgl: 45, assin: 1250, logo: 0.90, base: 6431 },
+    { sz: 20, mar: 60, sp: 0, trh: 560, hdr: 520, esp: 1.00, top: 1.00, mgl: 60, assin: 1500, logo: 1.00, base: 7358 },
+    { sz: 18, mar: 45, sp: 0, trh: 440, hdr: 440, esp: 0.75, top: 0.85, mgl: 45, assin: 1250, logo: 0.90, base: 6428 },
     { sz: 17, mar: 35, sp: 0, trh: 380, hdr: 400, esp: 0.55, top: 0.75, mgl: 35, assin: 1050, logo: 0.80, base: 5772 },
     { sz: 16, mar: 28, sp: 0, trh: 330, hdr: 360, esp: 0.40, top: 0.65, mgl: 28, assin: 900,  logo: 0.70, base: 5268 },
     { sz: 15, mar: 20, sp: 0, trh: 290, hdr: 330, esp: 0.30, top: 0.60, mgl: 20, assin: 800,  logo: 0.60, base: 4858 },

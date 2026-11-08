@@ -507,7 +507,7 @@
 
   // texto do ASSUNTO conforme o tipo do documento
   function assuntoTexto(tipo) {
-    if (tipo === "Folga eleição 2026") return "Folga referente à participação nas Eleições de 2026.";
+    if (tipo === "Folga Eleitoral – Eleições 2026") return "Folga referente à participação nas Eleições de 2026.";
     return "Folga referente ao banco de horas acumulado.";
   }
 
@@ -644,7 +644,7 @@
 
     // funcionários
     var t2 = el("table", "fgp-tab fgp-func"); cg = "";
-    [2450, 2000, 1450, 1938, 1800].forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
+    [2150, 2050, 1850, 1788, 1800].forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
     t2.innerHTML = "<colgroup>" + cg + "</colgroup>";
     r = el("tr", "fgp-cabtab");
     ["NOME", "CARGO", "TIPO DE FOLGA", "DATA DA FOLGA", "ASSINATURA DO SERVIDOR"].forEach(function (t) { tdPapel(r, t); });
@@ -1248,7 +1248,7 @@
         var qtd = funcionariosOrdenados.length;
         var sufixo = qtd === 1 ? funcionariosOrdenados[0].nome.split(" ")[0] : qtd + " agentes";
         var ciLimpo = ci.replace(/\//g, "-").replace(/\\/g, "-").replace(/:/g, "-");
-        var nomeArquivo = "Ci - " + ciLimpo + " - Folga " + (state.tipoAtual === "Folga eleição 2026" ? "Eleição " : "") + sufixo + ".docx";
+        var nomeArquivo = "Ci - " + ciLimpo + " - Folga " + (state.tipoAtual === "Folga Eleitoral – Eleições 2026" ? "Eleição " : "") + sufixo + ".docx";
 
         var url = URL.createObjectURL(blob);
         var a = document.createElement("a");
