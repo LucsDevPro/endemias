@@ -149,6 +149,7 @@
   var LIMITE_PERIODO_DIAS = 62;
   var MESES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 
+  var TIPO_ELEITORAL = "Folga Eleitoral – Eleições 2026";
   var REM_KEY = "painelEndemiasFolgaRemetentes";
   var REMETENTES_PADRAO = [
     { setor: "SETOR DE ENDEMIAS E ZOONOSES", nome: "Alexandre Mendonca de Lima" },
@@ -611,6 +612,13 @@
     P.style.setProperty("--assin", px(nv.assin));
     P.style.setProperty("--top-pad", px(454 + Math.round(828000 * nv.logo / 635) + 200));
 
+    // marca d'água do Brasão (só folga eleitoral)
+    if (state.tipoAtual === TIPO_ELEITORAL) {
+      var wm = document.createElement("img");
+      wm.src = "assets/marca-brasao.png"; wm.alt = ""; wm.className = "fgp-marca";
+      P.appendChild(wm);
+    }
+
     // cabeçalho (logo)
     var cab = el("div", "fgp-cab");
     var img = document.createElement("img");
@@ -644,7 +652,7 @@
 
     // funcionários
     var t2 = el("table", "fgp-tab fgp-func"); cg = "";
-    [2150, 2050, 1850, 1788, 1800].forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
+    [2350, 2050, 1850, 1788, 1600].forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
     t2.innerHTML = "<colgroup>" + cg + "</colgroup>";
     r = el("tr", "fgp-cabtab");
     ["NOME", "CARGO", "TIPO DE FOLGA", "DATA DA FOLGA", "ASSINATURA DO SERVIDOR"].forEach(function (t) { tdPapel(r, t); });
@@ -1240,6 +1248,20 @@
             var xmlAtual = caminho === "word/document.xml" ? docXml : arquivos[caminho];
             arquivos[caminho] = DocxUtils.substituirTags(xmlAtual, subs);
           });
+
+          // folga eleitoral: Brasão da República grande, como marca d'água, atrás do texto (só neste tipo)
+          if (state.tipoAtual === TIPO_ELEITORAL && arquivos["word/header1.xml"]) {
+            var marca = '<w:r><w:drawing><wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="0" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">' +
+              '<wp:simplePos x="0" y="0"/><wp:positionH relativeFrom="page"><wp:align>center</wp:align></wp:positionH><wp:positionV relativeFrom="page"><wp:align>center</wp:align></wp:positionV>' +
+              '<wp:extent cx="5040000" cy="5067000"/><wp:effectExtent l="0" t="0" r="0" b="0"/><wp:wrapNone/>' +
+              '<wp:docPr id="50" name="Brasão da República" descr="Brasão da República Federativa do Brasil (marca d\'água)"/><wp:cNvGraphicFramePr/>' +
+              '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">' +
+              '<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="51" name="marca_brasao.png"/><pic:cNvPicPr/></pic:nvPicPr>' +
+              '<pic:blipFill><a:blip r:embed="rId2"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>' +
+              '<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="5040000" cy="5067000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic>' +
+              '</a:graphicData></a:graphic></wp:anchor></w:drawing></w:r>';
+            arquivos["word/header1.xml"] = arquivos["word/header1.xml"].replace("</w:p></w:hdr>", marca + "</w:p></w:hdr>");
+          }
 
           return DocxUtils.gerarDocxBlob(bytes, arquivos);
         });

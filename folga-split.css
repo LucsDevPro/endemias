@@ -466,3 +466,8 @@ html[data-tema="claro"] .fg-abas { background: rgba(238,243,249,.92); }
 .fg-lupa[hidden] { display: none; }
 .fg-lupa__area { display: flex; justify-content: center; padding: 64px 24px 32px; min-width: min-content; }
 .fg-lupa__tam { position: fixed; top: 14px; right: 150px; z-index: 3; padding: .5rem 1.1rem; border: 0; border-radius: 99px; background: #fff; color: #002B68; font: inherit; font-weight: 800; cursor: pointer; }
+
+.fgp-marca { position: absolute; left: 50%; top: 50%; width: 529px; height: auto; transform: translate(-50%, -50%); pointer-events: none; z-index: 0; }
+.fg-papel > .fgp-cab, .fg-papel > .fgp-corpo, .fg-papel > .fgp-assin { position: relative; z-index: 1; }
+.fg-papel > .fgp-cab { position: absolute; }
+.fg-papel:not(.fg-papel--estoura) > .fgp-assin { position: absolute; }
