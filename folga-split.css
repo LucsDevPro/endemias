@@ -454,4 +454,4 @@ html[data-tema="claro"] .fg-abas { background: rgba(238,243,249,.92); }
 }
 .fg-tipo { margin-bottom: .7rem; }
 .fg-modo--tipo { margin-bottom: 0; }
-.fgp-info td:not(.fgp-lab) { font-weight: 700; }
+.fgp-info td[colspan] { font-weight: 700; }
