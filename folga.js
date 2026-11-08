@@ -298,6 +298,8 @@
     matriculas: {},     // nome -> matrícula (guardada no navegador)
     remetentes: [],     // [{setor, nome}] — lista guardada no navegador
     remetente: 0,       // índice escolhido (volta ao padrão no F5)
+    verFuncao: false,   // mostrar função no site (o docx sempre leva)
+    verMatricula: false,// mostrar matrícula no site (o docx sempre leva)
     funcionarios: {},   // nome -> cargo
     selecoes: {},       // nome -> [dd/mm/yyyy, ...]
     marcados: {},        // nome -> true (checkbox marcado, sobrevive a busca/filtro)
@@ -888,7 +890,7 @@
       var linhaNova = datas.every(function (d) { return v.novas[nome + "|" + d]; });
       r = el("tr", linhaNova ? "fgp-nova" : null);
       var maisBtn = null;
-      var cn = tdPapel(r, nome);
+      var cn = tdPapel(r, state.verMatricula ? nomeDoc(nome) : nome);
       {
         var rm = el("button", "fgp-x", "✕");
         rm.type = "button"; rm.title = "Tirar este funcionário do documento";
@@ -901,7 +903,7 @@
         mais.addEventListener("click", function () { remarcar([nome]); });
         maisBtn = mais;
       }
-      tdPapel(r, state.funcionarios[nome] || "");
+      tdPapel(r, state.verFuncao ? (state.funcionarios[nome] || "") : "");
       tdPapel(r, v.tipos[nome]);
       var cd = tdPapel(r, null, "fgp-datas");
       datas.forEach(function (d, i) {
@@ -1579,6 +1581,17 @@
 
     state.funcionarios = carregarFuncionarios();
     state.matriculas = carregarMatriculas();
+    (function () {
+      var cf = document.getElementById("folgaVerFuncao"), cm = document.getElementById("folgaVerMat");
+      function aplicar() {
+        state.verFuncao = !!(cf && cf.checked); state.verMatricula = !!(cm && cm.checked);
+        document.body.classList.toggle("ver-funcao", state.verFuncao);
+        document.body.classList.toggle("ver-mat", state.verMatricula);
+        if (typeof renderPreview === "function") renderPreview();
+      }
+      if (cf) { cf.checked = false; cf.addEventListener("change", aplicar); }
+      if (cm) { cm.checked = false; cm.addEventListener("change", aplicar); }
+    })();
     renderCalendario();
     var caixaMulti = document.getElementById("folgaMulti");
     if (caixaMulti) caixaMulti.addEventListener("change", function () {

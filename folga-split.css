@@ -518,4 +518,9 @@ html[data-tema="claro"] .fg-abas { background: rgba(238,243,249,.92); }
 .fg-multi { margin-top: .5rem; }
 
 /* Matrícula: aparece só no .docx (campos ocultos no site) */
-.folga-emp__mat, .fg-mais--mat { display: none !important; }
+.folga-emp__mat, .folga-emp__cargo, .fg-mais--mat { display: none !important; }
+body.ver-mat .folga-emp__mat { display: block !important; }
+body.ver-funcao .folga-emp__cargo { display: block !important; }
+.fg-ver { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem 1rem; margin: 0 0 .5rem; font-size: .82rem; font-weight: 600; color: #0A1E3D; }
+.fg-ver label { display: inline-flex; align-items: center; gap: .35rem; cursor: pointer; }
+.fg-ver__nota { font-weight: 400; font-size: .74rem; opacity: .65; }
