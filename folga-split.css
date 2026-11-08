@@ -475,3 +475,16 @@ html[data-tema="claro"] .fg-abas { background: rgba(238,243,249,.92); }
 .fg-multi { margin: .6rem 0 .2rem; }
 .fg-avisomulti { margin: .3rem 0 .4rem; padding: .45rem .7rem; border-radius: 10px; background: #FFF6DB; border: 1px solid #FFB900; color: #7A5200; font-size: .8rem; font-weight: 700; }
 .fg-avisomulti[hidden], .fg-acoes [hidden] { display: none !important; }
+
+/* Número da CI: rótulo em cima e campo alinhado à esquerda, na largura toda (igual aos demais campos) */
+.fg-doc__ci, .fg-doc__de { display: block !important; width: 100%; }
+.fg-doc__ci .fg-rot { margin: 0 0 .3rem; }
+.fg-ci { display: flex; width: 100%; margin: 0; }
+.fg-ci input { flex: 1 1 auto; width: auto; min-width: 0; text-align: left; margin: 0; padding-left: .9rem; }
+.fg-ci__sufixo { flex: none; }
+.fg-doc { display: block; }
+.fg-doc > div { min-width: 0; max-width: 100%; margin-bottom: .75rem; }
+.fg-doc .folga-select, .fg-doc select { max-width: 100%; width: 100%; box-sizing: border-box; }
+.fg-ci input { box-sizing: border-box; }
+.fg-tipo { margin-bottom: .9rem; }
+.fg-passo { min-width: 0; max-width: 100%; box-sizing: border-box; }
