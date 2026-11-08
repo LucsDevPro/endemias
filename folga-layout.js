@@ -35,12 +35,12 @@
   //  mgl = margem interna (topo/base) das demais tabelas   assin = altura da linha de assinaturas
   //  logo = fator do tamanho do logo                       base = altura (twips) de tudo que NÃO é linha de funcionário (calibrado no LibreOffice)
   var NIVEIS = [
-    { sz: 20, mar: 60, sp: 0, trh: 560, hdr: 520, esp: 1.00, top: 1.00, mgl: 60, assin: 1500, logo: 1.00, base: 7032 },
-    { sz: 18, mar: 45, sp: 0, trh: 440, hdr: 440, esp: 0.75, top: 0.85, mgl: 45, assin: 1250, logo: 0.90, base: 6168 },
-    { sz: 17, mar: 35, sp: 0, trh: 380, hdr: 400, esp: 0.55, top: 0.75, mgl: 35, assin: 1050, logo: 0.80, base: 5492 },
-    { sz: 16, mar: 28, sp: 0, trh: 330, hdr: 360, esp: 0.40, top: 0.65, mgl: 28, assin: 900,  logo: 0.70, base: 4988 },
-    { sz: 15, mar: 20, sp: 0, trh: 290, hdr: 330, esp: 0.30, top: 0.60, mgl: 20, assin: 800,  logo: 0.60, base: 4578 },
-    { sz: 14, mar: 12, sp: 0, trh: 250, hdr: 300, esp: 0.20, top: 0.55, mgl: 12, assin: 720,  logo: 0.50, base: 4148 }
+    { sz: 20, mar: 60, sp: 0, trh: 560, hdr: 520, esp: 1.00, top: 1.00, mgl: 60, assin: 1500, logo: 1.00, base: 7352 },
+    { sz: 18, mar: 45, sp: 0, trh: 440, hdr: 440, esp: 0.75, top: 0.85, mgl: 45, assin: 1250, logo: 0.90, base: 6431 },
+    { sz: 17, mar: 35, sp: 0, trh: 380, hdr: 400, esp: 0.55, top: 0.75, mgl: 35, assin: 1050, logo: 0.80, base: 5772 },
+    { sz: 16, mar: 28, sp: 0, trh: 330, hdr: 360, esp: 0.40, top: 0.65, mgl: 28, assin: 900,  logo: 0.70, base: 5268 },
+    { sz: 15, mar: 20, sp: 0, trh: 290, hdr: 330, esp: 0.30, top: 0.60, mgl: 20, assin: 800,  logo: 0.60, base: 4858 },
+    { sz: 14, mar: 12, sp: 0, trh: 250, hdr: 300, esp: 0.20, top: 0.55, mgl: 12, assin: 720,  logo: 0.50, base: 4428 }
   ];
 
   var FOLGA_SEGURANCA = 0.975; // margem de segurança (Word e LibreOffice diferem um pouco)
@@ -170,7 +170,7 @@
     var l1 = acharLinha(tab, "&lt;&lt;nome&gt;&gt;");
     tab = tab.slice(0, l1.ini) + ajustarLinhaTabela(l1.xml, nivel.sz, nivel.sp, nivel.trh) + tab.slice(l1.fim);
     var l0 = acharLinha(tab, ">NOME<");
-    if (l0) tab = tab.slice(0, l0.ini) + ajustarLinhaTabela(l0.xml, Math.min(18, nivel.sz), nivel.sp, nivel.hdr) + tab.slice(l0.fim);
+    if (l0) tab = tab.slice(0, l0.ini) + ajustarLinhaTabela(l0.xml, nivel.sz, nivel.sp, nivel.hdr) + tab.slice(l0.fim);
 
     out = antes + tab + depois;
 

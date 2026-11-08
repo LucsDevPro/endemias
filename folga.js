@@ -503,13 +503,11 @@
   }
 
   // ---------------- Tipo de folga ----------------
-  function tipoDe(nome) { return state.tipos[nome] || "Banco de horas"; }
+  function tipoDe() { return state.tipoAtual; }   // um documento = um tipo só (eleição vai para outro setor)
 
-  // texto do ASSUNTO conforme os tipos usados no documento
-  function assuntoTexto(tipos) {
-    var banco = tipos.indexOf("Banco de horas") !== -1, eleicao = tipos.indexOf("Folga eleição 2026") !== -1;
-    if (banco && eleicao) return "Folga referente ao banco de horas acumulado e à eleição 2026.";
-    if (eleicao) return "Folga referente à eleição 2026.";
+  // texto do ASSUNTO conforme o tipo do documento
+  function assuntoTexto(tipo) {
+    if (tipo === "Folga eleição 2026") return "Folga referente à eleição 2026.";
     return "Folga referente ao banco de horas acumulado.";
   }
 
@@ -530,7 +528,7 @@
   // o que o modelo mostra: folgas já adicionadas + (em amarelo) o que está montado e ainda não foi adicionado
   function montarVisao() {
     var visao = {}, novas = {}, tipos = {};
-    Object.keys(state.selecoes).forEach(function (n) { tipos[n] = tipoDe(n); });
+    Object.keys(state.selecoes).forEach(function (n) { tipos[n] = state.tipoAtual; });
     Object.keys(state.selecoes).forEach(function (n) { visao[n] = state.selecoes[n].slice(); });
     var datas = datasParaAdicionar();
     if (datas.length) {
@@ -605,7 +603,7 @@
     P.innerHTML = "";
     P.className = "fg-papel" + (cabe ? "" : " fg-papel--estoura");
     P.style.setProperty("--sz", (nv.sz * 0.6667).toFixed(2) + "px");
-    P.style.setProperty("--szh", (Math.min(18, nv.sz) * 0.6667).toFixed(2) + "px");
+    P.style.setProperty("--szh", (nv.sz * 0.6667).toFixed(2) + "px");
     P.style.setProperty("--mar", px(nv.mar));
     P.style.setProperty("--mgl", px(nv.mgl));
     P.style.setProperty("--trh", px(nv.trh));
@@ -641,7 +639,7 @@
     corpo.appendChild(t1);
     corpo.appendChild(sp(200));
 
-    corpo.appendChild(el("div", "fgp-assunto", "ASSUNTO: " + assuntoTexto(nomes.map(function (n) { return v.tipos[n]; }))));
+    corpo.appendChild(el("div", "fgp-assunto", "ASSUNTO: " + assuntoTexto(state.tipoAtual)));
     corpo.appendChild(sp(160));
 
     // funcionários
@@ -1060,7 +1058,6 @@
         if (removidos.length && !(removidos.length === 1 && removidos[0] === d)) trocadas++;
       });
       state.selecoes[nome] = mesclar(lista, datas);
-      state.tipos[nome] = state.tipoAtual;
     });
 
     state.pendentes = [];
@@ -1193,7 +1190,7 @@
       return {
         nome: nome,
         cargo: state.funcionarios[nome] || "",
-        tipo: tipoDe(nome),
+        tipo: state.tipoAtual,
         datas: datas.join(", ")
       };
     });
@@ -1235,7 +1232,7 @@
           });
 
           var rem = remetenteAtual();
-          var subs = { "<<ci>>": ci, "<<hoje>>": formatarDataExtenso(new Date()), "<<setor>>": rem.setor, "<<assunto>>": assuntoTexto(funcionariosOrdenados.map(function (f) { return f.tipo; })), "<<remetente>>": rem.nome };
+          var subs = { "<<ci>>": ci, "<<hoje>>": formatarDataExtenso(new Date()), "<<setor>>": rem.setor, "<<assunto>>": assuntoTexto(state.tipoAtual), "<<remetente>>": rem.nome };
           Object.keys(arquivos).forEach(function (caminho) {
             var xmlAtual = caminho === "word/document.xml" ? docXml : arquivos[caminho];
             arquivos[caminho] = DocxUtils.substituirTags(xmlAtual, subs);
@@ -1248,7 +1245,7 @@
         var qtd = funcionariosOrdenados.length;
         var sufixo = qtd === 1 ? funcionariosOrdenados[0].nome.split(" ")[0] : qtd + " agentes";
         var ciLimpo = ci.replace(/\//g, "-").replace(/\\/g, "-").replace(/:/g, "-");
-        var nomeArquivo = "Ci - " + ciLimpo + " - Folga " + sufixo + ".docx";
+        var nomeArquivo = "Ci - " + ciLimpo + " - Folga " + (state.tipoAtual === "Folga eleição 2026" ? "Eleição " : "") + sufixo + ".docx";
 
         var url = URL.createObjectURL(blob);
         var a = document.createElement("a");
@@ -1286,9 +1283,17 @@
     });
     document.querySelectorAll("#fgTipo .fg-modo__b").forEach(function (b) {
       b.addEventListener("click", function () {
-        state.tipoAtual = b.getAttribute("data-tipo");
+        var novo = b.getAttribute("data-tipo");
+        if (novo === state.tipoAtual) return;
+        if (Object.keys(state.selecoes).length) {
+          if (!confirm("Banco de horas e eleição vão para setores diferentes e precisam de documentos separados.\n\nMudar o tipo vai LIMPAR as folgas lançadas neste documento. Gere o .docx antes se ainda não gerou.\n\nContinuar?")) return;
+          state.selecoes = {}; state.marcados = {}; state.ultimos = [];
+          renderListaFuncionarios(); renderUltimos();
+        }
+        state.tipoAtual = novo;
         document.querySelectorAll("#fgTipo .fg-modo__b").forEach(function (x) { x.classList.toggle("fg-modo__b--ativo", x === b); });
-        renderPreview();
+        atualizarResumoSelecao();
+        setStatus("Novo documento: " + novo + ".", false);
       });
     });
     document.querySelectorAll(".fg-modo:not(.fg-modo--tipo) .fg-modo__b").forEach(function (b) {
