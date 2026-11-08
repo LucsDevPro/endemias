@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="folga-split.css">
 <script src="tema-toggle.js"></script>
 </head>
-<body>
+<body class="folga-page">
 
 <header class="topbar">
   <div class="topbar__inner">
@@ -31,7 +31,7 @@
 
   <div class="hero hero--compacto">
     <h1 class="title">Folga</h1>
-    <p class="subtitle">Escolha quem, escolha quando e veja o documento ficando pronto ao lado.</p>
+    
   </div>
 
   <nav class="fg-abas" aria-label="Alternar tela">
@@ -43,6 +43,8 @@
 
     <!-- ======================= ESQUERDA: passo a passo ======================= -->
     <div class="fg-esq">
+
+      <div class="fg-col fg-col1">
 
       <section class="fg-passo">
         <h3 class="fg-passo__t"><span class="fg-passo__n">1</span> Documento</h3>
@@ -113,11 +115,14 @@
         </details>
       </section>
 
+      </div>
+
+      <div class="fg-col fg-col2">
       <section class="fg-passo">
         <h3 class="fg-passo__t"><span class="fg-passo__n">3</span> Quando? <small class="fg-passo__d">(lança na hora)</small></h3>
 
         <div class="fg-modo" role="tablist">
-          <button type="button" class="fg-modo__b fg-modo__b--ativo" data-modo="dia">Escolher dias no calendário</button>
+          <button type="button" class="fg-modo__b fg-modo__b--ativo" data-modo="dia">Dias no calendário</button>
           <button type="button" class="fg-modo__b" data-modo="periodo">Período (de … até …)</button>
         </div>
 
@@ -159,6 +164,7 @@
 
       <button type="button" id="folgaAddData" hidden>Adicionar</button>
 
+      </div>
     </div>
 
     <!-- ======================= DIREITA: modelo ao vivo ======================= -->
@@ -175,13 +181,18 @@
       </div>
       <p class="folga-status" id="folgaStatus" aria-live="polite"></p>
       <p class="folga-count" id="folgaPreviewResumo"></p>
-      <div class="fg-zoom"><button type="button" id="fgZoomInteira" class="ativo">Página inteira</button><button type="button" id="fgZoomLargura">Ampliar</button></div>
+      <div class="fg-zoom"><button type="button" id="fgAmpliar">🔍 Ampliar</button></div>
       <div class="fg-papel-caixa" id="fgCaixa">
         <div class="fg-papel" id="folgaPreview"></div>
       </div>
       <p class="fg-dica">Passe o mouse numa data ou num nome do modelo e clique no ✕ para tirar.</p>
     </aside>
 
+  </div>
+
+  <div class="fg-lupa" id="fgLupa" hidden>
+    <button type="button" class="fg-lupa__x" id="fgLupaX" aria-label="Fechar">✕ Fechar</button>
+    <div class="fg-lupa__area" id="fgLupaArea"></div>
   </div>
 
   <footer class="foot">

@@ -154,7 +154,8 @@
     { setor: "SETOR DE ENDEMIAS E ZOONOSES", nome: "Alexandre Mendonca de Lima" },
     { setor: "SAÚDE DO TRABALHADOR", nome: "Evelise Tramarin de Araujo Poveda" },
     { setor: "VIGILÂNCIA EPIDEMIOLÓGICA", nome: "Renata Grance Carvalho Gomes" },
-    { setor: "SANITÁRIO E AMBIENTAL", nome: "Eveline Coelho Alves Pereira" }
+    { setor: "VIGILÂNCIA SANITÁRIA", nome: "Eveline Coelho Alves Pereira" },
+    { setor: "VIGILÂNCIA AMBIENTAL", nome: "Adriano Scolari" }
   ];
 
   var state = {
@@ -448,6 +449,8 @@
     try {
       var l = JSON.parse(localStorage.getItem(REM_KEY) || "null");
       if (Array.isArray(l) && l.length && l.every(function (r) { return r && r.setor && r.nome; })) {
+        // o setor da Eveline mudou de nome: tira a versão antiga
+        l = l.filter(function (r) { return !(r.setor === "SANITÁRIO E AMBIENTAL" && semAcento(r.nome) === semAcento("Eveline Coelho Alves Pereira")); });
         // coordenadores novos do padrão entram também para quem já tinha a lista salva
         REMETENTES_PADRAO.forEach(function (p) {
           if (!l.some(function (r) { return semAcento(r.nome) === semAcento(p.nome); })) l.push({ setor: p.setor, nome: p.nome });
@@ -713,26 +716,55 @@
     ajustarEscala();
   }
 
-  // encolhe o papel A4: "página inteira" (cabe na altura da tela) ou "ampliar" (largura toda)
-  var zoomModo = "inteira";
+  // aproxima/afasta a página inteira conforme a resolução, para sempre caber na tela sem rolagem
+  var zTela = 1;
+  function ajustarTela() {
+    var pg = document.querySelector(".page--split");
+    if (!pg) return;
+    zTela = window.innerWidth > 1020 ? Math.max(0.6, Math.min(1.15, window.innerHeight / 1000, window.innerWidth / 1650)) : 1;
+    pg.style.setProperty("--z", zTela.toFixed(3));
+    ajustarEscala();
+  }
+
+  // encolhe o papel A4 para caber no painel (largura e altura da tela)
   function ajustarEscala() {
     var caixa = document.getElementById("fgCaixa");
     if (!caixa || !dom.preview) return;
     var larg = caixa.parentNode.clientWidth - 30;
-    if (!larg) return;
-    var kL = Math.min(1.2, larg / PAPEL_W);
-    var k = kL;
-    if (zoomModo === "inteira" && window.innerWidth > 1020) {
-      var livre = window.innerHeight - 92 - 150;               // topo fixo + cabeçalho do painel
-      var kH = Math.max(0.35, livre / Math.max(PAPEL_H, dom.preview.offsetHeight));
-      k = Math.min(kL, kH);
-    }
+    if (larg <= 0) return;
+    if (!zTela) zTela = 1;
     var h = Math.max(PAPEL_H, dom.preview.offsetHeight);
+    var k = Math.min(1, larg / PAPEL_W);
+    if (window.innerWidth > 1020) {
+      var livre = (window.innerHeight - 90) / zTela - 255;               // topo + cabeçalho/rodapé do painel
+      k = Math.min(k, Math.max(0.3, livre / h));
+    }
     caixa.style.width = Math.round(PAPEL_W * k) + "px";
     caixa.style.margin = "0 auto";
     dom.preview.style.transform = "scale(" + k + ")";
     caixa.style.height = Math.round(h * k) + "px";
   }
+
+  // lupa: mostra o modelo grande, em tela cheia
+  function abrirLupa() {
+    var lupa = document.getElementById("fgLupa"), area = document.getElementById("fgLupaArea");
+    if (!lupa || !dom.preview) return;
+    area.innerHTML = "";
+    var copia = dom.preview.cloneNode(true);
+    copia.removeAttribute("id");
+    Array.prototype.forEach.call(copia.querySelectorAll(".fgp-x, .fgp-mais"), function (b) { b.parentNode.removeChild(b); });
+    var h = Math.max(PAPEL_H, dom.preview.offsetHeight);
+    var k = Math.min((window.innerWidth - 40) / PAPEL_W, (window.innerHeight - 90) / h, 1.6);
+    copia.style.transform = "scale(" + k + ")";
+    copia.style.position = "absolute"; copia.style.left = "0"; copia.style.top = "0";
+    var moldura = el("div", "fg-lupa__papel");
+    moldura.style.width = Math.round(PAPEL_W * k) + "px";
+    moldura.style.height = Math.round(h * k) + "px";
+    moldura.appendChild(copia);
+    area.appendChild(moldura);
+    lupa.hidden = false;
+  }
+  function fecharLupa() { var l = document.getElementById("fgLupa"); if (l) l.hidden = true; }
 
   // ---------------- Ações ----------------
 
@@ -1243,10 +1275,14 @@
         document.querySelectorAll(".fg-modo__corpo").forEach(function (c) { c.hidden = c.getAttribute("data-corpo") !== modo; });
       });
     });
-    var zi = document.getElementById("fgZoomInteira"), zl = document.getElementById("fgZoomLargura");
-    function modoZoom(m) { zoomModo = m; zi.classList.toggle("ativo", m === "inteira"); zl.classList.toggle("ativo", m === "largura"); ajustarEscala(); }
-    if (zi && zl) { zi.addEventListener("click", function () { modoZoom("inteira"); }); zl.addEventListener("click", function () { modoZoom("largura"); }); }
-    window.addEventListener("resize", ajustarEscala);
+    var amp = document.getElementById("fgAmpliar");
+    if (amp) amp.addEventListener("click", abrirLupa);
+    var lx = document.getElementById("fgLupaX"), lupa = document.getElementById("fgLupa");
+    if (lx) lx.addEventListener("click", fecharLupa);
+    if (lupa) lupa.addEventListener("click", function (e) { if (e.target === lupa || e.target.id === "fgLupaArea") fecharLupa(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") fecharLupa(); });
+    window.addEventListener("resize", ajustarTela);
+    ajustarTela();
     if (window.ResizeObserver) {
       var caixa = document.getElementById("fgCaixa");
       if (caixa && caixa.parentNode) new ResizeObserver(ajustarEscala).observe(caixa.parentNode);
