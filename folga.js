@@ -890,7 +890,7 @@
       var linhaNova = datas.every(function (d) { return v.novas[nome + "|" + d]; });
       r = el("tr", linhaNova ? "fgp-nova" : null);
       var maisBtn = null;
-      var cn = tdPapel(r, state.verMatricula ? nomeDoc(nome) : nome);
+      var cn = tdPapel(r, nomeDoc(nome));
       {
         var rm = el("button", "fgp-x", "✕");
         rm.type = "button"; rm.title = "Tirar este funcionário do documento";
@@ -903,7 +903,7 @@
         mais.addEventListener("click", function () { remarcar([nome]); });
         maisBtn = mais;
       }
-      tdPapel(r, state.verFuncao ? (state.funcionarios[nome] || "") : "");
+      tdPapel(r, state.funcionarios[nome] || "");
       tdPapel(r, v.tipos[nome]);
       var cd = tdPapel(r, null, "fgp-datas");
       datas.forEach(function (d, i) {
