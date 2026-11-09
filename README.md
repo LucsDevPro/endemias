@@ -151,10 +151,10 @@ Mesma tela dividida da Folga: **preencher à esquerda, modelo A4 ao vivo à dire
 - **Assunto (texto pronto)**: botões na tela. Hoje: *Alteração de rotina de trabalho* (jornada de 6 h, das 07h às 13h) e *Texto livre*. O texto troca sozinho `{NOMES DOS AGENTES}` e `{DATAS}` (singular/plural certinhos: "o agente … terá", "os agentes … terão").
 - **Agentes**: a **mesma lista da Folga** (`dados-agentes.js` + o que estiver salvo no navegador), com busca, marcar vários e, opcionalmente, a **matrícula** ao lado do nome.
 - **Datas**: calendário de múltiplos dias (Shift + clique seleciona um intervalo).
-- **Para:** vem como *Secretaria Municipal de Saúde – Carla Santiago* (editável). **De:** mesma lista de coordenadores da Folga. Sigla e gerência que assina ficam em "Mais campos".
+- **Para:** vem como *Secretaria Municipal de Saúde – Carla Santiago* (editável). **De:** mesma lista de coordenadores da Folga. Assinam só dois: quem envia (cargo "Coord. …") e a gerência (padrão: Giuliana Pissini Brizuena, Gerente de Vigilância em Saúde; editável em "Mais campos"). Não tem coluna do secretário.
 - **Número da CI**: usa o mesmo histórico da Folga (dica "última registrada · usar próxima" e aviso de CI repetida).
 - O que se monta **não fica salvo** (F5 recomeça), como na Folga.
-- **Modelo**: `assets/modelo-ci.docx`, no mesmo padrão visual da Folga, com o espaço do texto no lugar da tabela. Tags: `<<ci>>`, `<<hoje>>`, `<<sigla>>`, `<<setor>>`, `<<remetente>>`, `<<para>>`, `<<assunto>>`, `<<corpo>>` (parágrafos do assunto), `<<setorAssin>>`, `<<gerente>>`, `<<gerenteCargo>>`. Gerado por `build_ci_tpl.py` (fora do site).
+- **Modelo**: `assets/modelo-ci.docx`, no mesmo padrão visual da Folga, com o espaço do texto no lugar da tabela. Tags: `<<ci>>`, `<<hoje>>`, `<<sigla>>`, `<<setor>>`, `<<remetente>>`, `<<para>>`, `<<assunto>>`, `<<corpo>>` (parágrafos do assunto), `<<cargoRem>>`, `<<gerente>>`, `<<gerenteCargo>>`. Gerado por `build_ci_tpl.py` (fora do site).
 
 **Para criar um assunto novo**, abra `ci-assuntos.js`, copie um bloco da lista `CI_ASSUNTOS` e mude `id`, `botao`, `assunto`, `campos` (o que preencher) e a função `paragrafos` (o texto, com `c.nomes`, `c.datas` e `c.juntar()`). O botão aparece sozinho.
 

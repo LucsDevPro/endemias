@@ -3,7 +3,7 @@
 // Os textos prontos ficam em ci-assuntos.js. A lista de agentes, as matrículas e os
 // coordenadores são os mesmos da Folga (dados-agentes.js + o que está salvo no navegador).
 // Modelo do documento: assets/modelo-ci.docx (tags <<ci>>, <<hoje>>, <<sigla>>, <<setor>>,
-// <<remetente>>, <<para>>, <<assunto>>, <<corpo>>, <<setorAssin>>, <<gerente>>, <<gerenteCargo>>).
+// <<remetente>>, <<para>>, <<assunto>>, <<corpo>>, <<cargoRem>>, <<gerente>>, <<gerenteCargo>>).
 // O que a pessoa monta NÃO fica salvo: F5 volta ao começo (só a lista de agentes é guardada).
 // ============================================================
 (function () {
@@ -80,6 +80,11 @@
       }
     } catch (e) { /* usa o padrão */ }
     return D.remetentes.map(function (r) { return { setor: r.setor, nome: r.nome }; });
+  }
+  // cargo que aparece embaixo da assinatura de quem envia: "Coord. " + setor (ex.: Coord. Endemias e Zoonoses)
+  function cargoRemetente(r) {
+    var t = String(r.setor || "").replace(/^SETOR DE\s+/i, "").toLowerCase().replace(/(^|\s)(\S)/g, function (m, a, b) { return a + b.toUpperCase(); }).replace(/\s(De|Da|Do|Das|Dos|E)(?=\s)/g, function (m) { return m.toLowerCase(); });
+    return "Coord. " + t;
   }
   function remetenteAtual() { return state.remetentes[state.remetente] || state.remetentes[0]; }
   function nomeTexto(n) { return state.incMat && state.matriculas[n] ? n + " (" + state.matriculas[n] + ")" : n; }
@@ -281,15 +286,14 @@
     corpo.appendChild(tx);
 
     var t3 = el("table", "fgp-tab fgp-assin fgp-assin-ci"); cg = "";
-    [3300, 3138, 3200].forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
+    [4819, 4819].forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
     t3.innerHTML = "<colgroup>" + cg + "</colgroup>";
     r = el("tr", "fgp-cabtab");
-    ["RESPONSÁVEL DO SETOR", "GERÊNCIA DE VIGILÂNCIA EM SAÚDE", "RECEBIDO EM"].forEach(function (t) { tdP(r, t); });
+    ["RESPONSÁVEL DO SETOR", "GERÊNCIA DE VIGILÂNCIA EM SAÚDE"].forEach(function (t) { tdP(r, t); });
     t3.appendChild(r);
     r = el("tr", "fgp-linha-assin");
-    var a1 = el("td"); a1.appendChild(el("div", "fgp-nome-assin", rem.nome)); a1.appendChild(el("div", "fgp-sub-assin", rem.setor)); r.appendChild(a1);
+    var a1 = el("td"); a1.appendChild(el("div", "fgp-nome-assin", rem.nome)); a1.appendChild(el("div", "fgp-sub-assin", cargoRemetente(rem))); r.appendChild(a1);
     var a2 = el("td"); a2.appendChild(el("div", "fgp-nome-assin", dom.gerente.value)); a2.appendChild(el("div", "fgp-sub-assin", dom.gerenteCargo.value)); r.appendChild(a2);
-    var a3 = el("td", "fgp-recebido"); a3.appendChild(el("div", null, "Assinatura: ..............................")); a3.appendChild(el("div", null, "Data: ____/____/______")); r.appendChild(a3);
     t3.appendChild(r);
     P.appendChild(t3);
     var rod = el("div", "fgp-rodape"); rod.appendChild(el("b", null, "SETOR DE ENDEMIAS E VETORES - UVZ (UNIDADE DE VIGILÂNCIA E ZOONOSES)")); rod.appendChild(document.createElement("br"));
@@ -391,7 +395,7 @@
     var rem = remetenteAtual(), corpoXml = xmlParagrafos(paragrafos());
     var subs = {
       "<<ci>>": ci, "<<hoje>>": dataExtenso(new Date()), "<<sigla>>": dom.sigla.value.trim(), "<<setor>>": rem.setor, "<<remetente>>": rem.nome,
-      "<<para>>": paraFormatado(), "<<assunto>>": assuntoTexto(), "<<setorAssin>>": rem.setor,
+      "<<para>>": paraFormatado(), "<<assunto>>": assuntoTexto(), "<<cargoRem>>": cargoRemetente(rem),
       "<<gerente>>": dom.gerente.value.trim(), "<<gerenteCargo>>": dom.gerenteCargo.value.trim()
     };
     fetch("assets/modelo-ci.docx")
