@@ -1012,6 +1012,68 @@
   }
   function fecharLupa() { var l = document.getElementById("fgLupa"); if (l) l.hidden = true; }
 
+  // ---------------- Pasta para salvar (File System Access API) ----------------
+  var pasta = { handle: null, ok: false };
+  function idbAbrir() {
+    return new Promise(function (res, rej) {
+      var r = indexedDB.open("painelEndemiasFolga", 1);
+      r.onupgradeneeded = function () { r.result.createObjectStore("handles"); };
+      r.onsuccess = function () { res(r.result); }; r.onerror = function () { rej(r.error); };
+    });
+  }
+  function idbLer(chave) { return idbAbrir().then(function (db) { return new Promise(function (res) { var q = db.transaction("handles").objectStore("handles").get(chave); q.onsuccess = function () { res(q.result || null); }; q.onerror = function () { res(null); }; }); }).catch(function () { return null; }); }
+  function idbGravar(chave, valor) { return idbAbrir().then(function (db) { return new Promise(function (res) { var t = db.transaction("handles", "readwrite"); if (valor) t.objectStore("handles").put(valor, chave); else t.objectStore("handles").delete(chave); t.oncomplete = function () { res(); }; t.onerror = function () { res(); }; }); }).catch(function () { /* ignora */ });
+  }
+  function mostrarPasta() {
+    var n = document.getElementById("fgPastaNome"), l = document.getElementById("fgPastaLimpar");
+    if (n) n.textContent = pasta.handle ? pasta.handle.name : "nenhuma (baixa na pasta Downloads)";
+    if (l) l.hidden = !pasta.handle;
+  }
+  function escolherPasta() {
+    if (!window.showDirectoryPicker) { setStatus("Este navegador não permite escolher pasta (use Chrome ou Edge no computador). O arquivo continua baixando normalmente.", true); return; }
+    window.showDirectoryPicker({ id: "folgas-ci", mode: "readwrite" }).then(function (h) {
+      pasta.handle = h; pasta.ok = true; mostrarPasta();
+      return idbGravar("pasta", h).then(function () { setStatus("Pasta escolhida: " + h.name + ". Os documentos serão salvos nela.", false); });
+    }).catch(function (e) { if (e && e.name !== "AbortError") setStatus("Não foi possível escolher a pasta: " + e.message, true); });
+  }
+  function limparPasta() { pasta.handle = null; pasta.ok = false; idbGravar("pasta", null); mostrarPasta(); setStatus("Pasta removida. Os documentos voltam a baixar na pasta Downloads.", false); }
+  function carregarPasta() {
+    mostrarPasta();
+    if (!window.showDirectoryPicker) { var b = document.getElementById("fgPastaBtn"); if (b) b.disabled = true; return; }
+    idbLer("pasta").then(function (h) { if (h) { pasta.handle = h; mostrarPasta(); } });
+  }
+  // chamado no clique de "Gerar" (precisa de gesto do usuário para reautorizar a pasta)
+  function autorizarPasta() {
+    if (!pasta.handle || !pasta.handle.queryPermission) { pasta.ok = false; return Promise.resolve(); }
+    var o = { mode: "readwrite" };
+    return Promise.resolve(pasta.handle.queryPermission(o)).then(function (p) {
+      return p === "granted" ? p : pasta.handle.requestPermission(o);
+    }).then(function (p) { pasta.ok = (p === "granted"); }).catch(function () { pasta.ok = false; });
+  }
+  function nomeLivre(dir, nome) {
+    var base = nome.replace(/\.docx$/i, ""), i = 1;
+    function tenta() {
+      var n = i === 1 ? nome : base + " (" + i + ").docx";
+      return dir.getFileHandle(n).then(function () { i++; return tenta(); }, function () { return n; });
+    }
+    return tenta();
+  }
+  // salva na pasta escolhida; se não der, baixa normalmente. Resolve com o local final.
+  function entregarArquivo(blob, nome) {
+    function baixar(motivo) {
+      var url = URL.createObjectURL(blob), a = document.createElement("a");
+      a.href = url; a.download = nome; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      return { nome: nome, onde: motivo || "" };
+    }
+    if (!(pasta.handle && pasta.ok)) return Promise.resolve(baixar(pasta.handle ? " (sem permissão para a pasta “" + pasta.handle.name + "”, baixado em Downloads)" : ""));
+    return nomeLivre(pasta.handle, nome).then(function (n) {
+      return pasta.handle.getFileHandle(n, { create: true }).then(function (fh) { return fh.createWritable(); }).then(function (w) {
+        return w.write(blob).then(function () { return w.close(); });
+      }).then(function () { return { nome: n, onde: " na pasta “" + pasta.handle.name + "”" }; });
+    }).catch(function () { return baixar(" (não consegui gravar na pasta “" + pasta.handle.name + "”, baixado em Downloads)"); });
+  }
+
   // ---------------- Histórico de CIs e impressão direta ----------------
   var HIST_KEY = "painelEndemiasFolgaHistorico";
   function carregarHistorico() {
@@ -1637,14 +1699,8 @@
         var ciLimpo = ci.replace(/\//g, "-").replace(/\\/g, "-").replace(/:/g, "-");
         var nomeArquivo = "Ci - " + ciLimpo + " - Folga " + (state.tipoAtual === "Folga Eleitoral – Eleições 2026" ? "Eleição " : "") + sufixo + ".docx";
 
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement("a");
-        a.href = url;
-        a.download = nomeArquivo;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        return entregarArquivo(blob, nomeArquivo).then(function (r) {
+        nomeArquivo = r.nome;
         registrarHistorico("docx");
 
         var aviso = "";
@@ -1653,7 +1709,8 @@
         } else if (escolhaLayout && escolhaLayout.indice > 0) {
           aviso = " Tabela ajustada para caber em uma folha.";
         }
-        setStatus("Documento gerado: " + nomeArquivo + " (" + qtd + " funcionário(s))." + aviso, !!(escolhaLayout && !escolhaLayout.cabe));
+        setStatus("Documento gerado: " + nomeArquivo + r.onde + " (" + qtd + " funcionário(s))." + aviso, !!(escolhaLayout && !escolhaLayout.cabe));
+        });
       })
       .catch(function (err) {
         console.error(err);
@@ -1817,7 +1874,13 @@
       });
     }
     dom.limpar.addEventListener("click", limparTudo);
-    dom.gerar.addEventListener("click", gerarDocumento);
+    dom.gerar.addEventListener("click", function () { autorizarPasta().then(gerarDocumento); });
+    (function () {
+      var b = document.getElementById("fgPastaBtn"), l = document.getElementById("fgPastaLimpar");
+      if (b) b.addEventListener("click", escolherPasta);
+      if (l) l.addEventListener("click", limparPasta);
+      carregarPasta();
+    })();
     (function () {
       function lig(id, fn) { var b = document.getElementById(id); if (b) b.addEventListener("click", fn); }
       lig("folgaImprimir", imprimirDocumento); lig("folgaHistorico", abrirHistorico); lig("fgHistX", fecharHistorico);

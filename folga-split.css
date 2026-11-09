@@ -546,3 +546,9 @@ body.ver-funcao .folga-emp__cargo { display: block !important; }
 .fgh-ci { font-weight: 800; white-space: nowrap; color: #002B68; }
 .fgh-x { border: 0; background: transparent; color: #c0392b; font-weight: 800; cursor: pointer; }
 .fg-hist__nota { margin: .6rem 0 0; font-size: .74rem; opacity: .7; }
+
+/* pasta de destino */
+.fg-pasta { margin: .6rem 0 .3rem; }
+.fg-pasta__linha { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem .6rem; margin-top: .25rem; }
+.fg-pasta__nome { font-size: .8rem; font-weight: 700; color: #002B68; overflow-wrap: anywhere; }
+.fg-pasta .folga-link-btn { font-size: .74rem; padding: 0; }
