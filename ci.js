@@ -103,7 +103,7 @@
     var datas = state.calSel.slice().sort().map(function (i) { return fmtBR(parseISO(i)); });
     return {
       nomes: nomes, datas: datas, n: nomes.length, d: datas.length, juntar: juntar,
-      texto: dom.texto ? dom.texto.value : "", assuntoLivre: dom.assuntoLivre ? dom.assuntoLivre.value.trim() : ""
+      texto: dom.texto ? dom.texto.value : "", motivo: dom.motivo ? dom.motivo.value.trim() : "", assuntoLivre: dom.assuntoLivre ? dom.assuntoLivre.value.trim() : ""
     };
   }
   function assuntoTexto() {
@@ -432,7 +432,7 @@
   // ---------------- inicialização ----------------
   function init() {
     ["ciNumero", "ciRemetente", "ciPara", "ciSigla", "ciGerente", "ciGerenteCargo", "ciAssuntos", "ciIncMat", "ciBusca", "ciResumoSelecao", "ciLista", "ciContador",
-     "ciMarcarTodos", "ciDesmarcar", "ciTexto", "ciAssuntoLivre", "ciLimpar", "ciGerar", "ciStatus", "ciPreview"].forEach(function (id) {
+     "ciMarcarTodos", "ciDesmarcar", "ciMotivo", "ciTexto", "ciAssuntoLivre", "ciLimpar", "ciGerar", "ciStatus", "ciPreview"].forEach(function (id) {
       var k = id.replace(/^ci/, ""); k = k.charAt(0).toLowerCase() + k.slice(1);
       dom[k] = document.getElementById(id);
     });
@@ -441,7 +441,7 @@
     renderAssuntos(); aplicarCampos(); renderRemetentes(); renderCalendario(); atualizarDicaCi();
     dom.numero.addEventListener("input", renderPreview);
     dom.remetente.addEventListener("change", function () { state.remetente = parseInt(dom.remetente.value, 10) || 0; renderPreview(); });
-    ["para", "sigla", "gerente", "gerenteCargo", "texto", "assuntoLivre"].forEach(function (k) { dom[k].addEventListener("input", renderPreview); });
+    ["para", "sigla", "gerente", "gerenteCargo", "motivo", "texto", "assuntoLivre"].forEach(function (k) { dom[k].addEventListener("input", renderPreview); });
     dom.incMat.addEventListener("change", function () { state.incMat = dom.incMat.checked; renderPreview(); });
     dom.busca.addEventListener("input", function () { state.filtroTexto = dom.busca.value; renderLista(); });
     dom.busca.addEventListener("keydown", function (e) {
