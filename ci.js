@@ -365,15 +365,103 @@
     if (!outro) return true;
     return window.confirm("A CI " + ci + "/2026 já foi registrada em " + new Date(outro.quando).toLocaleDateString("pt-BR") + " (" + outro.tipo + ").\n\nGerar mesmo assim? (vai ficar como outro registro com o mesmo número)");
   }
-  function registrarHist(ci) {
+  function registrarHist(ci, acao) {
+    acao = acao || "docx";
     var h = carregarHist(), c = contexto(), tipo = "CI – " + (assuntoAtual().assunto || assuntoTexto());
     var ag = Object.keys(state.marcados).sort().map(function (n) { return { nome: n, datas: c.datas.slice() }; });
     var sig = ag.map(function (a) { return a.nome + "|" + a.datas.join(","); }).join(";"), chave = String(numCi(ci)), rem = remetenteAtual();
     var e = h.filter(function (x) { return x.chave === chave && x.tipo === tipo && x.sig === sig; })[0];
-    if (e) { e.quando = new Date().toISOString(); if (e.acoes.indexOf("docx") === -1) e.acoes.push("docx"); }
-    else h.push({ id: Date.now(), ci: ci, chave: chave, quando: new Date().toISOString(), tipo: tipo, remetente: rem.setor + " – " + rem.nome, agentes: ag, sig: sig, acoes: ["docx"] });
+    if (e) { e.quando = new Date().toISOString(); if (e.acoes.indexOf(acao) === -1) e.acoes.push(acao); }
+    else h.push({ id: Date.now(), ci: ci, chave: chave, quando: new Date().toISOString(), tipo: tipo, remetente: rem.setor + " – " + rem.nome, agentes: ag, sig: sig, acoes: [acao] });
     try { localStorage.setItem(HIST_KEY, JSON.stringify(h)); } catch (e2) { /* ignora */ }
     atualizarDicaCi();
+  }
+
+  // ---------------- pasta para salvar (a mesma escolhida na Folga) ----------------
+  var pasta = { handle: null, ok: false };
+  function idbAbrir() {
+    return new Promise(function (res, rej) {
+      var r = indexedDB.open("painelEndemiasFolga", 1);
+      r.onupgradeneeded = function () { r.result.createObjectStore("handles"); };
+      r.onsuccess = function () { res(r.result); }; r.onerror = function () { rej(r.error); };
+    });
+  }
+  function idbLer(chave) { return idbAbrir().then(function (db) { return new Promise(function (res) { var q = db.transaction("handles").objectStore("handles").get(chave); q.onsuccess = function () { res(q.result || null); }; q.onerror = function () { res(null); }; }); }).catch(function () { return null; }); }
+  function idbGravar(chave, valor) { return idbAbrir().then(function (db) { return new Promise(function (res) { var t = db.transaction("handles", "readwrite"); if (valor) t.objectStore("handles").put(valor, chave); else t.objectStore("handles").delete(chave); t.oncomplete = function () { res(); }; t.onerror = function () { res(); }; }); }).catch(function () { /* ignora */ }); }
+  function mostrarPasta() {
+    var n = document.getElementById("ciPastaNome"), b = document.getElementById("ciPasta");
+    var txt = pasta.handle ? pasta.handle.name : "Downloads";
+    if (n) n.textContent = "📁 " + txt;
+    if (b) b.title = pasta.handle ? "Pasta atual: " + pasta.handle.name + " (clique para trocar; Shift + clique volta para Downloads)" : "Escolher a pasta onde salvar o .docx (hoje: Downloads)";
+  }
+  function escolherPasta(e) {
+    if (e && e.shiftKey && pasta.handle) { pasta.handle = null; pasta.ok = false; idbGravar("pasta", null); mostrarPasta(); setStatus("Pasta removida. Os documentos voltam a baixar em Downloads.", false); return; }
+    if (!window.showDirectoryPicker) { setStatus("Este navegador não permite escolher pasta (use Chrome ou Edge no computador). O arquivo continua baixando normalmente.", true); return; }
+    window.showDirectoryPicker({ id: "folgas-ci", mode: "readwrite" }).then(function (h) {
+      pasta.handle = h; pasta.ok = true; mostrarPasta();
+      return idbGravar("pasta", h).then(function () { setStatus("Pasta escolhida: " + h.name + ". Os documentos serão salvos nela.", false); });
+    }).catch(function (err) { if (err && err.name !== "AbortError") setStatus("Não foi possível escolher a pasta: " + err.message, true); });
+  }
+  function carregarPasta() {
+    mostrarPasta();
+    if (!window.showDirectoryPicker) { var b = document.getElementById("ciPasta"); if (b) b.disabled = true; return; }
+    idbLer("pasta").then(function (h) { if (h) { pasta.handle = h; mostrarPasta(); } });
+  }
+  function autorizarPasta() {
+    if (!pasta.handle || !pasta.handle.queryPermission) { pasta.ok = false; return Promise.resolve(); }
+    var o = { mode: "readwrite" };
+    return Promise.resolve(pasta.handle.queryPermission(o)).then(function (p) { return p === "granted" ? p : pasta.handle.requestPermission(o); })
+      .then(function (p) { pasta.ok = (p === "granted"); }).catch(function () { pasta.ok = false; });
+  }
+  function nomeLivre(dir, nome) {
+    var base = nome.replace(/\.docx$/i, ""), i = 1;
+    function tenta() {
+      var n = i === 1 ? nome : base + " (" + i + ").docx";
+      return dir.getFileHandle(n).then(function () { i++; return tenta(); }, function () { return n; });
+    }
+    return tenta();
+  }
+  function entregarArquivo(blob, nome) {
+    function baixar(motivo) {
+      var url = URL.createObjectURL(blob), a = document.createElement("a");
+      a.href = url; a.download = nome; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      return { nome: nome, onde: motivo || "" };
+    }
+    if (!(pasta.handle && pasta.ok)) return Promise.resolve(baixar(pasta.handle ? " (sem permissão para a pasta “" + pasta.handle.name + "”, baixado em Downloads)" : ""));
+    return nomeLivre(pasta.handle, nome).then(function (n) {
+      return pasta.handle.getFileHandle(n, { create: true }).then(function (fh) { return fh.createWritable(); }).then(function (w) {
+        return w.write(blob).then(function () { return w.close(); });
+      }).then(function () { return { nome: n, onde: " na pasta “" + pasta.handle.name + "”" }; });
+    }).catch(function () { return baixar(" (não consegui gravar na pasta “" + pasta.handle.name + "”, baixado em Downloads)"); });
+  }
+
+  // ---------------- impressão direta (modelo A4 em tamanho real, sem gerar arquivo) ----------------
+  function imprimirDocumento() {
+    var falta = faltaPreencher();
+    if (falta.length) { setStatus("Falta preencher: " + falta.join(", ") + ".", true); return; }
+    var ci = dom.numero.value.trim();
+    if (!confirmarCiRepetida(ci)) return;
+    var copia = dom.preview.cloneNode(true);
+    copia.removeAttribute("id"); copia.style.transform = "none";
+    var f = document.createElement("iframe");
+    f.setAttribute("aria-hidden", "true");
+    f.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
+    document.body.appendChild(f);
+    var d = f.contentDocument;
+    d.open();
+    d.write('<!doctype html><html><head><meta charset="utf-8"><title>CI ' + ci.replace(/[<>&]/g, "") + '/2026</title><link rel="stylesheet" href="folga-split.css"><link rel="stylesheet" href="ci.css"><style>@page{size:A4;margin:0}html,body{margin:0;padding:0;background:#fff}.fg-papel{position:relative!important;left:0!important;top:0!important;transform:none!important;box-shadow:none!important;width:794px!important;height:1122px!important;min-height:0!important;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}</style></head><body class="folga-page ci-page"></body></html>');
+    d.close();
+    d.body.appendChild(d.importNode(copia, true));
+    var esperas = Array.prototype.slice.call(d.images).map(function (im) { return im.complete ? Promise.resolve() : new Promise(function (ok) { im.onload = im.onerror = ok; }); });
+    var css = Array.prototype.slice.call(d.querySelectorAll("link")).map(function (l) { return l.sheet ? Promise.resolve() : new Promise(function (ok) { l.onload = l.onerror = ok; }); });
+    Promise.all(esperas.concat(css)).then(function () {
+      setTimeout(function () {
+        try { f.contentWindow.focus(); f.contentWindow.print(); registrarHist(ci, "impressão"); setStatus("Enviado para a impressora (CI " + ci + "/2026). Dica: na janela de impressão, desmarque “Cabeçalhos e rodapés”.", false); }
+        catch (e) { setStatus("Não foi possível abrir a impressão: " + e.message, true); }
+        setTimeout(function () { if (f.parentNode) f.parentNode.removeChild(f); }, 60000);
+      }, 250);
+    });
   }
 
   // ---------------- gerar .docx ----------------
@@ -413,11 +501,10 @@
         var slug = (assuntoAtual().assunto || assuntoTexto()).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
         slug = slug.charAt(0).toUpperCase() + slug.slice(1);
         var nome = "CI - " + ci.replace(/[\/\\:]/g, "-") + " - " + slug + ".docx";
-        var url = URL.createObjectURL(blob), a = document.createElement("a");
-        a.href = url; a.download = nome; document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-        registrarHist(ci);
-        setStatus("Documento gerado: " + nome, false);
+        return entregarArquivo(blob, nome).then(function (r) {
+          registrarHist(ci, "docx");
+          setStatus("Documento gerado: " + r.nome + r.onde, false);
+        });
       })
       .catch(function (err) { console.error(err); setStatus("Erro ao gerar documento: " + err.message, true); });
   }
@@ -457,7 +544,10 @@
     });
     dom.desmarcar.addEventListener("click", function () { state.marcados = {}; atualizarSelecao(); });
     dom.limpar.addEventListener("click", limparTudo);
-    dom.gerar.addEventListener("click", gerarDocumento);
+    dom.gerar.addEventListener("click", function () { autorizarPasta().then(gerarDocumento); });
+    document.getElementById("ciImprimir").addEventListener("click", imprimirDocumento);
+    document.getElementById("ciPasta").addEventListener("click", escolherPasta);
+    carregarPasta();
     document.querySelectorAll(".fg-aba").forEach(function (b) {
       b.addEventListener("click", function () {
         document.querySelectorAll(".fg-aba").forEach(function (x) { x.classList.toggle("fg-aba--ativa", x === b); });
