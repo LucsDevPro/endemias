@@ -23,7 +23,7 @@ Site estático em HTML/CSS/JS puro — sem dependências de build, pronto para p
 | **Compras** (pedidos abertos dia 20 a 28) | Pedidos ao almoxarifado | https://smsapp.com.br/almoxarifado/pedidos.php |
 | **Gerador de Folga** | Gera a Comunicação Interna de folga (página própria) | `folga.html` |
 | **Gerador de Férias** | Gera vários Requerimentos de Férias de uma vez, em lote (página própria) | `ferias.html` |
-| **Comunicação Interna** | Gera uma CI a partir de texto digitado/ditado, com revisão opcional por IA (página própria) | `ci.html` |
+| **Comunicação Interna** | Gera a CI a partir de assuntos com texto pronto + agentes + calendário, com modelo ao vivo (página própria) | `ci.html` |
 | **Lançar Ovitrampas** | Bookmarklet que preenche e envia em lote os lançamentos no contaovos.com (página própria) | `ovitrampas.html` |
 
 Sentinela e LIRAa ficam destacados em um painel "ao vivo", por serem as ferramentas de monitoramento em tempo real.
@@ -55,6 +55,8 @@ painel-endemias/
 ├── folga.js                     # lógica da página de Folga
 ├── ferias.js                     # lógica da página de Férias
 ├── ci.js                          # lógica da página de Comunicação Interna
+├── ci-assuntos.js                 # catálogo de assuntos/textos prontos da CI
+├── dados-agentes.js               # lista de agentes, matrículas e coordenadores (Folga e CI)
 ├── apps-script/
 │   └── Codigo.gs                  # script do Google (opcional): planilha autenticada (doGet) + IA (doPost)
 ├── assets/
@@ -62,7 +64,7 @@ painel-endemias/
 │   ├── modelo-folga.docx         # modelo com as tags <<ci>>, <<hoje>>, <<nome>>...
 │   ├── fogo-moldura.png           # moldura de fogo (border-image) do cartão Compras
 │   ├── modelo-ferias.docx        # modelo com as tags {{NOME}}, {{CPF}}...
-│   └── modelo-ci.docx             # modelo com as tags {{CI}}, {{DATAHOJE}}, {{Secretaria}}, {{Assunto}}, {{Texto}}
+│   └── modelo-ci.docx             # modelo da CI com as tags <<ci>>, <<corpo>> etc.
 └── README.md
 ```
 
@@ -144,55 +146,19 @@ Como funciona: a planilha fica numa Planilha Google sua (não no site, não no G
 
 ## Comunicação Interna (`ci.html`)
 
-- **Número da CI** (mesmo padrão do Gerador de Folga: só o número, o modelo já tem "/2026" fixo) e **Para (Secretaria)** (vem preenchido com "Secretaria Municipal de Saúde", editável).
-- **Texto**: digite direto na caixa de texto, ou clique no 🎤 e dite — o microfone usa o reconhecimento de voz nativo do navegador (funciona bem no Chrome), não passa por nenhum servidor nem precisa de configuração.
-- **✨ Melhorar texto**: corrige o texto em camadas, e **mostra exatamente o que mudou** (com o botão **↩ Desfazer**):
-  1. *Ajustes básicos, sempre, sem internet*: espaços duplicados, espaço antes/depois da pontuação, letra maiúscula no início das frases e ponto final.
-  2. *Ortografia e gramática* pelo serviço gratuito **LanguageTool** (sem chave nem cadastro). Só aplica correções de escrita (ortografia, gramática, pontuação, maiúsculas); **não mexe em nomes próprios, siglas e palavras em CAIXA ALTA**, ignora sugestões de estilo e nunca aplica duas correções sobrepostas.
-  3. *Reescrita + assunto sugerido por IA* (Gemini, Claude ou outra compatível com a OpenAI — você escolhe) — opcional, só se configurar o Apps Script (próxima seção).
+Mesma tela dividida da Folga: **preencher à esquerda, modelo A4 ao vivo à direita** (com "🔍 Ampliar" em tamanho real). O texto vem **pronto**, e a pessoa só escolhe o assunto, os agentes e as datas.
 
-  Se o LanguageTool não responder (sem internet, **firewall/proxy da rede bloqueando `api.languagetool.org`**, limite de uso do serviço gratuito), os ajustes básicos continuam valendo e a tela diz o motivo. Sem configurar a IA, preencha o Assunto à mão — o resto funciona normal.
-- **Assunto**: preenchido pela IA (se configurada) ou digitado por você — sempre editável antes de gerar.
-- **Gerar Comunicação (.docx)**: preenche as 5 tags do `assets/modelo-ci.docx` e baixa o documento.
+- **Assunto (texto pronto)**: botões na tela. Hoje: *Alteração de rotina de trabalho* (jornada de 6 h, das 07h às 13h) e *Texto livre*. O texto troca sozinho `{NOMES DOS AGENTES}` e `{DATAS}` (singular/plural certinhos: "o agente … terá", "os agentes … terão").
+- **Agentes**: a **mesma lista da Folga** (`dados-agentes.js` + o que estiver salvo no navegador), com busca, marcar vários e, opcionalmente, a **matrícula** ao lado do nome.
+- **Datas**: calendário de múltiplos dias (Shift + clique seleciona um intervalo).
+- **Para:** vem como *Secretaria Municipal de Saúde – Carla Santiago* (editável). **De:** mesma lista de coordenadores da Folga. Sigla e gerência que assina ficam em "Mais campos".
+- **Número da CI**: usa o mesmo histórico da Folga (dica "última registrada · usar próxima" e aviso de CI repetida).
+- O que se monta **não fica salvo** (F5 recomeça), como na Folga.
+- **Modelo**: `assets/modelo-ci.docx`, no mesmo padrão visual da Folga, com o espaço do texto no lugar da tabela. Tags: `<<ci>>`, `<<hoje>>`, `<<sigla>>`, `<<setor>>`, `<<remetente>>`, `<<para>>`, `<<assunto>>`, `<<corpo>>` (parágrafos do assunto), `<<setorAssin>>`, `<<gerente>>`, `<<gerenteCargo>>`. Gerado por `build_ci_tpl.py` (fora do site).
 
-O modelo em `assets/modelo-ci.docx` é o que você enviou (`modeloci.doc`) convertido para `.docx` — só troquei o formato do arquivo (de `.doc` para `.docx`, que é o que o site consegue preencher), sem tocar em texto, formatação ou nas tags. Se quiser ajustar o layout, edite esse `.docx` no Word.
+**Para criar um assunto novo**, abra `ci-assuntos.js`, copie um bloco da lista `CI_ASSUNTOS` e mude `id`, `botao`, `assunto`, `campos` (o que preencher) e a função `paragrafos` (o texto, com `c.nomes`, `c.datas` e `c.juntar()`). O botão aparece sozinho.
 
-### Melhorar texto com IA (opcional)
-
-Mesma lógica de "opcional, protegido, não obrigatório" da planilha de férias: a chave de IA nunca fica no site. Reaproveita o mesmo Apps Script (`apps-script/Codigo.gs`) usado pela planilha de férias — se você já configurou aquele, é só adicionar esta parte nele.
-
-**Escolha a IA** (propriedade `AI_PROVIDER`; o site não precisa saber qual é — a troca é só no Apps Script):
-
-| `AI_PROVIDER` | Serviço | Onde gerar a chave | `AI_MODEL` |
-|---|---|---|---|
-| `gemini` (padrão) | Google Gemini | https://aistudio.google.com/apikey (tem nível gratuito) | opcional — padrão `gemini-2.5-flash` |
-| `claude` | Anthropic Claude | https://console.anthropic.com (cobrança por uso) | opcional — padrão `claude-haiku-5-5` |
-| `openai` | OpenAI ou qualquer serviço compatível (Groq, OpenRouter, etc.) | no painel do serviço | **obrigatório** (ex.: `llama-3.3-70b-versatile` no Groq) |
-
-Para `openai`, defina também `AI_BASE_URL` se não for a própria OpenAI (ex.: Groq → `https://api.groq.com/openai/v1`; OpenRouter → `https://openrouter.ai/api/v1`).
-
-**Passo a passo:**
-
-1. Gere a chave de API do serviço escolhido (tabela acima).
-2. No projeto do Apps Script (o mesmo do passo a passo da planilha, ou um novo): confirme que o código tem a função `doPost` — está incluída no `Codigo.gs`.
-3. Menu **⚙️ Configurações do projeto → Propriedades do script → Adicionar propriedade**:
-   - `AI_PROVIDER` = `gemini`, `claude` ou `openai` (sem ela, usa `gemini`).
-   - `AI_API_KEY` = sua chave do passo 1.
-   - `AI_MODEL` = (opcional, obrigatório no `openai`) nome do modelo. Se um modelo for descontinuado, basta trocar o nome aqui, sem mexer no código.
-   - `AI_BASE_URL` = só para `openai` fora da OpenAI.
-   - `CI_TOKEN` = uma senha simples de sua escolha (recomendado — veja o aviso abaixo).
-   - *Quem já tinha `GEMINI_API_KEY` / `GEMINI_MODEL` configurados não precisa mudar nada: continuam valendo.*
-4. **Implantar → Gerenciar implantações → editar (lápis) → Nova versão → Implantar** (para o `doPost` novo entrar em vigor na mesma URL de sempre).
-5. Copie a URL (a mesma `/exec` de sempre) e cole em `ci-config.js`:
-   - `AI_ENDPOINT_URL`: a URL.
-   - `AI_TOKEN`: o mesmo valor que você colocou em `CI_TOKEN` no passo 3.
-6. Publique o site de novo — o botão "✨ Melhorar texto" passa a usar a IA.
-
-Para trocar de IA depois, mude só `AI_PROVIDER`, `AI_API_KEY` e `AI_MODEL` e faça uma **Nova versão** da implantação; o site continua igual. Se a IA falhar (chave errada, cota, modelo inexistente), a tela mostra o motivo devolvido pelo serviço. Para voltar à correção gratuita, sem IA, é só deixar `AI_ENDPOINT_URL` vazio em `ci-config.js`.
-
-**Aviso sobre o "token"**: diferente do login do Google (que usa a planilha de férias), aqui não tem tela de login — é uma chamada direta. O `CI_TOKEN`/`AI_TOKEN` é só uma senha simples enviada junto do pedido; ela fica visível para quem abrir o código do site (não é um segredo real), mas evita que alguém ache a URL por acidente e gaste sua cota de IA à toa. A chave de verdade (`AI_API_KEY`) é a que fica protegida de verdade, porque essa nunca sai do lado do Google.
-
-**Não testei esse fluxo de ponta a ponta** (não tenho como criar uma chave de API nem implantar o Apps Script daqui). Testei a lógica do `doPost` com um ambiente do Google simulado para os três provedores (formato de cada API, erros de chave/modelo/rede) e a geração do documento sem IA — mas nunca chamei os serviços reais. Faça um teste com uma chave sua antes de confiar nela no dia a dia.
+> O microfone e o "✨ Melhorar texto" (LanguageTool/IA) da versão antiga não existem mais nesta página. `ci-config.js` ficou no projeto, mas a página atual não o usa.
 
 ## Lançar Ovitrampas (`ovitrampas.html`)
 

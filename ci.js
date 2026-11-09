@@ -1,499 +1,474 @@
 // ============================================================
-// Comunicação Interna — página própria. Lê assets/modelo-ci.docx
-// e substitui as tags {{CI}}, {{DATAHOJE}}, {{Secretaria}},
-// {{Assunto}} e {{Texto}} (usa docx-utils.js).
-//
-// O microfone usa a Web Speech API nativa do navegador (Chrome
-// e a maioria dos navegadores baseados em Chromium) — não passa
-// por nenhum servidor, então não precisa de configuração.
-//
-// O botão "✨ Melhorar texto" funciona em camadas:
-//
-// 0) Ajustes básicos, sempre, no próprio navegador (sem internet):
-//    espaços duplicados, espaço antes/depois da pontuação, letra
-//    maiúscula no início das frases e ponto final.
-//
-// 1) Correção ortográfica/gramatical via LanguageTool
-//    (api.languagetool.org) — serviço público e gratuito, sem chave.
-//    Só aplica correções de escrita (ortografia, gramática, pontuação,
-//    maiúsculas), ignora nomes próprios/siglas e nunca aplica duas
-//    correções sobrepostas. Se o serviço não responder (internet,
-//    firewall, limite de uso), os ajustes básicos continuam valendo e
-//    a tela diz exatamente o motivo.
-//
-// 2) Se CI_CONFIG.AI_ENDPOINT_URL estiver configurado (ci-config.js),
-//    usa uma IA (Gemini, Claude ou outra, via Google Apps Script) que também reescreve
-//    o texto e sugere o assunto.
-//
-// Toda alteração mostra o que mudou e pode ser desfeita ("↩ Desfazer").
+// Comunicação Interna — tela dividida (preencher à esquerda, modelo ao vivo à direita).
+// Os textos prontos ficam em ci-assuntos.js. A lista de agentes, as matrículas e os
+// coordenadores são os mesmos da Folga (dados-agentes.js + o que está salvo no navegador).
+// Modelo do documento: assets/modelo-ci.docx (tags <<ci>>, <<hoje>>, <<sigla>>, <<setor>>,
+// <<remetente>>, <<para>>, <<assunto>>, <<corpo>>, <<setorAssin>>, <<gerente>>, <<gerenteCargo>>).
+// O que a pessoa monta NÃO fica salvo: F5 volta ao começo (só a lista de agentes é guardada).
 // ============================================================
-
 (function () {
   "use strict";
 
+  var STORAGE_KEY = "painelEndemiasFuncionarios";
+  var MAT_KEY = "painelEndemiasMatriculas";
+  var REM_KEY = "painelEndemiasFolgaRemetentes";
+  var HIST_KEY = "painelEndemiasFolgaHistorico";   // o mesmo histórico de CIs da Folga (mesma numeração)
   var MESES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+  var NOMES_MES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  var DIAS_SEMANA = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+  var PAPEL_W = 794, PAPEL_H = 1123;
 
+  var D = window.DADOS_AGENTES;
+  var ASSUNTOS = window.CI_ASSUNTOS || [];
+
+  var state = {
+    assuntoId: ASSUNTOS.length ? ASSUNTOS[0].id : "",
+    funcionarios: {}, matriculas: {}, remetentes: [], remetente: 0,
+    marcados: {}, filtroTexto: "",
+    calSel: [], calMes: null, calUltimo: null,
+    incMat: true
+  };
   var dom = {};
-  var reconhecimento = null;
-  var ditando = false;
 
-  function cacheDom() {
-    dom.numero = document.getElementById("ciNumero");
-    dom.secretaria = document.getElementById("ciSecretaria");
-    dom.texto = document.getElementById("ciTexto");
-    dom.mic = document.getElementById("ciMic");
-    dom.micStatus = document.getElementById("ciMicStatus");
-    dom.melhorar = document.getElementById("ciMelhorar");
-    dom.iaStatus = document.getElementById("ciIaStatus");
-    dom.iaDetalhe = document.getElementById("ciIaDetalhe");
-    dom.desfazer = document.getElementById("ciDesfazer");
-    dom.assunto = document.getElementById("ciAssunto");
-    dom.gerar = document.getElementById("ciGerar");
-    dom.status = document.getElementById("ciStatus");
+  // ---------------- utilidades ----------------
+  function el(tag, className, texto) {
+    var e = document.createElement(tag);
+    if (className) e.className = className;
+    if (texto !== undefined) e.textContent = texto;
+    return e;
   }
-
+  function semAcento(t) {
+    return String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/[^A-Z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+  }
+  function escXml(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
   function setStatus(msg, erro) {
     dom.status.textContent = msg;
     dom.status.classList.toggle("folga-status--erro", !!erro);
   }
+  function dataExtenso(d) { return d.getDate() + " de " + MESES[d.getMonth()] + " de " + d.getFullYear(); }
+  function isoDe(a, m, d) { return a + "-" + String(m + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0"); }
+  function parseISO(v) { var p = v.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function fmtBR(d) { return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + d.getFullYear(); }
+  function juntar(l) { return l.length <= 1 ? (l[0] || "") : l.slice(0, -1).join(", ") + " e " + l[l.length - 1]; }
+  function assuntoAtual() { return ASSUNTOS.filter(function (a) { return a.id === state.assuntoId; })[0] || ASSUNTOS[0]; }
+  function usa(campo) { return assuntoAtual().campos.indexOf(campo) !== -1; }
 
-  function fmtDataHoje() {
-    var d = new Date();
-    return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + d.getFullYear();
-  }
-
-  // ---------------- Microfone (Web Speech API, nativa do navegador) ----------------
-
-  function configurarMicrofone() {
-    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      dom.mic.disabled = true;
-      dom.mic.title = "Seu navegador não suporta ditado por voz — digite o texto normalmente.";
-      dom.micStatus.textContent = "Ditado por voz não disponível neste navegador (funciona no Chrome).";
-      return;
-    }
-
-    reconhecimento = new SpeechRecognition();
-    reconhecimento.lang = "pt-BR";
-    reconhecimento.continuous = true;
-    reconhecimento.interimResults = false;
-
-    reconhecimento.onresult = function (evento) {
-      var textoNovo = "";
-      for (var i = evento.resultIndex; i < evento.results.length; i++) {
-        if (evento.results[i].isFinal) textoNovo += evento.results[i][0].transcript;
-      }
-      if (textoNovo) {
-        var atual = dom.texto.value.trim();
-        dom.texto.value = (atual ? atual + " " : "") + textoNovo.trim();
-      }
-    };
-
-    reconhecimento.onerror = function (evento) {
-      dom.micStatus.textContent = "Erro no ditado: " + evento.error;
-      pararDitado();
-    };
-
-    reconhecimento.onend = function () {
-      if (ditando) {
-        // o navegador encerra sozinho depois de um tempo; reinicia se ainda estiver "ligado"
-        try { reconhecimento.start(); } catch (e) { pararDitado(); }
-      }
-    };
-
-    dom.mic.addEventListener("click", alternarDitado);
-  }
-
-  function alternarDitado() {
-    if (ditando) { pararDitado(); return; }
+  // ---------------- dados (mesmos da Folga) ----------------
+  function carregarFuncionarios() {
     try {
-      reconhecimento.start();
-      ditando = true;
-      dom.mic.classList.add("ci-mic--ativo");
-      dom.micStatus.textContent = "🔴 Ouvindo... fale a comunicação. Clique no microfone de novo para parar.";
-    } catch (e) {
-      dom.micStatus.textContent = "Não foi possível iniciar o microfone.";
-    }
+      var p = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+      if (p && typeof p === "object" && !Array.isArray(p) && Object.keys(p).length) return p;
+    } catch (e) { /* usa o padrão */ }
+    var o = {}; D.funcionarios.forEach(function (par) { o[par[0]] = par[1]; }); return o;
   }
-
-  function pararDitado() {
-    ditando = false;
-    dom.mic.classList.remove("ci-mic--ativo");
-    dom.micStatus.textContent = "";
-    try { reconhecimento.stop(); } catch (e) { /* ignora */ }
+  function carregarMatriculas() {
+    var salvas = {};
+    try { var m = JSON.parse(localStorage.getItem(MAT_KEY) || "{}"); if (m && typeof m === "object" && !Array.isArray(m)) salvas = m; } catch (e) { /* ignora */ }
+    var res = {};
+    Object.keys(state.funcionarios).forEach(function (n) { var p = D.matriculas[semAcento(n)]; if (p) res[n] = p; });
+    Object.keys(salvas).forEach(function (n) { if (String(salvas[n]).trim()) res[n] = salvas[n]; });
+    return res;
   }
-
-  // ---------------- Melhorar texto ----------------
-
-  var LT_URL = "https://api.languagetool.org/v2/check";
-  var LT_LIMITE = 15000;          // o serviço gratuito aceita ~20 mil caracteres por pedido
-  var LT_TIMEOUT_MS = 25000;
-  var LT_CATEGORIAS = ["TYPOS", "GRAMMAR", "PUNCTUATION", "CASING", "CONFUSED_WORDS", "COMPOUNDING"];
-  var ABREVIACOES = ["etc", "sr", "sra", "srta", "dr", "dra", "art", "arts", "av", "n", "nº", "ex", "obs", "cap", "tel", "pág", "pag", "prof", "profa", "ltda", "cia", "dep", "fls"];
-  var LETRA = "A-Za-zÀ-ÿ";
-
-  var ultimaAlteracao = null;     // { antes, depois, assuntoAntes } — para o "Desfazer"
-
-  function iaConfigurada() {
-    return typeof CI_CONFIG !== "undefined" && CI_CONFIG.AI_ENDPOINT_URL && CI_CONFIG.AI_ENDPOINT_URL.trim() !== "";
-  }
-
-  function mostrarDetalhes(linhas) {
-    dom.iaDetalhe.innerHTML = "";
-    if (!linhas || !linhas.length) { dom.iaDetalhe.hidden = true; return; }
-    var ul = document.createElement("ul");
-    linhas.slice(0, 40).forEach(function (l) {
-      var li = document.createElement("li");
-      li.textContent = l;
-      ul.appendChild(li);
-    });
-    if (linhas.length > 40) {
-      var mais = document.createElement("li");
-      mais.textContent = "… e mais " + (linhas.length - 40) + " alteração(ões).";
-      ul.appendChild(mais);
-    }
-    dom.iaDetalhe.appendChild(ul);
-    dom.iaDetalhe.hidden = false;
-  }
-
-  function registrarAlteracao(antes, depois, assuntoAntes) {
-    if (antes === depois && assuntoAntes === undefined) { dom.desfazer.hidden = true; ultimaAlteracao = null; return; }
-    ultimaAlteracao = { antes: antes, depois: depois, assuntoAntes: assuntoAntes };
-    dom.desfazer.hidden = false;
-  }
-
-  function desfazer() {
-    if (!ultimaAlteracao) return;
-    if (dom.texto.value !== ultimaAlteracao.depois &&
-        !window.confirm("Você editou o texto depois da correção. Desfazer mesmo assim e perder essas edições?")) return;
-    dom.texto.value = ultimaAlteracao.antes;
-    if (ultimaAlteracao.assuntoAntes !== undefined) dom.assunto.value = ultimaAlteracao.assuntoAntes;
-    ultimaAlteracao = null;
-    dom.desfazer.hidden = true;
-    mostrarDetalhes([]);
-    dom.iaStatus.textContent = "Texto original restaurado.";
-  }
-
-  function melhorarTexto() {
-    var texto = dom.texto.value.replace(/\s+$/, "").replace(/^\s+/, "");
-    if (!texto) {
-      dom.iaStatus.textContent = "Escreva ou dite o texto antes de melhorar.";
-      mostrarDetalhes([]);
-      return;
-    }
-    if (iaConfigurada()) melhorarComIA(texto);
-    else corrigirTexto(texto);
-  }
-
-  // -------- Camada 0: ajustes básicos, sem internet --------
-
-  function ajustesBasicos(entrada) {
-    var t = entrada.replace(/\r\n?/g, "\n");
-    var notas = [];
-
-    function passo(nota, fn) {
-      var antes = t;
-      t = fn(t);
-      if (t !== antes) notas.push(nota);
-    }
-
-    passo("Espaços duplicados e sobras no fim das linhas removidos.", function (x) {
-      return x.replace(/[ \t]{2,}/g, " ").replace(/[ \t]+\n/g, "\n");
-    });
-    passo("Espaço antes da pontuação removido.", function (x) {
-      return x.replace(/[ \t]+([,;:.!?])/g, "$1");
-    });
-    passo("Espaço depois da pontuação incluído.", function (x) {
-      return x
-        .replace(new RegExp("([,;!?])(?=[" + LETRA + "])", "g"), "$1 ")
-        .replace(new RegExp("([a-zà-ÿ]{2,})\\.(?=[A-ZÀ-Ý])", "g"), "$1. ");
-    });
-    passo("Letra maiúscula no início das frases.", function (x) {
-      return x.replace(new RegExp("(^|[.!?]\\s+|\\n\\s*)([a-zà-ÿ])", "g"), function (m, pre, ch, off, tudo) {
-        if (/[.!?]/.test(pre)) {
-          var palavra = tudo.slice(0, off).match(new RegExp("([" + LETRA + "]+)$"));
-          if (palavra && ABREVIACOES.indexOf(palavra[1].toLowerCase()) !== -1) return m;
-        }
-        return pre + ch.toUpperCase();
-      });
-    });
-    passo("Ponto final incluído no fim do texto.", function (x) {
-      return /[A-Za-zÀ-ÿ0-9]$/.test(x.trim()) ? x.replace(/\s+$/, "") + "." : x;
-    });
-
-    return { texto: t, notas: notas };
-  }
-
-  // -------- Camada 1: LanguageTool (ortografia e gramática) --------
-
-  function dividirTexto(t, max) {
-    if (t.length <= max) return [t];
-    var partes = [], resto = t;
-    while (resto.length > max) {
-      var corte = resto.lastIndexOf("\n", max);
-      if (corte < max / 2) corte = resto.lastIndexOf(". ", max) + 1;
-      if (corte < max / 2) corte = resto.lastIndexOf(" ", max);
-      if (corte <= 0) corte = max;
-      partes.push(resto.slice(0, corte));
-      resto = resto.slice(corte);
-    }
-    partes.push(resto);
-    return partes;
-  }
-
-  function fetchComTimeout(url, opcoes, ms) {
-    if (typeof AbortController === "undefined") return fetch(url, opcoes);
-    var ctrl = new AbortController();
-    var timer = setTimeout(function () { ctrl.abort(); }, ms);
-    opcoes.signal = ctrl.signal;
-    return fetch(url, opcoes).then(
-      function (r) { clearTimeout(timer); return r; },
-      function (e) { clearTimeout(timer); throw e; }
-    );
-  }
-
-  // Decide se uma sugestão do LanguageTool é segura de aplicar sozinha.
-  function aceitarSugestao(m, texto) {
-    if (!m.replacements || !m.replacements.length || !m.replacements[0].value) return false;
-    var cat = m.rule && m.rule.category && m.rule.category.id;
-    if (LT_CATEGORIAS.indexOf(cat) === -1) return false;          // estilo, redundância etc. ficam de fora
-
-    var trecho = texto.substr(m.offset, m.length);
-    if (!trecho.trim()) return false;
-    if (cat === "TYPOS") {
-      if (/\d/.test(trecho)) return false;                          // números, códigos
-      if (trecho.length > 1 && trecho === trecho.toUpperCase()) return false;   // SIGLAS e NOMES EM CAIXA ALTA
-      if (/^[A-ZÀ-Ý]/.test(trecho)) {                              // palavra com inicial maiúscula...
-        var antes = texto.slice(0, m.offset);
-        var inicioDeFrase = /(^|[.!?]\s+|\n\s*)$/.test(antes);
-        if (!inicioDeFrase) return false;                           // ...no meio da frase = nome próprio
+  function carregarRemetentes() {
+    try {
+      var l = JSON.parse(localStorage.getItem(REM_KEY) || "null");
+      if (Array.isArray(l) && l.length && l.every(function (r) { return r && r.setor && r.nome; })) {
+        D.remetentes.forEach(function (p) {
+          if (!l.some(function (r) { return semAcento(r.nome) === semAcento(p.nome); })) l.push({ setor: p.setor, nome: p.nome });
+        });
+        return l;
       }
-    }
-    return true;
+    } catch (e) { /* usa o padrão */ }
+    return D.remetentes.map(function (r) { return { setor: r.setor, nome: r.nome }; });
+  }
+  function remetenteAtual() { return state.remetentes[state.remetente] || state.remetentes[0]; }
+  function nomeTexto(n) { return state.incMat && state.matriculas[n] ? n + " (" + state.matriculas[n] + ")" : n; }
+
+  // "Secretaria Municipal de Saúde - Carla Santiago" → { org: "SECRETARIA MUNICIPAL DE SAÚDE", pessoa: "Carla Santiago" }
+  function paraFormatado() {
+    var v = (dom.para.value || "").trim();
+    var m = v.split(/\s+[-–—]\s+/);
+    if (m.length >= 2) return m[0].toUpperCase() + " – " + m.slice(1).join(" – ");
+    return v.toUpperCase();
   }
 
-  function aplicarSugestoes(trecho, matches) {
-    var candidatas = matches.filter(function (m) { return aceitarSugestao(m, trecho); });
-    var ignoradas = matches.length - candidatas.length;
-
-    // da esquerda para a direita, descartando as que se sobrepõem à anterior
-    candidatas.sort(function (a, b) { return a.offset - b.offset || b.length - a.length; });
-    var usadas = [], fim = -1;
-    candidatas.forEach(function (m) {
-      if (m.offset < fim) { ignoradas++; return; }
-      usadas.push(m);
-      fim = m.offset + m.length;
-    });
-
-    // aplica de trás para frente para os índices das seguintes não mudarem
-    var corrigido = trecho;
-    var trocas = [];
-    usadas.slice().reverse().forEach(function (m) {
-      var de = trecho.substr(m.offset, m.length);
-      var para = m.replacements[0].value;
-      if (de === para) return;
-      corrigido = corrigido.slice(0, m.offset) + para + corrigido.slice(m.offset + m.length);
-      trocas.unshift("“" + de + "” → “" + para + "”");
-    });
-    return { texto: corrigido, trocas: trocas, ignoradas: ignoradas };
-  }
-
-  function chamarLanguageTool(trecho) {
-    var params = new URLSearchParams();
-    params.set("text", trecho);
-    params.set("language", "pt-BR");
-    return fetchComTimeout(LT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json" },
-      body: params.toString()
-    }, LT_TIMEOUT_MS)
-      .then(function (resp) {
-        if (!resp.ok) { var e = new Error("http " + resp.status); e.status = resp.status; throw e; }
-        return resp.json();
-      })
-      .then(function (dados) {
-        return aplicarSugestoes(trecho, (dados && dados.matches) || []);
-      });
-  }
-
-  function motivoErro(err) {
-    if (err && err.name === "AbortError") return "o serviço demorou demais para responder";
-    if (err && err.status === 429) return "limite de uso do serviço gratuito atingido — aguarde cerca de 1 minuto e tente de novo";
-    if (err && err.status) return "o serviço respondeu com erro " + err.status;
-    return "não foi possível conectar ao serviço (internet, firewall ou bloqueador de anúncios podem estar impedindo o acesso a api.languagetool.org)";
-  }
-
-  function corrigirTexto(original) {
-    dom.melhorar.disabled = true;
-    dom.iaStatus.textContent = "Corrigindo ortografia e gramática...";
-    mostrarDetalhes([]);
-
-    var basico = ajustesBasicos(original);
-    var partes = dividirTexto(basico.texto, LT_LIMITE);
-    var final = "", trocas = [], ignoradas = 0;
-
-    var seq = Promise.resolve();
-    partes.forEach(function (parte) {
-      seq = seq.then(function () { return chamarLanguageTool(parte); }).then(function (r) {
-        final += r.texto;
-        trocas = trocas.concat(r.trocas);
-        ignoradas += r.ignoradas;
-      });
-    });
-
-    seq.then(function () {
-      concluirCorrecao(original, final, basico.notas, trocas, ignoradas, null);
-    }, function (err) {
-      console.error(err);
-      concluirCorrecao(original, basico.texto, basico.notas, [], 0, err);
-    }).then(function () {
-      dom.melhorar.disabled = false;
-    });
-  }
-
-  function concluirCorrecao(original, final, notas, trocas, ignoradas, erro) {
-    if (final !== original) dom.texto.value = final;
-    registrarAlteracao(original, final);
-
-    var detalhes = notas.concat(trocas);
-    mostrarDetalhes(detalhes);
-
-    var partes = [];
-    if (trocas.length) partes.push(trocas.length + " correção(ões) de ortografia/gramática");
-    if (notas.length) partes.push(notas.length + " ajuste(s) de formatação");
-    var feito = partes.join(" e ");
-
-    if (erro) {
-      dom.iaStatus.textContent = (feito ? feito + " aplicado(s). " : "") +
-        "Correção ortográfica indisponível agora: " + motivoErro(erro) + ".";
-    } else if (!feito) {
-      dom.iaStatus.textContent = "Nenhum erro encontrado.";
-    } else {
-      dom.iaStatus.textContent = feito + " aplicado(s) — confira o texto e o assunto." +
-        (ignoradas ? " (" + ignoradas + " sugestão(ões) incerta(s) ignorada(s): nomes, siglas ou estilo.)" : "");
-    }
-  }
-
-  // -------- Camada 2: reescrita + assunto via IA generativa (opcional) --------
-
-  function melhorarComIA(texto) {
-    dom.melhorar.disabled = true;
-    dom.iaStatus.textContent = "Melhorando o texto com IA...";
-    mostrarDetalhes([]);
-    var assuntoAntes = dom.assunto.value;
-
-    fetchComTimeout(CI_CONFIG.AI_ENDPOINT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" }, // evita pre-flight CORS no Apps Script
-      body: JSON.stringify({ texto: texto, token: CI_CONFIG.AI_TOKEN || "" })
-    }, 60000)
-      .then(function (resp) {
-        if (!resp.ok) { var e = new Error("http " + resp.status); e.status = resp.status; throw e; }
-        return resp.json();
-      })
-      .then(function (dados) {
-        if (dados.erro) {
-          dom.iaStatus.textContent = "IA: " + dados.erro;
-          return;
-        }
-        var antes = dom.texto.value;
-        if (dados.texto) dom.texto.value = dados.texto;
-        if (dados.assunto) dom.assunto.value = dados.assunto;
-        registrarAlteracao(antes, dom.texto.value, assuntoAntes);
-        dom.iaStatus.textContent = "Texto revisado e assunto sugerido — confira antes de gerar.";
-      })
-      .catch(function (err) {
-        console.error(err);
-        dom.iaStatus.textContent = "Não foi possível falar com a IA: " + motivoErro(err) + ".";
-      })
-      .then(function () {
-        dom.melhorar.disabled = false;
-      });
-  }
-
-  // ---------------- Geração do documento ----------------
-
-  function gerarDocumento() {
-    var numero = (dom.numero.value || "").trim();
-    var secretaria = (dom.secretaria.value || "").trim();
-    var assunto = (dom.assunto.value || "").trim();
-    var texto = (dom.texto.value || "").trim();
-
-    if (!numero) { setStatus("Informe o número da CI.", true); return; }
-    if (!secretaria) { setStatus("Informe para qual secretaria é a comunicação.", true); return; }
-    if (!assunto) { setStatus("Informe o assunto (ou use \"Melhorar texto\" para gerar um).", true); return; }
-    if (!texto) { setStatus("Escreva ou dite o texto da comunicação.", true); return; }
-
-    if (typeof window.JSZip === "undefined" || typeof window.DocxUtils === "undefined") {
-      setStatus("Não foi possível carregar os componentes de geração de documento (verifique se o arquivo jszip.local.js está publicado junto com o site).", true);
-      return;
-    }
-
-    setStatus("Gerando documento...", false);
-
-    var subs = {
-      "{{CI}}": numero,
-      "{{DATAHOJE}}": fmtDataHoje(),
-      "{{Secretaria}}": secretaria,
-      "{{Assunto}}": assunto,
-      "{{Texto}}": texto
+  // ---------------- contexto do texto ----------------
+  function contexto() {
+    var nomes = Object.keys(state.marcados).sort().map(nomeTexto);
+    var datas = state.calSel.slice().sort().map(function (i) { return fmtBR(parseISO(i)); });
+    return {
+      nomes: nomes, datas: datas, n: nomes.length, d: datas.length, juntar: juntar,
+      texto: dom.texto ? dom.texto.value : "", assuntoLivre: dom.assuntoLivre ? dom.assuntoLivre.value.trim() : ""
     };
+  }
+  function assuntoTexto() {
+    var a = assuntoAtual();
+    return a.campos.indexOf("assuntoLivre") !== -1 ? (contexto().assuntoLivre.toUpperCase() || "{ASSUNTO}") : a.assunto;
+  }
+  function paragrafos() { return assuntoAtual().paragrafos(contexto()); }
+  function faltaPreencher() {
+    var c = contexto(), f = [];
+    if (!(dom.numero.value || "").trim()) f.push("o número da CI");
+    if (usa("agentes") && !c.n) f.push("os agentes");
+    if (usa("datas") && !c.d) f.push("as datas");
+    if (usa("assuntoLivre") && !c.assuntoLivre) f.push("o assunto");
+    if (usa("texto") && !c.texto.trim()) f.push("o texto");
+    if (!(dom.para.value || "").trim()) f.push("o campo “Para”");
+    return f;
+  }
 
+  // ---------------- assuntos (botões) ----------------
+  function renderAssuntos() {
+    dom.assuntos.innerHTML = "";
+    ASSUNTOS.forEach(function (a) {
+      var b = el("button", "fg-modo__b" + (a.id === state.assuntoId ? " fg-modo__b--ativo" : ""), a.botao);
+      b.type = "button";
+      b.addEventListener("click", function () { state.assuntoId = a.id; renderAssuntos(); aplicarCampos(); renderPreview(); });
+      dom.assuntos.appendChild(b);
+    });
+  }
+  function aplicarCampos() {
+    Array.prototype.forEach.call(document.querySelectorAll(".ci-campos"), function (s) { s.hidden = !usa(s.getAttribute("data-campo")); });
+  }
+
+  // ---------------- lista de agentes ----------------
+  function nomesFiltrados() {
+    var t = semAcento(state.filtroTexto);
+    return Object.keys(state.funcionarios).sort().filter(function (n) { return !t || semAcento(n).indexOf(t) !== -1; });
+  }
+  function renderLista() {
+    dom.lista.innerHTML = "";
+    var f = nomesFiltrados();
+    f.forEach(function (nome) {
+      var linha = el("div", "folga-emp");
+      var check = document.createElement("input");
+      check.type = "checkbox"; check.className = "folga-emp__check"; check.checked = !!state.marcados[nome];
+      check.addEventListener("change", function () {
+        if (check.checked) state.marcados[nome] = true; else delete state.marcados[nome];
+        atualizarSelecao();
+      });
+      linha.addEventListener("click", function (e) { if (e.target === check) return; check.checked = !check.checked; check.dispatchEvent(new Event("change")); });
+      linha.appendChild(check);
+      linha.appendChild(el("span", "folga-emp__nome", nome));
+      dom.lista.appendChild(linha);
+    });
+    dom.contador.textContent = "Exibindo " + f.length + " de " + Object.keys(state.funcionarios).length + " agente(s)";
+  }
+  function atualizarSelecao() {
+    var nomes = Object.keys(state.marcados).sort();
+    dom.resumo.innerHTML = "";
+    if (!nomes.length) dom.resumo.appendChild(el("span", "fg-marcados__vazio", "Ninguém marcado ainda — clique nos nomes da lista."));
+    else {
+      dom.resumo.appendChild(el("span", "fg-marcados__t", nomes.length + " marcado(s):"));
+      nomes.forEach(function (nome) {
+        var chip = el("span", "folga-chip"); chip.appendChild(document.createTextNode(nome + " "));
+        var x = el("button", "folga-chip__x", "✕"); x.type = "button"; x.title = "Desmarcar";
+        x.addEventListener("click", function () { delete state.marcados[nome]; renderLista(); atualizarSelecao(); });
+        chip.appendChild(x); dom.resumo.appendChild(chip);
+      });
+    }
+    renderLista(); renderPreview();
+  }
+
+  // ---------------- calendário ----------------
+  function renderCalendario() {
+    var box = document.getElementById("fgCal"); if (!box) return;
+    if (!state.calMes) { var h = new Date(); state.calMes = { a: h.getFullYear(), m: h.getMonth() }; }
+    var a = state.calMes.a, m = state.calMes.m;
+    box.innerHTML = "";
+    var topo = el("div", "fg-cal__topo");
+    var ant = el("button", "fg-cal__nav", "‹"); ant.type = "button"; ant.title = "Mês anterior";
+    var prox = el("button", "fg-cal__nav", "›"); prox.type = "button"; prox.title = "Próximo mês";
+    ant.addEventListener("click", function () { state.calMes = m === 0 ? { a: a - 1, m: 11 } : { a: a, m: m - 1 }; renderCalendario(); });
+    prox.addEventListener("click", function () { state.calMes = m === 11 ? { a: a + 1, m: 0 } : { a: a, m: m + 1 }; renderCalendario(); });
+    topo.appendChild(ant); topo.appendChild(el("strong", null, NOMES_MES[m] + " " + a)); topo.appendChild(prox);
+    box.appendChild(topo);
+    var grade = el("div", "fg-cal__grade");
+    ["D", "S", "T", "Q", "Q", "S", "S"].forEach(function (d, i) { grade.appendChild(el("span", "fg-cal__sem" + (i === 0 || i === 6 ? " fg-cal__fds" : ""), d)); });
+    var primeiro = new Date(a, m, 1).getDay(), dias = new Date(a, m + 1, 0).getDate();
+    var hoje = new Date(), isoHoje = isoDe(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+    for (var v = 0; v < primeiro; v++) grade.appendChild(el("span", "fg-cal__vazio"));
+    for (var d = 1; d <= dias; d++) {
+      (function (d) {
+        var iso = isoDe(a, m, d), dow = new Date(a, m, d).getDay(), sel = state.calSel.indexOf(iso) !== -1;
+        var b = el("button", "fg-cal__dia" + (dow === 0 || dow === 6 ? " fg-cal__fds" : "") + (iso === isoHoje ? " fg-cal__hoje" : "") + (sel ? " fg-cal__sel" : ""), String(d));
+        b.type = "button"; b.setAttribute("aria-pressed", sel ? "true" : "false");
+        b.addEventListener("click", function (e) { clicarDia(iso, e.shiftKey); });
+        grade.appendChild(b);
+      })(d);
+    }
+    box.appendChild(grade);
+    var rod = el("div", "fg-cal__rodape");
+    if (!state.calSel.length) rod.appendChild(el("span", "fg-cal__dica", "Nenhum dia escolhido. Dica: Shift + clique seleciona um intervalo."));
+    else {
+      state.calSel.slice().sort().forEach(function (iso) {
+        var dd = parseISO(iso), chip = el("span", "folga-chip");
+        chip.appendChild(el("span", "folga-chip__dia", DIAS_SEMANA[dd.getDay()]));
+        chip.appendChild(document.createTextNode(fmtBR(dd) + " "));
+        var x = el("button", "folga-chip__x", "✕"); x.type = "button"; x.title = "Tirar este dia";
+        x.addEventListener("click", function () { state.calSel = state.calSel.filter(function (q) { return q !== iso; }); renderCalendario(); renderPreview(); });
+        chip.appendChild(x); rod.appendChild(chip);
+      });
+      var lim = el("button", "folga-link-btn", "limpar dias"); lim.type = "button";
+      lim.addEventListener("click", function () { state.calSel = []; state.calUltimo = null; renderCalendario(); renderPreview(); });
+      rod.appendChild(lim);
+    }
+    box.appendChild(rod);
+  }
+  function clicarDia(iso, shift) {
+    var i = state.calSel.indexOf(iso);
+    if (shift && state.calUltimo && state.calUltimo !== iso) {
+      var a = parseISO(state.calUltimo), b = parseISO(iso);
+      if (a > b) { var t = a; a = b; b = t; }
+      for (var d = new Date(a); d <= b; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) {
+        var k = isoDe(d.getFullYear(), d.getMonth(), d.getDate());
+        if (state.calSel.indexOf(k) === -1) state.calSel.push(k);
+      }
+    } else if (i === -1) state.calSel.push(iso); else state.calSel.splice(i, 1);
+    state.calUltimo = iso;
+    renderCalendario(); renderPreview();
+  }
+
+  // ---------------- remetentes ----------------
+  function renderRemetentes() {
+    dom.remetente.innerHTML = "";
+    state.remetentes.forEach(function (r, i) {
+      var o = document.createElement("option"); o.value = String(i); o.textContent = r.setor + " – " + r.nome; dom.remetente.appendChild(o);
+    });
+    dom.remetente.value = String(state.remetente);
+  }
+
+  // ---------------- modelo ao vivo ----------------
+  function px(tw) { return (tw / 15).toFixed(2) + "px"; }
+  function tdP(tr, texto, cls) { var td = el("td", cls || null); if (texto !== undefined && texto !== null) td.textContent = texto; tr.appendChild(td); return td; }
+
+  function renderPreview() {
+    var P = dom.preview; if (!P) return;
+    P.innerHTML = ""; P.className = "fg-papel";
+    P.style.setProperty("--sz", "13.3px"); P.style.setProperty("--szh", "12px"); P.style.setProperty("--mgl", "4px");
+    P.style.setProperty("--assin", "100px"); P.style.setProperty("--top-pad", px(2268 - 454 + 30));
+    var cab = el("div", "fgp-cab"), img = document.createElement("img");
+    img.src = "assets/cabecalho-prefeitura.png"; img.alt = "Prefeitura Municipal de Ponta Porã"; img.style.height = "86.9px";
+    cab.appendChild(img); P.appendChild(cab);
+    var corpo = el("div", "fgp-corpo"); P.appendChild(corpo);
+    var sp = function (tw) { var d = el("div", "fgp-esp"); d.style.height = px(tw); return d; };
+
+    corpo.appendChild(el("div", "fgp-titulo", "COMUNICAÇÃO INTERNA"));
+    corpo.appendChild(sp(120));
+    var ci = (dom.numero.value || "").trim(), rem = remetenteAtual();
+    var t1 = el("table", "fgp-tab fgp-info"), cg = "";
+    [1250, 3569, 1250, 3569].forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
+    t1.innerHTML = "<colgroup>" + cg + "</colgroup>";
+    var r = el("tr"); tdP(r, "Número:", "fgp-lab"); var cn = tdP(r, ""); cn.appendChild(el("b", null, (ci || "___") + "/2026")); tdP(r, "Data:", "fgp-lab"); tdP(r, dataExtenso(new Date())); t1.appendChild(r);
+    r = el("tr"); tdP(r, "Sigla:", "fgp-lab"); var c = tdP(r, dom.sigla.value); c.colSpan = 3; t1.appendChild(r);
+    r = el("tr"); tdP(r, "De:", "fgp-lab"); c = tdP(r, ""); c.colSpan = 3; c.appendChild(el("b", null, rem.setor + " – " + rem.nome)); t1.appendChild(r);
+    r = el("tr"); tdP(r, "Para:", "fgp-lab"); c = tdP(r, ""); c.colSpan = 3; c.appendChild(el("b", null, paraFormatado())); t1.appendChild(r);
+    corpo.appendChild(t1);
+    corpo.appendChild(sp(240));
+    var as = el("div", "fgp-assunto"); as.appendChild(document.createTextNode("ASSUNTO: "));
+    var asT = assuntoTexto(); as.appendChild(el("span", /^\{.*\}$/.test(asT) ? "fgp-falta" : null, asT)); corpo.appendChild(as);
+    corpo.appendChild(sp(240));
+    var tx = el("div", "fgp-corpotxt");
+    paragrafos().forEach(function (par) {
+      var p = el("p");
+      par.forEach(function (s) {
+        var falta = /^\{[^}]*\}$/.test(s.t);
+        var e = el(s.b || falta ? "b" : "span", falta ? "fgp-falta" : null, s.t);
+        p.appendChild(e);
+      });
+      tx.appendChild(p);
+    });
+    corpo.appendChild(tx);
+
+    var t3 = el("table", "fgp-tab fgp-assin fgp-assin-ci"); cg = "";
+    [3300, 3138, 3200].forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
+    t3.innerHTML = "<colgroup>" + cg + "</colgroup>";
+    r = el("tr", "fgp-cabtab");
+    ["RESPONSÁVEL DO SETOR", "GERÊNCIA DE VIGILÂNCIA EM SAÚDE", "RECEBIDO EM"].forEach(function (t) { tdP(r, t); });
+    t3.appendChild(r);
+    r = el("tr", "fgp-linha-assin");
+    var a1 = el("td"); a1.appendChild(el("div", "fgp-nome-assin", rem.nome)); a1.appendChild(el("div", "fgp-sub-assin", rem.setor)); r.appendChild(a1);
+    var a2 = el("td"); a2.appendChild(el("div", "fgp-nome-assin", dom.gerente.value)); a2.appendChild(el("div", "fgp-sub-assin", dom.gerenteCargo.value)); r.appendChild(a2);
+    var a3 = el("td", "fgp-recebido"); a3.appendChild(el("div", null, "Assinatura: ..............................")); a3.appendChild(el("div", null, "Data: ____/____/______")); r.appendChild(a3);
+    t3.appendChild(r);
+    P.appendChild(t3);
+    var rod = el("div", "fgp-rodape"); rod.appendChild(el("b", null, "SETOR DE ENDEMIAS E VETORES - UVZ (UNIDADE DE VIGILÂNCIA E ZOONOSES)")); rod.appendChild(document.createElement("br"));
+    rod.appendChild(document.createTextNode("Rua: São Vicente de Paula, 129, Vila São Vicente de Paula - CEP 79900-001")); P.appendChild(rod);
+
+    // cabe em 1 folha? (o texto não pode encostar nas assinaturas, que ficam no pé da página)
+    var limite = PAPEL_H - 75.6 - 129 - 20;
+    var estoura = (corpo.offsetTop + corpo.offsetHeight) > limite;
+    if (estoura) P.classList.add("fg-papel--estoura");
+    var selo = document.getElementById("fgSelo"), falta = faltaPreencher();
+    if (estoura) { selo.textContent = "⚠ texto longo: vai passar de 1 página"; selo.className = "fg-selo fg-selo--aviso"; }
+    else if (falta.length) { selo.textContent = "falta: " + falta.join(", "); selo.className = "fg-selo"; }
+    else { selo.textContent = "✓ pronto, cabe em 1 folha"; selo.className = "fg-selo fg-selo--ok"; }
+    ajustarEscala();
+  }
+
+  var zTela = 1;
+  function ajustarTela() {
+    var pg = document.querySelector(".page--split"); if (!pg) return;
+    zTela = window.innerWidth > 1020 ? Math.max(0.6, Math.min(1.15, window.innerHeight / 1000, window.innerWidth / 1650)) : 1;
+    pg.style.setProperty("--z", zTela.toFixed(3));
+    ajustarEscala();
+  }
+  function ajustarEscala() {
+    var caixa = document.getElementById("fgCaixa"); if (!caixa || !dom.preview) return;
+    var larg = caixa.parentNode.clientWidth - 30; if (larg <= 0) return;
+    var h = Math.max(PAPEL_H, dom.preview.offsetHeight), k = Math.min(1, larg / PAPEL_W);
+    if (window.innerWidth > 1020) { var livre = (window.innerHeight - 90) / zTela - 255; k = Math.min(k, Math.max(0.3, livre / h)); }
+    caixa.style.width = Math.round(PAPEL_W * k) + "px"; caixa.style.margin = "0 auto";
+    dom.preview.style.transform = "scale(" + k + ")"; caixa.style.height = Math.round(h * k) + "px";
+  }
+  var lupaReal = true;
+  function abrirLupa() {
+    var lupa = document.getElementById("fgLupa"), area = document.getElementById("fgLupaArea");
+    area.innerHTML = "";
+    var copia = dom.preview.cloneNode(true); copia.removeAttribute("id");
+    var h = Math.max(PAPEL_H, dom.preview.offsetHeight);
+    var k = lupaReal ? 1 : Math.min((window.innerWidth - 40) / PAPEL_W, (window.innerHeight - 90) / h);
+    copia.style.transform = "scale(" + k + ")"; copia.style.position = "absolute"; copia.style.left = "0"; copia.style.top = "0";
+    var m = el("div", "fg-lupa__papel"); m.style.width = Math.round(PAPEL_W * k) + "px"; m.style.height = Math.round(h * k) + "px";
+    m.appendChild(copia); area.appendChild(m);
+    document.getElementById("fgLupaTam").textContent = lupaReal ? "↔ Ajustar à tela" : "▣ Tamanho real (A4)";
+    lupa.hidden = false;
+  }
+  function fecharLupa() { document.getElementById("fgLupa").hidden = true; }
+
+  // ---------------- histórico de CIs (compartilhado com a Folga) ----------------
+  function carregarHist() { try { var h = JSON.parse(localStorage.getItem(HIST_KEY) || "[]"); return Array.isArray(h) ? h : []; } catch (e) { return []; } }
+  function numCi(ci) { var m = String(ci || "").match(/\d+/); return m ? parseInt(m[0], 10) : NaN; }
+  function proximaCi() {
+    var max = NaN, larg = 3;
+    carregarHist().forEach(function (e) { var n = numCi(e.ci); if (!isNaN(n) && (isNaN(max) || n > max)) { max = n; larg = Math.max(3, (String(e.ci).match(/\d+/) || [""])[0].length); } });
+    if (isNaN(max)) return null;
+    var p = String(max + 1), u = String(max); while (p.length < larg) p = "0" + p; while (u.length < larg) u = "0" + u;
+    return { ultima: u, proxima: p };
+  }
+  function atualizarDicaCi() {
+    var d = document.getElementById("fgCiDica"), n = proximaCi(); if (!d) return;
+    d.textContent = ""; if (!n) { d.hidden = true; return; }
+    d.hidden = false; d.appendChild(document.createTextNode("Última registrada: " + n.ultima + " · "));
+    var b = el("button", "folga-link-btn", "usar " + n.proxima); b.type = "button";
+    b.addEventListener("click", function () { dom.numero.value = n.proxima; renderPreview(); });
+    d.appendChild(b);
+  }
+  function confirmarCiRepetida(ci) {
+    var chave = String(numCi(ci)), tipo = "CI – " + (assuntoAtual().assunto || "Texto livre"), c = contexto();
+    var sig = Object.keys(state.marcados).sort().map(function (n) { return n + "|" + c.datas.join(","); }).join(";");
+    var outro = carregarHist().filter(function (e) { return e.chave === chave && (e.tipo !== tipo || e.sig !== sig); })[0];
+    if (!outro) return true;
+    return window.confirm("A CI " + ci + "/2026 já foi registrada em " + new Date(outro.quando).toLocaleDateString("pt-BR") + " (" + outro.tipo + ").\n\nGerar mesmo assim? (vai ficar como outro registro com o mesmo número)");
+  }
+  function registrarHist(ci) {
+    var h = carregarHist(), c = contexto(), tipo = "CI – " + (assuntoAtual().assunto || assuntoTexto());
+    var ag = Object.keys(state.marcados).sort().map(function (n) { return { nome: n, datas: c.datas.slice() }; });
+    var sig = ag.map(function (a) { return a.nome + "|" + a.datas.join(","); }).join(";"), chave = String(numCi(ci)), rem = remetenteAtual();
+    var e = h.filter(function (x) { return x.chave === chave && x.tipo === tipo && x.sig === sig; })[0];
+    if (e) { e.quando = new Date().toISOString(); if (e.acoes.indexOf("docx") === -1) e.acoes.push("docx"); }
+    else h.push({ id: Date.now(), ci: ci, chave: chave, quando: new Date().toISOString(), tipo: tipo, remetente: rem.setor + " – " + rem.nome, agentes: ag, sig: sig, acoes: ["docx"] });
+    try { localStorage.setItem(HIST_KEY, JSON.stringify(h)); } catch (e2) { /* ignora */ }
+    atualizarDicaCi();
+  }
+
+  // ---------------- gerar .docx ----------------
+  function xmlParagrafos(pars) {
+    return pars.map(function (p) {
+      return '<w:p><w:pPr><w:spacing w:before="0" w:after="120" w:line="360" w:lineRule="auto"/><w:ind w:firstLine="709"/><w:jc w:val="both"/></w:pPr>' +
+        p.map(function (s) {
+          return '<w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>' + (s.b ? "<w:b/><w:bCs/>" : "") + '<w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">' + escXml(s.t) + "</w:t></w:r>";
+        }).join("") + "</w:p>";
+    }).join("");
+  }
+  function gerarDocumento() {
+    var falta = faltaPreencher();
+    if (falta.length) { setStatus("Falta preencher: " + falta.join(", ") + ".", true); return; }
+    if (typeof window.JSZip === "undefined" || typeof window.DocxUtils === "undefined") { setStatus("Não foi possível carregar os componentes de geração de documento.", true); return; }
+    var ci = dom.numero.value.trim();
+    if (!confirmarCiRepetida(ci)) return;
+    setStatus("Gerando documento...", false);
+    var rem = remetenteAtual(), corpoXml = xmlParagrafos(paragrafos());
+    var subs = {
+      "<<ci>>": ci, "<<hoje>>": dataExtenso(new Date()), "<<sigla>>": dom.sigla.value.trim(), "<<setor>>": rem.setor, "<<remetente>>": rem.nome,
+      "<<para>>": paraFormatado(), "<<assunto>>": assuntoTexto(), "<<setorAssin>>": rem.setor,
+      "<<gerente>>": dom.gerente.value.trim(), "<<gerenteCargo>>": dom.gerenteCargo.value.trim()
+    };
     fetch("assets/modelo-ci.docx")
-      .then(function (resp) {
-        if (!resp.ok) throw new Error("Modelo não encontrado (assets/modelo-ci.docx)");
-        return resp.arrayBuffer();
-      })
+      .then(function (resp) { if (!resp.ok) throw new Error("Modelo não encontrado (assets/modelo-ci.docx)"); return resp.arrayBuffer(); })
       .then(function (bytes) {
         return DocxUtils.lerArquivosXml(bytes).then(function (arquivos) {
-          Object.keys(arquivos).forEach(function (caminho) {
-            arquivos[caminho] = DocxUtils.substituirTags(arquivos[caminho], subs);
-          });
+          var doc = arquivos["word/document.xml"], re = /<w:p>(?:(?!<\/w:p>)[\s\S])*?&lt;&lt;corpo&gt;&gt;[\s\S]*?<\/w:p>/;
+          if (!re.test(doc)) throw new Error("Marcador <<corpo>> não encontrado no modelo.");
+          arquivos["word/document.xml"] = doc.replace(re, function () { return corpoXml; });
+          Object.keys(arquivos).forEach(function (caminho) { arquivos[caminho] = DocxUtils.substituirTags(arquivos[caminho], subs); });
           return DocxUtils.gerarDocxBlob(bytes, arquivos);
         });
       })
       .then(function (blob) {
-        var numeroLimpo = numero.replace(/\//g, "-").replace(/\\/g, "-").replace(/:/g, "-");
-        var nomeArquivo = "CI - " + numeroLimpo + " - Comunicacao Interna.docx";
-
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement("a");
-        a.href = url;
-        a.download = nomeArquivo;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        setStatus("Documento gerado: " + nomeArquivo, false);
+        var slug = (assuntoAtual().assunto || assuntoTexto()).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+        slug = slug.charAt(0).toUpperCase() + slug.slice(1);
+        var nome = "CI - " + ci.replace(/[\/\\:]/g, "-") + " - " + slug + ".docx";
+        var url = URL.createObjectURL(blob), a = document.createElement("a");
+        a.href = url; a.download = nome; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        registrarHist(ci);
+        setStatus("Documento gerado: " + nome, false);
       })
-      .catch(function (err) {
-        console.error(err);
-        setStatus("Erro ao gerar documento: " + err.message, true);
-      });
+      .catch(function (err) { console.error(err); setStatus("Erro ao gerar documento: " + err.message, true); });
   }
 
-  // ---------------- Início ----------------
+  function limparTudo() {
+    if ((Object.keys(state.marcados).length || state.calSel.length) && !window.confirm("Limpar agentes, datas e textos deste documento?")) return;
+    state.marcados = {}; state.calSel = []; state.calUltimo = null;
+    dom.numero.value = ""; dom.texto.value = ""; dom.assuntoLivre.value = "";
+    renderLista(); atualizarSelecao(); renderCalendario(); setStatus("", false);
+  }
 
-  function iniciar() {
-    cacheDom();
-    if (!dom.texto) return;
-
-    configurarMicrofone();
-
-    if (!iaConfigurada()) {
-      dom.iaStatus.textContent = "Corrige ortografia, gramática e pontuação — reescrita e sugestão de assunto por IA não configuradas.";
-    }
-
-    dom.melhorar.addEventListener("click", melhorarTexto);
-    dom.desfazer.addEventListener("click", desfazer);
+  // ---------------- inicialização ----------------
+  function init() {
+    ["ciNumero", "ciRemetente", "ciPara", "ciSigla", "ciGerente", "ciGerenteCargo", "ciAssuntos", "ciIncMat", "ciBusca", "ciResumoSelecao", "ciLista", "ciContador",
+     "ciMarcarTodos", "ciDesmarcar", "ciTexto", "ciAssuntoLivre", "ciLimpar", "ciGerar", "ciStatus", "ciPreview"].forEach(function (id) {
+      var k = id.replace(/^ci/, ""); k = k.charAt(0).toLowerCase() + k.slice(1);
+      dom[k] = document.getElementById(id);
+    });
+    dom.resumo = dom.resumoSelecao;
+    state.funcionarios = carregarFuncionarios(); state.matriculas = carregarMatriculas(); state.remetentes = carregarRemetentes();
+    renderAssuntos(); aplicarCampos(); renderRemetentes(); renderCalendario(); atualizarDicaCi();
+    dom.numero.addEventListener("input", renderPreview);
+    dom.remetente.addEventListener("change", function () { state.remetente = parseInt(dom.remetente.value, 10) || 0; renderPreview(); });
+    ["para", "sigla", "gerente", "gerenteCargo", "texto", "assuntoLivre"].forEach(function (k) { dom[k].addEventListener("input", renderPreview); });
+    dom.incMat.addEventListener("change", function () { state.incMat = dom.incMat.checked; renderPreview(); });
+    dom.busca.addEventListener("input", function () { state.filtroTexto = dom.busca.value; renderLista(); });
+    dom.busca.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter") return; e.preventDefault();
+      var l = nomesFiltrados(); if (l.length !== 1) { setStatus(l.length ? "Há " + l.length + " resultados — digite mais do nome." : "Ninguém encontrado com essa busca.", !l.length); return; }
+      if (state.marcados[l[0]]) delete state.marcados[l[0]]; else state.marcados[l[0]] = true;
+      state.filtroTexto = ""; dom.busca.value = ""; atualizarSelecao(); dom.busca.focus();
+    });
+    dom.marcarTodos.addEventListener("click", function () {
+      var l = nomesFiltrados();
+      if (l.length > 15 && !window.confirm("Marcar " + l.length + " agentes de uma vez?")) return;
+      l.forEach(function (n) { state.marcados[n] = true; }); atualizarSelecao();
+    });
+    dom.desmarcar.addEventListener("click", function () { state.marcados = {}; atualizarSelecao(); });
+    dom.limpar.addEventListener("click", limparTudo);
     dom.gerar.addEventListener("click", gerarDocumento);
-    setStatus("", false);
+    document.querySelectorAll(".fg-aba").forEach(function (b) {
+      b.addEventListener("click", function () {
+        document.querySelectorAll(".fg-aba").forEach(function (x) { x.classList.toggle("fg-aba--ativa", x === b); });
+        var g = document.querySelector(".fg-grade"); if (g) g.setAttribute("data-aba", b.getAttribute("data-aba"));
+        setTimeout(ajustarEscala, 30);
+      });
+    });
+    document.getElementById("fgAmpliar").addEventListener("click", abrirLupa);
+    document.getElementById("fgLupaX").addEventListener("click", fecharLupa);
+    document.getElementById("fgLupaTam").addEventListener("click", function () { lupaReal = !lupaReal; abrirLupa(); });
+    var lupa = document.getElementById("fgLupa");
+    lupa.addEventListener("click", function (e) { if (e.target === lupa || e.target.id === "fgLupaArea") fecharLupa(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") fecharLupa(); });
+    window.addEventListener("resize", ajustarTela);
+    renderLista(); atualizarSelecao(); ajustarTela();
   }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", iniciar);
-  } else {
-    iniciar();
-  }
+  document.addEventListener("DOMContentLoaded", init);
 })();

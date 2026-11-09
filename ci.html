@@ -10,9 +10,11 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="tema.css">
 <link rel="stylesheet" href="tema-claro.css">
+<link rel="stylesheet" href="folga-split.css">
+<link rel="stylesheet" href="ci.css">
 <script src="tema-toggle.js"></script>
 </head>
-<body>
+<body class="folga-page ci-page">
 
 <header class="topbar">
   <div class="topbar__inner">
@@ -26,68 +28,150 @@
   </div>
 </header>
 
-<main class="page page--tool">
+<main class="page page--tool page--split">
 
-  <div class="hero">
+  <div class="hero hero--compacto">
     <h1 class="title">Comunicação Interna</h1>
-    <p class="subtitle">Digite ou dite a comunicação, deixe a IA revisar o texto e gerar um assunto, e baixe o documento pronto.</p>
   </div>
 
-  <div class="tool-panel">
+  <nav class="fg-abas" aria-label="Alternar tela">
+    <button type="button" class="fg-aba fg-aba--ativa" data-aba="editar">① Preencher</button>
+    <button type="button" class="fg-aba" data-aba="modelo">📄 Ver modelo</button>
+  </nav>
 
-    <section class="folga-section">
-      <div class="folga-row">
-        <label class="folga-field">
-          <span>Número da CI <small>(o modelo já tem "/2026" fixo — digite só o número, ex: 042)</small></span>
-          <input type="text" id="ciNumero" placeholder="Ex: 042">
+  <div class="fg-grade" data-aba="editar">
+
+    <!-- ======================= ESQUERDA: passo a passo ======================= -->
+    <div class="fg-esq">
+
+      <div class="fg-col fg-col1">
+
+      <section class="fg-passo">
+        <h3 class="fg-passo__t"><span class="fg-passo__n">1</span> Documento</h3>
+
+        <div class="fg-tipo">
+          <span class="fg-rot">Assunto (texto pronto)</span>
+          <div class="fg-modo fg-modo--tipo ci-assuntos" id="ciAssuntos"></div>
+        </div>
+
+        <div class="fg-doc">
+          <div class="fg-doc__ci">
+            <span class="fg-rot">Número da CI</span>
+            <label class="fg-ci">
+              <input type="text" id="ciNumero" placeholder="042" inputmode="numeric" autocomplete="off">
+              <span class="fg-ci__sufixo">/2026</span>
+            </label>
+            <span class="fg-ci__dica" id="fgCiDica" hidden></span>
+          </div>
+          <div class="fg-doc__de">
+            <span class="fg-rot">Quem envia (campo “De:”)</span>
+            <select id="ciRemetente" class="folga-select" aria-label="Quem envia"></select>
+          </div>
+        </div>
+
+        <div class="ci-row2">
+          <label class="folga-field">
+            <span class="fg-rot">Para:</span>
+            <input type="text" id="ciPara" class="folga-input" value="Secretaria Municipal de Saúde - Carla Santiago" autocomplete="off">
+          </label>
+        </div>
+
+        <details class="fg-mais">
+          <summary>Mais campos (sigla e gerência que assina)</summary>
+          <div class="ci-row2">
+            <label class="folga-field"><span class="fg-rot">Sigla do órgão</span>
+              <input type="text" id="ciSigla" class="folga-input" value="ENDZOO/GVS/SMS/PP" autocomplete="off"></label>
+            <label class="folga-field"><span class="fg-rot">Gerência (nome)</span>
+              <input type="text" id="ciGerente" class="folga-input" value="Isabela Pini Guerreiro" autocomplete="off"></label>
+            <label class="folga-field"><span class="fg-rot">Gerência (cargo)</span>
+              <input type="text" id="ciGerenteCargo" class="folga-input" value="Gerente de Vigilância em Saúde" autocomplete="off"></label>
+          </div>
+          <p class="folga-periodo__ajuda">Para cadastrar outro coordenador em “Quem envia”, use a página Folga: a lista é a mesma nas duas.</p>
+        </details>
+      </section>
+
+      <section class="fg-passo ci-campos" data-campo="agentes">
+        <h3 class="fg-passo__t"><span class="fg-passo__n">2</span> Quais agentes?</h3>
+
+        <label class="folga-periodo folga-periodo--solto">
+          <input type="checkbox" id="ciIncMat" checked>
+          <span>Mostrar a matrícula ao lado do nome no texto</span>
         </label>
-        <label class="folga-field">
-          <span>Para (Secretaria) <small>{{Secretaria}}</small></span>
-          <input type="text" id="ciSecretaria" value="Secretaria Municipal de Saúde">
-        </label>
+
+        <div class="fg-busca">
+          <input type="text" id="ciBusca" class="folga-input" placeholder="🔍 Nome + Enter para marcar" autocomplete="off">
+        </div>
+
+        <div class="fg-marcados" id="ciResumoSelecao" aria-live="polite"></div>
+
+        <div class="folga-list" id="ciLista"></div>
+        <p class="folga-count" id="ciContador"></p>
+
+        <div class="fg-acoes">
+          <button type="button" id="ciMarcarTodos" class="folga-btn folga-btn--ghost fer-sm">Marcar todos da lista</button>
+          <button type="button" id="ciDesmarcar" class="folga-btn folga-btn--ghost fer-sm">Desmarcar todos</button>
+        </div>
+      </section>
+
       </div>
-    </section>
 
-    <section class="folga-section">
-      <h3 class="folga-section__title">Texto da comunicação</h3>
-      <div class="ci-textarea-wrap">
-        <textarea id="ciTexto" class="ci-textarea" rows="8" placeholder="Digite o texto da comunicação, ou use o microfone para ditar..."></textarea>
-        <button type="button" id="ciMic" class="ci-mic" title="Ditar por voz">🎤</button>
+      <div class="fg-col fg-col2">
+
+      <section class="fg-passo ci-campos" data-campo="datas">
+        <h3 class="fg-passo__t"><span class="fg-passo__n">3</span> Em quais datas?</h3>
+        <p class="fg-cal__titulo">Selecione as datas <small>(clique em quantos dias quiser)</small></p>
+        <div class="fg-cal" id="fgCal"></div>
+      </section>
+
+      <section class="fg-passo ci-campos" data-campo="texto" hidden>
+        <h3 class="fg-passo__t"><span class="fg-passo__n">2</span> Texto</h3>
+        <label class="folga-field"><span class="fg-rot">Assunto</span>
+          <input type="text" id="ciAssuntoLivre" class="folga-input" placeholder="Ex: SOLICITAÇÃO DE MATERIAL" autocomplete="off"></label>
+        <label class="folga-field" style="margin-top:.6rem"><span class="fg-rot">Texto da comunicação (um parágrafo por linha)</span>
+          <textarea id="ciTexto" class="folga-input ci-texto" rows="8" placeholder="Digite o texto…"></textarea></label>
+      </section>
+
       </div>
-      <p class="folga-count" id="ciMicStatus"></p>
 
-      <div class="folga-row" style="margin-top:0.6rem">
-        <button type="button" id="ciMelhorar" class="folga-btn folga-btn--ghost">✨ Melhorar texto</button>
-        <button type="button" id="ciDesfazer" class="folga-btn folga-btn--ghost" hidden>↩ Desfazer</button>
-      </div>
-      <p class="folga-count" id="ciIaStatus" role="status"></p>
-      <div class="ci-detalhe" id="ciIaDetalhe" hidden></div>
-    </section>
-
-    <section class="folga-section">
-      <h3 class="folga-section__title">Assunto</h3>
-      <div class="folga-row">
-        <input type="text" id="ciAssunto" class="folga-input" placeholder="Gerado automaticamente ao melhorar o texto, ou digite o seu">
-      </div>
-    </section>
-
-    <p class="folga-status" id="ciStatus"></p>
-
-    <div class="modal__actions">
-      <button type="button" id="ciGerar" class="folga-btn folga-btn--primary">Gerar Comunicação (.docx)</button>
     </div>
+
+    <!-- ======================= DIREITA: modelo ao vivo ======================= -->
+    <aside class="fg-dir">
+      <div class="fg-dir__topo">
+        <div class="fg-dir__info">
+          <strong>Modelo do documento</strong>
+          <span class="fg-selo" id="fgSelo"></span>
+        </div>
+        <div class="fg-dir__botoes">
+          <button type="button" id="ciLimpar" class="folga-btn folga-btn--ghost fer-sm">Limpar tudo</button>
+          <button type="button" id="ciGerar" class="folga-btn folga-btn--primary">⬇ Gerar .docx</button>
+        </div>
+      </div>
+      <p class="folga-status" id="ciStatus" aria-live="polite"></p>
+      <div class="fg-zoom"><button type="button" id="fgAmpliar">🔍 Ampliar</button></div>
+      <div class="fg-papel-caixa" id="fgCaixa">
+        <div class="fg-papel" id="ciPreview"></div>
+      </div>
+    </aside>
 
   </div>
 
   <footer class="foot">
-    <p>Comunicação Interna — Prefeitura Municipal de Ponta Porã.</p>
+    <p>Comunicação Interna — Prefeitura Municipal de Ponta Porã. A lista de agentes é a mesma da página Folga.</p>
   </footer>
 
 </main>
 
+  <div class="fg-lupa" id="fgLupa" hidden>
+    <button type="button" class="fg-lupa__tam" id="fgLupaTam">↔ Ajustar à tela</button>
+    <button type="button" class="fg-lupa__x" id="fgLupaX" aria-label="Fechar">✕ Fechar</button>
+    <div class="fg-lupa__area" id="fgLupaArea"></div>
+  </div>
+
 <script src="jszip.local.js"></script>
 <script src="docx-utils.js"></script>
-<script src="ci-config.js"></script>
+<script src="dados-agentes.js"></script>
+<script src="ci-assuntos.js"></script>
 <script src="ci.js"></script>
 <script src="clima-core.js"></script>
 <script src="weather-bg.js" defer></script>
