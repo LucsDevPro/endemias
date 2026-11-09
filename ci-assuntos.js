@@ -25,7 +25,7 @@ window.CI_ASSUNTOS = [
       var plural = c.n > 1;
       return [
         [
-          { t: "Informamos que, por demanda e necessidade operacional do Setor de Endemias e Vetores" + (c.motivo ? " (motivo: " + c.motivo + ")" : "") + ", " + (plural ? "os agentes " : "o agente ") },
+          { t: "Informamos que, por demanda e necessidade operacional do Setor de Endemias e Vetores" + (c.motivo ? ", em razão " + c.motivo : "") + ", " + (plural ? "os agentes " : "o agente ") },
           { t: c.n ? c.juntar(c.nomes) : "{NOMES DOS AGENTES}", b: true },
           { t: (plural ? " terão" : " terá") + " sua rotina de trabalho alterada, excepcionalmente, para jornada de 6 (seis) horas diárias, das 07h às 13h, " + (c.d > 1 ? "nas seguintes datas: " : "na seguinte data: ") },
           { t: c.d ? c.juntar(c.datas) : "{DATAS}", b: true },
