@@ -473,6 +473,13 @@
   }
 
   // ---------------- Tipo de folga ----------------
+  // destinatário: banco de horas → Secretaria de Saúde; eleição → Protocolo / RH Central
+  function destinatario(tipo) {
+    if (tipo === TIPO_ELEITORAL) return { fixo: "SETOR - Protocolo > Recursos Humanos - Central", nome: "" };
+    return { fixo: "SECRETARIA MUNICIPAL DE SAÚDE – ", nome: "Mariane Silvestre Quinhones" };
+  }
+  function destinatarioTexto(tipo) { var d = destinatario(tipo); return d.fixo + d.nome; }
+
   function tipoDe() { return state.tipoAtual; }   // um documento = um tipo só (eleição vai para outro setor)
 
   // texto do ASSUNTO conforme o tipo do documento
@@ -613,7 +620,7 @@
     t1.innerHTML = "<colgroup>" + cg + "</colgroup>";
     var r = el("tr"); tdPapel(r, "Número:", "fgp-lab"); tdPapel(r, (ci || "___") + "/2026"); tdPapel(r, "Data:", "fgp-lab"); tdPapel(r, formatarDataExtenso(new Date())); t1.appendChild(r);
     r = el("tr"); tdPapel(r, "De:", "fgp-lab"); var c = tdPapel(r, remetenteAtual().setor + " – "); c.colSpan = 3; c.appendChild(el("b", null, remetenteAtual().nome)); t1.appendChild(r);
-    r = el("tr"); tdPapel(r, "Para:", "fgp-lab"); c = tdPapel(r, "SECRETARIA MUNICIPAL DE SAÚDE – "); c.colSpan = 3; c.appendChild(el("b", null, "Mariane Silvestre Quinhones")); t1.appendChild(r);
+    r = el("tr"); tdPapel(r, "Para:", "fgp-lab"); var dest = destinatario(state.tipoAtual); c = tdPapel(r, ""); c.colSpan = 3; c.appendChild(el("b", null, destinatarioTexto(state.tipoAtual))); t1.appendChild(r);
     corpo.appendChild(t1);
     corpo.appendChild(sp(200));
 
@@ -1418,7 +1425,7 @@
           });
 
           var rem = remetenteAtual();
-          var subs = { "<<ci>>": ci, "<<hoje>>": formatarDataExtenso(new Date()), "<<setor>>": rem.setor, "<<assunto>>": assuntoTexto(state.tipoAtual), "<<remetente>>": rem.nome };
+          var subs = { "<<ci>>": ci, "<<hoje>>": formatarDataExtenso(new Date()), "<<setor>>": rem.setor, "<<assunto>>": assuntoTexto(state.tipoAtual), "<<para>>": destinatarioTexto(state.tipoAtual), "<<remetente>>": rem.nome };
           Object.keys(arquivos).forEach(function (caminho) {
             var xmlAtual = caminho === "word/document.xml" ? docXml : arquivos[caminho];
             arquivos[caminho] = DocxUtils.substituirTags(xmlAtual, subs);
