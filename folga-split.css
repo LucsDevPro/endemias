@@ -553,12 +553,15 @@ body.ver-funcao .folga-emp__cargo { display: block !important; }
 .fg-pasta__nome { font-size: .8rem; font-weight: 700; color: #002B68; overflow-wrap: anywhere; }
 .fg-pasta .folga-link-btn { font-size: .74rem; padding: 0; }
 
-/* Tabelas do modelo: padrão único (Folga e Comunicação Interna) — igual ao .docx */
-.fgp-tab tr:first-of-type td { border-top: 2px solid #002B68; }
-.fgp-tab tr:last-of-type td { border-bottom: 2px solid #002B68; }
+/* Tabelas do modelo: padrão único (Folga e Comunicação Interna), nas cores do logo — igual ao .docx */
+.fgp-titulo { background: #002868; border-bottom: 3px solid #F8B800; }
+.fgp-tab tr:first-of-type td { border-top: 2px solid #002868; }
+.fgp-tab tr:last-of-type td { border-bottom: 2px solid #002868; }
 .fgp-tab td { border-color: #BFD2E8; }
 .fgp-tab td + td { border-left-color: #D5E2F1; }
-.fgp-lab { background: #E8F1FA; color: #002B68; }
-.fgp-tab td.fgp-lab { border-left: 3px solid #007ECA; }
-.fgp-func .fgp-cabtab td, .fgp-assin .fgp-cabtab td { background: #002B68; color: #fff; border-color: #002B68; border-bottom: 2px solid #FFB900; }
-.fgp-func .fgp-datas { color: #002B68; }
+.fgp-lab { background: #E6F2FB; color: #002868; }
+.fgp-tab td.fgp-lab { border-left: 3px solid #00B838; }
+.fgp-func .fgp-cabtab td, .fgp-assin .fgp-cabtab td { background: #0078C8; color: #fff; border-color: #0078C8; border-bottom: 2px solid #F8B800; }
+.fgp-func .fgp-datas { color: #002868; }
+/* assinaturas da CI: só os nomes, sem tabela */
+.fgp-assin-ci td { border: 0 !important; background: transparent !important; }

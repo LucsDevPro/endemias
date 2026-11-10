@@ -251,7 +251,7 @@
     var P = dom.preview; if (!P) return;
     P.innerHTML = ""; P.className = "fg-papel";
     P.style.setProperty("--sz", "13.3px"); P.style.setProperty("--szh", "12px"); P.style.setProperty("--mgl", "4px");
-    P.style.setProperty("--assin", "100px"); P.style.setProperty("--top-pad", px(2268 - 454 + 30));
+    P.style.setProperty("--assin", "73px"); P.style.setProperty("--top-pad", px(2268 - 454 + 30));
     var cab = el("div", "fgp-cab"), img = document.createElement("img");
     img.src = "assets/cabecalho-prefeitura.png"; img.alt = "Prefeitura Municipal de Ponta Porã"; img.style.height = "86.9px";
     cab.appendChild(img); P.appendChild(cab);
@@ -288,9 +288,6 @@
     var t3 = el("table", "fgp-tab fgp-assin fgp-assin-ci"); cg = "";
     [4819, 4819].forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
     t3.innerHTML = "<colgroup>" + cg + "</colgroup>";
-    r = el("tr", "fgp-cabtab");
-    ["RESPONSÁVEL DO SETOR", "GERÊNCIA DE VIGILÂNCIA EM SAÚDE"].forEach(function (t) { tdP(r, t); });
-    t3.appendChild(r);
     r = el("tr", "fgp-linha-assin");
     var a1 = el("td"); a1.appendChild(el("div", "fgp-nome-assin", rem.nome)); a1.appendChild(el("div", "fgp-sub-assin", cargoRemetente(rem))); r.appendChild(a1);
     var a2 = el("td"); a2.appendChild(el("div", "fgp-nome-assin", dom.gerente.value)); a2.appendChild(el("div", "fgp-sub-assin", dom.gerenteCargo.value)); r.appendChild(a2);
@@ -300,7 +297,7 @@
     rod.appendChild(document.createTextNode("Rua: São Vicente de Paula, 129, Vila São Vicente de Paula - CEP 79900-001")); P.appendChild(rod);
 
     // cabe em 1 folha? (o texto não pode encostar nas assinaturas, que ficam no pé da página)
-    var limite = PAPEL_H - 75.6 - 129 - 20;
+    var limite = PAPEL_H - 75.6 - 73 - 20;
     var estoura = (corpo.offsetTop + corpo.offsetHeight) > limite;
     if (estoura) P.classList.add("fg-papel--estoura");
     var selo = document.getElementById("fgSelo"), falta = faltaPreencher();
