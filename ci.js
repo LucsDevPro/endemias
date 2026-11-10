@@ -374,6 +374,48 @@
     atualizarDicaCi();
   }
 
+  // ---------------- microfone: ditado por voz (Web Speech API, nativa do Chrome/Edge) ----------------
+  var reconhecimento = null, ditando = false;
+  function configurarMicrofone() {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      dom.mic.disabled = true;
+      dom.mic.title = "Este navegador não suporta ditado por voz (use o Chrome ou o Edge).";
+      return;
+    }
+    reconhecimento = new SR();
+    reconhecimento.lang = "pt-BR"; reconhecimento.continuous = true; reconhecimento.interimResults = false;
+    reconhecimento.onresult = function (ev) {
+      var novo = "";
+      for (var i = ev.resultIndex; i < ev.results.length; i++) if (ev.results[i].isFinal) novo += ev.results[i][0].transcript;
+      if (novo) {
+        var atual = dom.texto.value.replace(/\s+$/, "");
+        dom.texto.value = (atual ? atual + " " : "") + novo.trim();
+        renderPreview();
+      }
+    };
+    reconhecimento.onerror = function (ev) {
+      dom.iaStatus.textContent = ev.error === "not-allowed" ? "O navegador bloqueou o microfone. Libere a permissão no cadeado da barra de endereço." : "Erro no ditado: " + ev.error;
+      pararDitado(true);
+    };
+    reconhecimento.onend = function () {
+      if (ditando) { try { reconhecimento.start(); } catch (e) { pararDitado(); } }   // o navegador encerra sozinho de tempos em tempos
+    };
+    dom.mic.addEventListener("click", function () { if (ditando) pararDitado(); else iniciarDitado(); });
+  }
+  function iniciarDitado() {
+    try {
+      reconhecimento.start(); ditando = true;
+      dom.mic.classList.add("ci-micro--ativo");
+      dom.iaStatus.textContent = "🔴 Ouvindo… fale o texto. Clique no microfone de novo para parar.";
+    } catch (e) { dom.iaStatus.textContent = "Não foi possível iniciar o microfone."; }
+  }
+  function pararDitado(manterMsg) {
+    ditando = false; dom.mic.classList.remove("ci-micro--ativo");
+    if (!manterMsg) dom.iaStatus.textContent = "";
+    try { reconhecimento.stop(); } catch (e) { /* ignora */ }
+  }
+
   // ---------------- Corrigir / melhorar o texto livre ----------------
   var LT_URL = "https://api.languagetool.org/v2/check";
   var LT_LIMITE = 15000;          // o serviço gratuito aceita ~20 mil caracteres por pedido
@@ -810,7 +852,7 @@
   // ---------------- inicialização ----------------
   function init() {
     ["ciNumero", "ciRemetente", "ciPara", "ciSigla", "ciGerente", "ciGerenteCargo", "ciAssuntos", "ciIncMat", "ciBusca", "ciResumoSelecao", "ciLista", "ciContador",
-     "ciMarcarTodos", "ciDesmarcar", "ciMotivo", "ciTexto", "ciCorrigir", "ciMelhorarIA", "ciDesfazer", "ciIaStatus", "ciIaDetalhe", "ciAssuntoLivre", "ciLimpar", "ciGerar", "ciStatus", "ciPreview"].forEach(function (id) {
+     "ciMarcarTodos", "ciDesmarcar", "ciMotivo", "ciTexto", "ciMic", "ciCorrigir", "ciMelhorarIA", "ciDesfazer", "ciIaStatus", "ciIaDetalhe", "ciAssuntoLivre", "ciLimpar", "ciGerar", "ciStatus", "ciPreview"].forEach(function (id) {
       var k = id.replace(/^ci/, ""); k = k.charAt(0).toLowerCase() + k.slice(1);
       dom[k] = document.getElementById(id);
     });
@@ -836,6 +878,7 @@
     dom.desmarcar.addEventListener("click", function () { state.marcados = {}; atualizarSelecao(); });
     dom.limpar.addEventListener("click", limparTudo);
     dom.gerar.addEventListener("click", function () { autorizarPasta().then(gerarDocumento); });
+    configurarMicrofone();
     dom.corrigir.addEventListener("click", melhorarTexto);
     dom.melhorarIA.addEventListener("click", melhorarTextoIA);
     dom.desfazer.addEventListener("click", desfazer);

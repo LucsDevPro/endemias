@@ -20,3 +20,6 @@
 .ci-ia { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .5rem; }
 .ci-ia__detalhe { max-height: 8rem; overflow: auto; font-size: .76rem; background: #F2F7FC; border: 1px solid #D3DDEA; border-radius: 8px; padding: .3rem .6rem; }
 .ci-ia__detalhe ul { margin: 0; padding-left: 1.1rem; }
+
+.ci-micro--ativo { background: #d93025 !important; color: #fff !important; border-color: #d93025 !important; animation: ciPulso 1.2s infinite; }
+@keyframes ciPulso { 0%,100% { box-shadow: 0 0 0 0 rgba(217,48,37,.5); } 50% { box-shadow: 0 0 0 7px rgba(217,48,37,0); } }
