@@ -136,6 +136,13 @@
           <input type="text" id="ciAssuntoLivre" class="folga-input" placeholder="Ex: SOLICITAÇÃO DE MATERIAL" autocomplete="off"></label>
         <label class="folga-field" style="margin-top:.6rem"><span class="fg-rot">Texto da comunicação (um parágrafo por linha)</span>
           <textarea id="ciTexto" class="folga-input ci-texto" rows="8" placeholder="Digite o texto…"></textarea></label>
+        <div class="ci-ia">
+          <button type="button" id="ciCorrigir" class="folga-btn folga-btn--ghost fer-sm" title="Corrige ortografia, acentos e pontuação (serviço gratuito LanguageTool, sem chave)">✔ Corrigir texto</button>
+          <button type="button" id="ciMelhorarIA" class="folga-btn folga-btn--ghost fer-sm" hidden title="Reescreve o texto e sugere o assunto com IA">✨ Melhorar com IA</button>
+          <button type="button" id="ciDesfazer" class="folga-btn folga-btn--ghost fer-sm" hidden>↶ Desfazer</button>
+        </div>
+        <p class="folga-periodo__ajuda" id="ciIaStatus" aria-live="polite"></p>
+        <div class="ci-ia__detalhe" id="ciIaDetalhe" hidden></div>
       </section>
 
       </div>
@@ -181,6 +188,7 @@
 <script src="jszip.local.js"></script>
 <script src="docx-utils.js"></script>
 <script src="dados-agentes.js"></script>
+<script src="ci-config.js"></script>
 <script src="ci-assuntos.js"></script>
 <script src="ci.js"></script>
 <script src="clima-core.js"></script>

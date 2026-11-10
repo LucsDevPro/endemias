@@ -374,6 +374,300 @@
     atualizarDicaCi();
   }
 
+  // ---------------- Corrigir / melhorar o texto livre ----------------
+  var LT_URL = "https://api.languagetool.org/v2/check";
+  var LT_LIMITE = 15000;          // o serviço gratuito aceita ~20 mil caracteres por pedido
+  var LT_TIMEOUT_MS = 25000;
+  var LT_CATEGORIAS = ["TYPOS", "GRAMMAR", "PUNCTUATION", "CASING", "CONFUSED_WORDS", "COMPOUNDING"];
+  var ABREVIACOES = ["etc", "sr", "sra", "srta", "dr", "dra", "art", "arts", "av", "n", "nº", "ex", "obs", "cap", "tel", "pág", "pag", "prof", "profa", "ltda", "cia", "dep", "fls"];
+  var LETRA = "A-Za-zÀ-ÿ";
+
+  var ultimaAlteracao = null;     // { antes, depois, assuntoAntes } — para o "Desfazer"
+
+  function iaConfigurada() {
+    return typeof CI_CONFIG !== "undefined" && CI_CONFIG.AI_ENDPOINT_URL && CI_CONFIG.AI_ENDPOINT_URL.trim() !== "";
+  }
+
+  function mostrarDetalhes(linhas) {
+    dom.iaDetalhe.innerHTML = "";
+    if (!linhas || !linhas.length) { dom.iaDetalhe.hidden = true; return; }
+    var ul = document.createElement("ul");
+    linhas.slice(0, 40).forEach(function (l) {
+      var li = document.createElement("li");
+      li.textContent = l;
+      ul.appendChild(li);
+    });
+    if (linhas.length > 40) {
+      var mais = document.createElement("li");
+      mais.textContent = "… e mais " + (linhas.length - 40) + " alteração(ões).";
+      ul.appendChild(mais);
+    }
+    dom.iaDetalhe.appendChild(ul);
+    dom.iaDetalhe.hidden = false;
+  }
+
+  function registrarAlteracao(antes, depois, assuntoAntes) {
+    if (antes === depois && assuntoAntes === undefined) { dom.desfazer.hidden = true; ultimaAlteracao = null; return; }
+    ultimaAlteracao = { antes: antes, depois: depois, assuntoAntes: assuntoAntes };
+    dom.desfazer.hidden = false;
+    renderPreview();
+  }
+
+  function desfazer() {
+    if (!ultimaAlteracao) return;
+    if (dom.texto.value !== ultimaAlteracao.depois &&
+        !window.confirm("Você editou o texto depois da correção. Desfazer mesmo assim e perder essas edições?")) return;
+    dom.texto.value = ultimaAlteracao.antes;
+    if (ultimaAlteracao.assuntoAntes !== undefined) dom.assuntoLivre.value = ultimaAlteracao.assuntoAntes;
+    ultimaAlteracao = null;
+    dom.desfazer.hidden = true;
+    mostrarDetalhes([]);
+    renderPreview();
+    dom.iaStatus.textContent = "Texto original restaurado.";
+  }
+
+  function melhorarTexto() {
+    var texto = dom.texto.value.replace(/\s+$/, "").replace(/^\s+/, "");
+    if (!texto) {
+      dom.iaStatus.textContent = "Escreva o texto antes de corrigir.";
+      mostrarDetalhes([]);
+      return;
+    }
+    corrigirTexto(texto);
+  }
+
+  // -------- Camada 0: ajustes básicos, sem internet --------
+
+  function ajustesBasicos(entrada) {
+    var t = entrada.replace(/\r\n?/g, "\n");
+    var notas = [];
+
+    function passo(nota, fn) {
+      var antes = t;
+      t = fn(t);
+      if (t !== antes) notas.push(nota);
+    }
+
+    passo("Espaços duplicados e sobras no fim das linhas removidos.", function (x) {
+      return x.replace(/[ \t]{2,}/g, " ").replace(/[ \t]+\n/g, "\n");
+    });
+    passo("Espaço antes da pontuação removido.", function (x) {
+      return x.replace(/[ \t]+([,;:.!?])/g, "$1");
+    });
+    passo("Espaço depois da pontuação incluído.", function (x) {
+      return x
+        .replace(new RegExp("([,;!?])(?=[" + LETRA + "])", "g"), "$1 ")
+        .replace(new RegExp("([a-zà-ÿ]{2,})\\.(?=[A-ZÀ-Ý])", "g"), "$1. ");
+    });
+    passo("Letra maiúscula no início das frases.", function (x) {
+      return x.replace(new RegExp("(^|[.!?]\\s+|\\n\\s*)([a-zà-ÿ])", "g"), function (m, pre, ch, off, tudo) {
+        if (/[.!?]/.test(pre)) {
+          var palavra = tudo.slice(0, off).match(new RegExp("([" + LETRA + "]+)$"));
+          if (palavra && ABREVIACOES.indexOf(palavra[1].toLowerCase()) !== -1) return m;
+        }
+        return pre + ch.toUpperCase();
+      });
+    });
+    passo("Ponto final incluído no fim do texto.", function (x) {
+      return /[A-Za-zÀ-ÿ0-9]$/.test(x.trim()) ? x.replace(/\s+$/, "") + "." : x;
+    });
+
+    return { texto: t, notas: notas };
+  }
+
+  // -------- Camada 1: LanguageTool (ortografia e gramática) --------
+
+  function dividirTexto(t, max) {
+    if (t.length <= max) return [t];
+    var partes = [], resto = t;
+    while (resto.length > max) {
+      var corte = resto.lastIndexOf("\n", max);
+      if (corte < max / 2) corte = resto.lastIndexOf(". ", max) + 1;
+      if (corte < max / 2) corte = resto.lastIndexOf(" ", max);
+      if (corte <= 0) corte = max;
+      partes.push(resto.slice(0, corte));
+      resto = resto.slice(corte);
+    }
+    partes.push(resto);
+    return partes;
+  }
+
+  function fetchComTimeout(url, opcoes, ms) {
+    if (typeof AbortController === "undefined") return fetch(url, opcoes);
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () { ctrl.abort(); }, ms);
+    opcoes.signal = ctrl.signal;
+    return fetch(url, opcoes).then(
+      function (r) { clearTimeout(timer); return r; },
+      function (e) { clearTimeout(timer); throw e; }
+    );
+  }
+
+  // Decide se uma sugestão do LanguageTool é segura de aplicar sozinha.
+  function aceitarSugestao(m, texto) {
+    if (!m.replacements || !m.replacements.length || !m.replacements[0].value) return false;
+    var cat = m.rule && m.rule.category && m.rule.category.id;
+    if (LT_CATEGORIAS.indexOf(cat) === -1) return false;          // estilo, redundância etc. ficam de fora
+
+    var trecho = texto.substr(m.offset, m.length);
+    if (!trecho.trim()) return false;
+    if (cat === "TYPOS") {
+      if (/\d/.test(trecho)) return false;                          // números, códigos
+      if (trecho.length > 1 && trecho === trecho.toUpperCase()) return false;   // SIGLAS e NOMES EM CAIXA ALTA
+      if (/^[A-ZÀ-Ý]/.test(trecho)) {                              // palavra com inicial maiúscula...
+        var antes = texto.slice(0, m.offset);
+        var inicioDeFrase = /(^|[.!?]\s+|\n\s*)$/.test(antes);
+        if (!inicioDeFrase) return false;                           // ...no meio da frase = nome próprio
+      }
+    }
+    return true;
+  }
+
+  function aplicarSugestoes(trecho, matches) {
+    var candidatas = matches.filter(function (m) { return aceitarSugestao(m, trecho); });
+    var ignoradas = matches.length - candidatas.length;
+
+    // da esquerda para a direita, descartando as que se sobrepõem à anterior
+    candidatas.sort(function (a, b) { return a.offset - b.offset || b.length - a.length; });
+    var usadas = [], fim = -1;
+    candidatas.forEach(function (m) {
+      if (m.offset < fim) { ignoradas++; return; }
+      usadas.push(m);
+      fim = m.offset + m.length;
+    });
+
+    // aplica de trás para frente para os índices das seguintes não mudarem
+    var corrigido = trecho;
+    var trocas = [];
+    usadas.slice().reverse().forEach(function (m) {
+      var de = trecho.substr(m.offset, m.length);
+      var para = m.replacements[0].value;
+      if (de === para) return;
+      corrigido = corrigido.slice(0, m.offset) + para + corrigido.slice(m.offset + m.length);
+      trocas.unshift("“" + de + "” → “" + para + "”");
+    });
+    return { texto: corrigido, trocas: trocas, ignoradas: ignoradas };
+  }
+
+  function chamarLanguageTool(trecho) {
+    var params = new URLSearchParams();
+    params.set("text", trecho);
+    params.set("language", "pt-BR");
+    return fetchComTimeout(LT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json" },
+      body: params.toString()
+    }, LT_TIMEOUT_MS)
+      .then(function (resp) {
+        if (!resp.ok) { var e = new Error("http " + resp.status); e.status = resp.status; throw e; }
+        return resp.json();
+      })
+      .then(function (dados) {
+        return aplicarSugestoes(trecho, (dados && dados.matches) || []);
+      });
+  }
+
+  function motivoErro(err) {
+    if (err && err.name === "AbortError") return "o serviço demorou demais para responder";
+    if (err && err.status === 429) return "limite de uso do serviço gratuito atingido — aguarde cerca de 1 minuto e tente de novo";
+    if (err && err.status) return "o serviço respondeu com erro " + err.status;
+    return "não foi possível conectar ao serviço (internet, firewall ou bloqueador de anúncios podem estar impedindo o acesso a api.languagetool.org)";
+  }
+
+  function corrigirTexto(original) {
+    dom.corrigir.disabled = true;
+    dom.iaStatus.textContent = "Corrigindo ortografia e gramática...";
+    mostrarDetalhes([]);
+
+    var basico = ajustesBasicos(original);
+    var partes = dividirTexto(basico.texto, LT_LIMITE);
+    var final = "", trocas = [], ignoradas = 0;
+
+    var seq = Promise.resolve();
+    partes.forEach(function (parte) {
+      seq = seq.then(function () { return chamarLanguageTool(parte); }).then(function (r) {
+        final += r.texto;
+        trocas = trocas.concat(r.trocas);
+        ignoradas += r.ignoradas;
+      });
+    });
+
+    seq.then(function () {
+      concluirCorrecao(original, final, basico.notas, trocas, ignoradas, null);
+    }, function (err) {
+      console.error(err);
+      concluirCorrecao(original, basico.texto, basico.notas, [], 0, err);
+    }).then(function () {
+      dom.corrigir.disabled = false;
+    });
+  }
+
+  function concluirCorrecao(original, final, notas, trocas, ignoradas, erro) {
+    if (final !== original) dom.texto.value = final;
+    registrarAlteracao(original, final);
+
+    var detalhes = notas.concat(trocas);
+    mostrarDetalhes(detalhes);
+
+    var partes = [];
+    if (trocas.length) partes.push(trocas.length + " correção(ões) de ortografia/gramática");
+    if (notas.length) partes.push(notas.length + " ajuste(s) de formatação");
+    var feito = partes.join(" e ");
+
+    if (erro) {
+      dom.iaStatus.textContent = (feito ? feito + " aplicado(s). " : "") +
+        "Correção ortográfica indisponível agora: " + motivoErro(erro) + ".";
+    } else if (!feito) {
+      dom.iaStatus.textContent = "Nenhum erro encontrado.";
+    } else {
+      dom.iaStatus.textContent = feito + " aplicado(s) — confira o texto e o assunto." +
+        (ignoradas ? " (" + ignoradas + " sugestão(ões) incerta(s) ignorada(s): nomes, siglas ou estilo.)" : "");
+    }
+  }
+
+  // -------- Camada 2: reescrita + assunto via IA generativa (opcional) --------
+
+  function melhorarTextoIA() {
+    var texto = dom.texto.value.replace(/\s+$/, "").replace(/^\s+/, "");
+    if (!texto) { dom.iaStatus.textContent = "Escreva o texto antes de melhorar."; mostrarDetalhes([]); return; }
+    melhorarComIA(texto);
+  }
+  function melhorarComIA(texto) {
+    dom.corrigir.disabled = true;
+    dom.iaStatus.textContent = "Melhorando o texto com IA...";
+    mostrarDetalhes([]);
+    var assuntoAntes = dom.assuntoLivre.value;
+
+    fetchComTimeout(CI_CONFIG.AI_ENDPOINT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, // evita pre-flight CORS no Apps Script
+      body: JSON.stringify({ texto: texto, token: CI_CONFIG.AI_TOKEN || "" })
+    }, 60000)
+      .then(function (resp) {
+        if (!resp.ok) { var e = new Error("http " + resp.status); e.status = resp.status; throw e; }
+        return resp.json();
+      })
+      .then(function (dados) {
+        if (dados.erro) {
+          dom.iaStatus.textContent = "IA: " + dados.erro;
+          return;
+        }
+        var antes = dom.texto.value;
+        if (dados.texto) dom.texto.value = dados.texto;
+        if (dados.assunto) dom.assuntoLivre.value = dados.assunto;
+        registrarAlteracao(antes, dom.texto.value, assuntoAntes);
+        dom.iaStatus.textContent = "Texto revisado e assunto sugerido — confira antes de gerar.";
+      })
+      .catch(function (err) {
+        console.error(err);
+        dom.iaStatus.textContent = "Não foi possível falar com a IA: " + motivoErro(err) + ".";
+      })
+      .then(function () {
+        dom.corrigir.disabled = false;
+      });
+  }
+
+
   // ---------------- pasta para salvar (a mesma escolhida na Folga) ----------------
   var pasta = { handle: null, ok: false };
   function idbAbrir() {
@@ -516,7 +810,7 @@
   // ---------------- inicialização ----------------
   function init() {
     ["ciNumero", "ciRemetente", "ciPara", "ciSigla", "ciGerente", "ciGerenteCargo", "ciAssuntos", "ciIncMat", "ciBusca", "ciResumoSelecao", "ciLista", "ciContador",
-     "ciMarcarTodos", "ciDesmarcar", "ciMotivo", "ciTexto", "ciAssuntoLivre", "ciLimpar", "ciGerar", "ciStatus", "ciPreview"].forEach(function (id) {
+     "ciMarcarTodos", "ciDesmarcar", "ciMotivo", "ciTexto", "ciCorrigir", "ciMelhorarIA", "ciDesfazer", "ciIaStatus", "ciIaDetalhe", "ciAssuntoLivre", "ciLimpar", "ciGerar", "ciStatus", "ciPreview"].forEach(function (id) {
       var k = id.replace(/^ci/, ""); k = k.charAt(0).toLowerCase() + k.slice(1);
       dom[k] = document.getElementById(id);
     });
@@ -542,6 +836,10 @@
     dom.desmarcar.addEventListener("click", function () { state.marcados = {}; atualizarSelecao(); });
     dom.limpar.addEventListener("click", limparTudo);
     dom.gerar.addEventListener("click", function () { autorizarPasta().then(gerarDocumento); });
+    dom.corrigir.addEventListener("click", melhorarTexto);
+    dom.melhorarIA.addEventListener("click", melhorarTextoIA);
+    dom.desfazer.addEventListener("click", desfazer);
+    dom.melhorarIA.hidden = !iaConfigurada();
     document.getElementById("ciImprimir").addEventListener("click", imprimirDocumento);
     document.getElementById("ciPasta").addEventListener("click", escolherPasta);
     carregarPasta();
