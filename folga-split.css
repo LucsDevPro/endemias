@@ -552,3 +552,13 @@ body.ver-funcao .folga-emp__cargo { display: block !important; }
 .fg-pasta__linha { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem .6rem; margin-top: .25rem; }
 .fg-pasta__nome { font-size: .8rem; font-weight: 700; color: #002B68; overflow-wrap: anywhere; }
 .fg-pasta .folga-link-btn { font-size: .74rem; padding: 0; }
+
+/* Tabelas do modelo: padrão único (Folga e Comunicação Interna) — igual ao .docx */
+.fgp-tab tr:first-of-type td { border-top: 2px solid #002B68; }
+.fgp-tab tr:last-of-type td { border-bottom: 2px solid #002B68; }
+.fgp-tab td { border-color: #BFD2E8; }
+.fgp-tab td + td { border-left-color: #D5E2F1; }
+.fgp-lab { background: #E8F1FA; color: #002B68; }
+.fgp-tab td.fgp-lab { border-left: 3px solid #007ECA; }
+.fgp-func .fgp-cabtab td, .fgp-assin .fgp-cabtab td { background: #002B68; color: #fff; border-color: #002B68; border-bottom: 2px solid #FFB900; }
+.fgp-func .fgp-datas { color: #002B68; }
