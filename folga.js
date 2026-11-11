@@ -582,7 +582,7 @@
     var px = function (tw) { return (tw / 15).toFixed(2) + "px"; };
     var P = dom.preview;
     P.innerHTML = "";
-    P.className = "fg-papel" + (cabe ? "" : " fg-papel--estoura");
+    P.className = "fg-papel" + (cabe ? "" : " fg-papel--estoura") + (state.tipoAtual === TIPO_ELEITORAL ? " fg-papel--ele" : "");
     P.style.setProperty("--sz", (nv.sz * 0.6667).toFixed(2) + "px");
     P.style.setProperty("--szh", (nv.sz * 0.6667).toFixed(2) + "px");
     P.style.setProperty("--mar", px(nv.mar));
@@ -595,7 +595,7 @@
     // marca d'água do Brasão (só folga eleitoral)
     if (state.tipoAtual === TIPO_ELEITORAL) {
       var wm = document.createElement("img");
-      wm.src = "assets/marca-brasao.png"; wm.alt = ""; wm.className = "fgp-marca";
+      wm.src = "assets/marca-brasao-eleitoral.png"; wm.alt = ""; wm.className = "fgp-marca";
       P.appendChild(wm);
     }
 
@@ -1391,7 +1391,7 @@
       };
     });
 
-    fetch("assets/modelo-folga.docx")
+    fetch(state.tipoAtual === TIPO_ELEITORAL ? "assets/modelo-folga-eleitoral.docx" : "assets/modelo-folga.docx")
       .then(function (resp) {
         if (!resp.ok) throw new Error("Modelo não encontrado (assets/modelo-folga.docx)");
         return resp.arrayBuffer();

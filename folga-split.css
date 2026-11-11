@@ -562,7 +562,7 @@ body.ver-funcao .folga-emp__cargo { display: block !important; }
 .fgp-tab td + td { border-left-color: #D5E2F1; }
 .fgp-lab { background: #E6F2FB; color: #002868; }
 .fgp-tab td.fgp-lab { border-left: 3px solid #00B838; }
-.fgp-func .fgp-cabtab td, .fgp-assin .fgp-cabtab td { background: #0078C8; color: #fff; border-color: #0078C8; border-bottom: 2px solid #F8B800; }
+.fgp-func .fgp-cabtab td, .fgp-assin .fgp-cabtab td { background: #0078C8; color: #fff; border-color: #0078C8; border-color: #1F7A4D; border-bottom: 2px solid #F8B800; }
 .fgp-func .fgp-datas { color: #002868; }
 /* assinaturas da CI: só os nomes, sem tabela */
 .fgp-assin-ci td { border: 0 !important; background: transparent !important; }
@@ -573,3 +573,16 @@ body.ver-funcao .folga-emp__cargo { display: block !important; }
 .fg-papel .fgp-titulo { height: 44.5px; line-height: 41.5px; }
 .fg-papel .fgp-func .fgp-cabtab td:last-child { padding-left: 5px; padding-right: 5px; }
 .fg-papel .fgp-assin .fgp-linha-assin td { height: calc(var(--assin) + 10px); }
+
+/* ---- Folga Eleitoral: identidade própria (verde + ouro, cabeçalho maior, brasão mais evidente) ---- */
+.fg-papel--ele .fgp-titulo { background: #0B5D3B; border-bottom: 4px solid #F8B800; font-size: 32px; letter-spacing: 5.3px; height: 64px; line-height: 58px; }
+.fg-papel--ele .fgp-lab { background: #EAF5EE; color: #0B5D3B; }
+.fg-papel--ele .fgp-tab td { border-color: #BFDCC9; }
+.fg-papel--ele .fgp-tab td + td { border-left-color: #D6E9DC; }
+.fg-papel--ele .fgp-tab td:first-child { border-left-color: #0B5D3B; }
+.fg-papel--ele .fgp-tab td:last-child { border-right-color: #0B5D3B; }
+.fg-papel--ele .fgp-tab tr:first-of-type td { border-top-color: #0B5D3B; }
+.fg-papel--ele .fgp-tab tr:last-of-type td { border-bottom-color: #0B5D3B; }
+.fg-papel--ele .fgp-tab td.fgp-lab { border-left: 3px solid #F8B800; }
+.fg-papel--ele .fgp-func .fgp-cabtab td, .fg-papel--ele .fgp-assin .fgp-cabtab td { background: #1F7A4D; color: #fff; border-color: #1F7A4D; border-bottom: 2px solid #F8B800; }
+.fg-papel--ele .fgp-data { color: #0B5D3B; }
