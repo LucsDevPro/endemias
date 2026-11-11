@@ -593,3 +593,12 @@ body.ver-funcao .folga-emp__cargo { display: block !important; }
 
 /* bloco Número/Data/De/Para da folga: tudo em CAIXA ALTA e negrito */
 .fgp-info--caps td, .fgp-info--caps td b { text-transform: uppercase; font-weight: 700; }
+
+/* ---- Folga Eleitoral: assinatura empilhada no pé da folha + rodapé (igual ao .docx) ---- */
+.fg-papel--ele:not(.fg-papel--estoura) > .fgp-assin-ele { bottom: 86.9px; }
+.fgp-assin-ele { font-size: 16px; line-height: 1.15; color: #000; }
+.fgp-assin-ele .fgp-ae-nc { text-align: center; margin-bottom: 46.7px; }
+.fgp-assin-ele .fgp-ae-rec { text-align: right; margin-bottom: 18.7px; }
+.fgp-assin-ele .fgp-ae-ass { display: flex; align-items: flex-end; padding-left: 286.7px; }
+.fgp-assin-ele .fgp-ae-ass i { flex: 1; border-bottom: 2px dotted #000; margin: 0 0 3px 4px; height: 0; }
+.fgp-rodape { position: absolute; left: 75.6px; right: 75.6px; bottom: 26.7px; border-top: 1px solid #7F7F7F; padding-top: 3px; font-size: 12px; line-height: 1.15; color: #7F7F7F; z-index: 1; }

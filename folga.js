@@ -483,6 +483,13 @@
   }
   function destinatarioTexto(tipo) { var d = destinatario(tipo); return d.fixo + d.nome; }
 
+  // assinaturas da folga eleitoral (bloco no pé da folha)
+  var GERENTE = { nome: "Giuliana Pissini Brizueña", cargo: "Gerente de Vigilância em Saúde" };
+  function cargoRemetente(r) {
+    var t = String(r.setor || "").replace(/^SETOR DE\s+/i, "").toLowerCase().replace(/(^|\s)(\S)/g, function (m, a, b) { return a + b.toUpperCase(); }).replace(/\s(De|Da|Do|Das|Dos|E)(?=\s)/g, function (m) { return m.toLowerCase(); });
+    return "Coord. " + t;
+  }
+
   function tipoDe() { return state.tipoAtual; }   // um documento = um tipo só (eleição vai para outro setor)
 
   // texto do ASSUNTO conforme o tipo do documento
@@ -688,6 +695,19 @@
     corpo.appendChild(t2);
 
     // assinaturas (no pé da folha)
+    if (state.tipoAtual === TIPO_ELEITORAL) {
+      var rem2 = remetenteAtual(), bl = el("div", "fgp-assin fgp-assin-ele");
+      var nc = function (n, c) { var d = el("div", "fgp-ae-nc"); d.appendChild(el("b", null, n)); d.appendChild(el("div", null, c)); return d; };
+      bl.appendChild(nc(rem2.nome, cargoRemetente(rem2)));
+      bl.appendChild(nc(GERENTE.nome, GERENTE.cargo));
+      var rec = el("div", "fgp-ae-rec"); rec.appendChild(el("b", null, "Recebido em: ")); rec.appendChild(document.createTextNode("__/__/2026")); bl.appendChild(rec);
+      var ass = el("div", "fgp-ae-ass"); ass.appendChild(el("span", null, "Assinatura: ")); ass.appendChild(el("i")); bl.appendChild(ass);
+      P.appendChild(bl);
+      var rod = el("div", "fgp-rodape");
+      rod.appendChild(el("div", null, "SETOR DE ENDEMIAS E VETORES - UVZ (UNIDADE DE VIGILÂNCIA E ZOONOSES)"));
+      rod.appendChild(el("div", null, "Rua: São Vicente de Paula, 129, Vila São Vicente de Paula - CEP 79900-001"));
+      P.appendChild(rod);
+    }
     var t3 = el("table", "fgp-tab fgp-assin"); cg = "";
     [3212, 3213, 3213].forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
     t3.innerHTML = "<colgroup>" + cg + "</colgroup>";
@@ -699,7 +719,7 @@
       var td = el("td"); td.appendChild(el("div", "fgp-risco", "Assinatura")); td.appendChild(el("div", "fgp-dt", "Data: ____/____/______")); r.appendChild(td);
     }
     t3.appendChild(r);
-    P.appendChild(t3);
+    if (state.tipoAtual !== TIPO_ELEITORAL) P.appendChild(t3);
 
     // resumo, selo e abas
     var totalFolgas = Object.keys(state.selecoes).reduce(function (n, nome) { return n + state.selecoes[nome].length; }, 0);
@@ -1429,7 +1449,7 @@
           });
 
           var rem = remetenteAtual();
-          var subs = { "<<ci>>": ci, "<<hoje>>": formatarDataExtenso(new Date()).toLocaleUpperCase("pt-BR"), "<<setor>>": rem.setor.toLocaleUpperCase("pt-BR"), "<<assunto>>": assuntoTexto(state.tipoAtual), "<<para>>": destinatarioTexto(state.tipoAtual).toLocaleUpperCase("pt-BR"), "<<remetente>>": rem.nome.toLocaleUpperCase("pt-BR") };
+          var subs = { "<<ci>>": ci, "<<hoje>>": formatarDataExtenso(new Date()).toLocaleUpperCase("pt-BR"), "<<setor>>": rem.setor.toLocaleUpperCase("pt-BR"), "<<assunto>>": assuntoTexto(state.tipoAtual), "<<para>>": destinatarioTexto(state.tipoAtual).toLocaleUpperCase("pt-BR"), "<<remetente>>": rem.nome.toLocaleUpperCase("pt-BR"), "<<assinNome>>": rem.nome, "<<assinCargo>>": cargoRemetente(rem), "<<gerente>>": GERENTE.nome, "<<gerenteCargo>>": GERENTE.cargo };
           Object.keys(arquivos).forEach(function (caminho) {
             var xmlAtual = caminho === "word/document.xml" ? docXml : arquivos[caminho];
             arquivos[caminho] = DocxUtils.substituirTags(xmlAtual, subs);
