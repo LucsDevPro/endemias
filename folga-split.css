@@ -590,13 +590,3 @@ body.ver-funcao .folga-emp__cargo { display: block !important; }
 /* tabela de folgas em CAIXA ALTA; no tipo "Folga Eleitoral" a coluna TIPO DE FOLGA fica em negrito */
 .fg-papel .fgp-func tr:not(.fgp-cabtab) td { text-transform: uppercase; }
 .fg-papel--ele .fgp-func tr:not(.fgp-cabtab) td:nth-child(3) { font-weight: 700; }
-
-/* ---- Folga Eleitoral individual (1 servidor): usa a folha inteira e destaca quem está de folga ---- */
-.fg-papel--solo .fgp-info td { font-size: 16px; height: 42.67px; }
-.fg-papel--solo .fgp-assunto { font-size: 17.33px; }
-.fg-papel--solo .fgp-cabtab td { }
-.fg-papel--solo .fgp-func .fgp-cabtab td { font-size: 13.33px; height: 50.67px; }
-.fg-papel--solo .fgp-func tr:not(.fgp-cabtab) td { height: 306.67px; font-size: 17.33px; }
-.fg-papel--solo .fgp-func tr:not(.fgp-cabtab) td:nth-child(1) { font-size: 20px; font-weight: 700; color: #0B5D3B; background: #EAF5EE; }
-.fg-papel--solo .fgp-func tr:not(.fgp-cabtab) td:nth-child(3) { font-size: 18.67px; background: #FFF4CC; }
-.fg-papel--solo .fgp-func tr:not(.fgp-cabtab) td:nth-child(4) { font-size: 18.67px; background: #EAF5EE; }
