@@ -27,3 +27,6 @@
 /* lista de agentes: um nome por linha, com hífen */
 .fgp-corpotxt p.fgp-lista { text-indent: 0; padding-left: 75.6px; text-align: left; margin: 0 0 1.3px; line-height: 1.33; }
 .fgp-corpotxt p.fgp-lista:has(+ p:not(.fgp-lista)) { margin-bottom: 10.7px; }
+
+/* texto da comunicação dentro de uma caixa de borda bem fina (igual ao .docx) */
+.fgp-corpotxt { border: 1px solid #002868; padding: 9.3px 13.3px 4px; }

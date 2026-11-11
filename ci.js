@@ -811,6 +811,14 @@
         }).join("") + "</w:p>";
     }).join("");
   }
+  // texto da comunicação dentro de uma tabela de 1 célula com borda bem fina (0,5 pt) azul-marinho
+  function caixaFina(conteudo) {
+    var b = function (l) { return '<w:' + l + ' w:val="single" w:sz="4" w:space="0" w:color="002868"/>'; };
+    return '<w:tbl><w:tblPr><w:tblW w:w="9638" w:type="dxa"/><w:tblInd w:w="0" w:type="dxa"/><w:tblBorders>' + b("top") + b("left") + b("bottom") + b("right") + '</w:tblBorders><w:tblLayout w:type="fixed"/>' +
+      '<w:tblCellMar><w:top w:w="140" w:type="dxa"/><w:left w:w="200" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/><w:right w:w="200" w:type="dxa"/></w:tblCellMar></w:tblPr>' +
+      '<w:tblGrid><w:gridCol w:w="9638"/></w:tblGrid><w:tr><w:trPr><w:cantSplit/></w:trPr><w:tc><w:tcPr><w:tcW w:w="9638" w:type="dxa"/></w:tcPr>' + conteudo + '</w:tc></w:tr></w:tbl>' +
+      '<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="120" w:lineRule="exact"/><w:rPr><w:sz w:val="2"/></w:rPr></w:pPr></w:p>';
+  }
   function gerarDocumento() {
     var falta = faltaPreencher();
     if (falta.length) { setStatus("Falta preencher: " + falta.join(", ") + ".", true); return; }
@@ -830,7 +838,7 @@
         return DocxUtils.lerArquivosXml(bytes).then(function (arquivos) {
           var doc = arquivos["word/document.xml"], re = /<w:p>(?:(?!<\/w:p>)[\s\S])*?&lt;&lt;corpo&gt;&gt;[\s\S]*?<\/w:p>/;
           if (!re.test(doc)) throw new Error("Marcador <<corpo>> não encontrado no modelo.");
-          arquivos["word/document.xml"] = doc.replace(re, function () { return corpoXml; });
+          arquivos["word/document.xml"] = doc.replace(re, function () { return caixaFina(corpoXml); });
           Object.keys(arquivos).forEach(function (caminho) { arquivos[caminho] = DocxUtils.substituirTags(arquivos[caminho], subs); });
           return DocxUtils.gerarDocxBlob(bytes, arquivos);
         });
