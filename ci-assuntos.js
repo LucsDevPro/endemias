@@ -8,6 +8,7 @@
 //   campos    o que a pessoa precisa preencher: "agentes", "datas", "motivo", "assuntoLivre", "texto"
 //   paragrafos(c)  devolve a lista de parágrafos do documento. Cada parágrafo é uma lista de
 //                  trechos { t: "texto", b: true/false (negrito) }.
+//                  Para uma linha de lista ("- Nome"), marque o parágrafo com p.lista = true.
 //
 // c traz: c.nomes (lista de nomes já formatados), c.datas (dd/mm/aaaa em ordem),
 //         c.texto, c.assuntoLivre, c.motivo (opcional), e os ajudantes c.juntar(lista) -> "a, b e c",
@@ -23,18 +24,19 @@ window.CI_ASSUNTOS = [
     campos: ["agentes", "datas", "motivo"],
     paragrafos: function (c) {
       var plural = c.n > 1;
-      return [
-        [
-          { t: "Informamos que, por demanda e necessidade operacional do Setor de Endemias e Vetores" + (c.motivo ? ", em razão " + c.motivo : "") + ", " + (plural ? "os agentes " : "o agente ") },
-          { t: c.n ? c.juntar(c.nomes) : "{NOMES DOS AGENTES}", b: true },
-          { t: (plural ? " terão" : " terá") + " sua rotina de trabalho alterada, excepcionalmente, para jornada de 6 (seis) horas diárias, das 07h às 13h, " + (c.d > 1 ? "nas seguintes datas: " : "na seguinte data: ") },
-          { t: c.d ? c.juntar(c.datas) : "{DATAS}", b: true },
-          { t: "." }
-        ],
-        [
-          { t: "A alteração ocorrerá conforme a necessidade do setor, visando atender às demandas operacionais e à organização das atividades." }
-        ]
+      // lista de nomes: um por linha, começando com hífen (item.lista = true)
+      var lista = (c.n ? c.nomes : ["{NOMES DOS AGENTES}"]).map(function (n) {
+        var p = [{ t: "- " }, { t: n, b: true }];
+        p.lista = true;
+        return p;
+      });
+      var intro = [
+        { t: "Informamos que, por demanda e necessidade operacional do Setor de Endemias e Vetores" + (c.motivo ? ", em razão " + c.motivo : "") + ", " + (plural ? "os agentes abaixo relacionados terão" : "o agente abaixo relacionado terá") + " sua rotina de trabalho alterada, excepcionalmente, para jornada de 6 (seis) horas diárias, das 07h às 13h, " + (c.d > 1 ? "nas seguintes datas: " : "na seguinte data: ") },
+        { t: c.d ? c.juntar(c.datas) : "{DATAS}", b: true },
+        { t: "." }
       ];
+      var fim = [{ t: "A alteração ocorrerá conforme a necessidade do setor, visando atender às demandas operacionais e à organização das atividades." }];
+      return [intro].concat(lista, [fim]);
     }
   },
   {

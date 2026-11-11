@@ -23,3 +23,7 @@
 
 .ci-micro--ativo { background: #d93025 !important; color: #fff !important; border-color: #d93025 !important; animation: ciPulso 1.2s infinite; }
 @keyframes ciPulso { 0%,100% { box-shadow: 0 0 0 0 rgba(217,48,37,.5); } 50% { box-shadow: 0 0 0 7px rgba(217,48,37,0); } }
+
+/* lista de agentes: um nome por linha, com hífen */
+.fgp-corpotxt p.fgp-lista { text-indent: 0; padding-left: 75.6px; text-align: left; margin: 0 0 1.3px; line-height: 1.33; }
+.fgp-corpotxt p.fgp-lista:has(+ p:not(.fgp-lista)) { margin-bottom: 10.7px; }

@@ -275,7 +275,7 @@
     corpo.appendChild(sp(240));
     var tx = el("div", "fgp-corpotxt");
     paragrafos().forEach(function (par) {
-      var p = el("p");
+      var p = el("p", par.lista ? "fgp-lista" : null);
       par.forEach(function (s) {
         var falta = /^\{[^}]*\}$/.test(s.t);
         var e = el(s.b || falta ? "b" : "span", falta ? "fgp-falta" : null, s.t);
@@ -799,8 +799,13 @@
 
   // ---------------- gerar .docx ----------------
   function xmlParagrafos(pars) {
-    return pars.map(function (p) {
-      return '<w:p><w:pPr><w:spacing w:before="0" w:after="120" w:line="360" w:lineRule="auto"/><w:ind w:firstLine="709"/><w:jc w:val="both"/></w:pPr>' +
+    return pars.map(function (p, i) {
+      // linha de lista ("- Nome"): sem recuo de 1ª linha, alinhada à esquerda e junto da seguinte; espaço depois do último item
+      var prox = pars[i + 1], fimLista = p.lista && !(prox && prox.lista);
+      var pPr = p.lista
+        ? '<w:spacing w:before="0" w:after="' + (fimLista ? 160 : 20) + '" w:line="320" w:lineRule="auto"/><w:ind w:left="1134"/><w:jc w:val="left"/>'
+        : '<w:spacing w:before="0" w:after="120" w:line="360" w:lineRule="auto"/><w:ind w:firstLine="709"/><w:jc w:val="both"/>';
+      return '<w:p><w:pPr>' + pPr + '</w:pPr>' +
         p.map(function (s) {
           return '<w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>' + (s.b ? "<w:b/><w:bCs/>" : "") + '<w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">' + escXml(s.t) + "</w:t></w:r>";
         }).join("") + "</w:p>";
