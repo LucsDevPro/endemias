@@ -330,10 +330,11 @@ html[data-tema="claro"] .fg-abas { background: rgba(238,243,249,.92); }
 
 /* ---- tabelas menos "quadradas": só linhas finas, sem moldura lateral ---- */
 .fgp-tab td { border: 1px solid #C3D4E6; }
-.fgp-tab td:first-child { border-left: 0; }
-.fgp-tab td:last-child { border-right: 0; }
-.fgp-tab tr:first-of-type td { border-top: 1.5px solid #002B68; }
-.fgp-tab tr:last-of-type td { border-bottom: 1.5px solid #002B68; }
+.fgp-tab td:first-child { border-left: 1px solid #002B68; }
+.fgp-tab td:last-child { border-right: 1px solid #002B68; }
+.fgp-info td { font-weight: 700; }
+.fgp-tab tr:first-of-type td { border-top: 2px solid #002B68; }
+.fgp-tab tr:last-of-type td { border-bottom: 2px solid #002B68; }
 .fgp-titulo { border: 0; border-bottom: 3px solid #FFB900; }
 
 /* ✕ do modelo: sempre visível e fácil de clicar */
@@ -467,7 +468,7 @@ html[data-tema="claro"] .fg-abas { background: rgba(238,243,249,.92); }
 .fg-lupa__area { display: flex; justify-content: center; padding: 64px 24px 32px; min-width: min-content; }
 .fg-lupa__tam { position: fixed; top: 14px; right: 150px; z-index: 3; padding: .5rem 1.1rem; border: 0; border-radius: 99px; background: #fff; color: #002B68; font: inherit; font-weight: 800; cursor: pointer; }
 
-.fgp-marca { position: absolute; left: 50%; top: 50%; width: 529px; height: auto; transform: translate(-50%, -50%); pointer-events: none; z-index: 0; }
+.fgp-marca { position: absolute; left: 50%; top: 363px; width: 529px; height: auto; transform: translateX(-50%); pointer-events: none; z-index: 0; }
 .fg-papel > .fgp-cab, .fg-papel > .fgp-corpo, .fg-papel > .fgp-assin { position: relative; z-index: 1; }
 .fg-papel > .fgp-cab { position: absolute; }
 .fg-papel:not(.fg-papel--estoura) > .fgp-assin { position: absolute; }

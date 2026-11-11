@@ -1437,7 +1437,7 @@
           // folga eleitoral: Brasão da República grande, como marca d'água, atrás do texto (só neste tipo)
           if (state.tipoAtual === TIPO_ELEITORAL && arquivos["word/header1.xml"]) {
             var marca = '<w:r><w:drawing><wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="0" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1">' +
-              '<wp:simplePos x="0" y="0"/><wp:positionH relativeFrom="page"><wp:align>center</wp:align></wp:positionH><wp:positionV relativeFrom="page"><wp:align>center</wp:align></wp:positionV>' +
+              '<wp:simplePos x="0" y="0"/><wp:positionH relativeFrom="page"><wp:align>center</wp:align></wp:positionH><wp:positionV relativeFrom="page"><wp:posOffset>3456000</wp:posOffset></wp:positionV>' +
               '<wp:extent cx="5040000" cy="5067000"/><wp:effectExtent l="0" t="0" r="0" b="0"/><wp:wrapNone/>' +
               '<wp:docPr id="50" name="Brasão da República" descr="Brasão da República Federativa do Brasil (marca d\'água)"/><wp:cNvGraphicFramePr/>' +
               '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">' +
