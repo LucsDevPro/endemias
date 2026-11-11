@@ -1384,10 +1384,11 @@
     var funcionariosOrdenados = nomes.sort().map(function (nome) {
       var datas = state.selecoes[nome].slice().sort(compararDatasBR);
       return {
-        nome: nomeDoc(nome),
-        cargo: state.funcionarios[nome] || "",
-        tipo: state.tipoAtual,
-        datas: datas.join(", ")
+        // tabela do documento sempre em CAIXA ALTA
+        nome: nomeDoc(nome).toLocaleUpperCase("pt-BR"),
+        cargo: (state.funcionarios[nome] || "").toLocaleUpperCase("pt-BR"),
+        tipo: state.tipoAtual.toLocaleUpperCase("pt-BR"),
+        datas: datas.join(", ").toLocaleUpperCase("pt-BR")
       };
     });
 

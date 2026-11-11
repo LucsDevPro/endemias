@@ -586,3 +586,7 @@ body.ver-funcao .folga-emp__cargo { display: block !important; }
 .fg-papel--ele .fgp-tab td.fgp-lab { border-left: 3px solid #F8B800; }
 .fg-papel--ele .fgp-func .fgp-cabtab td, .fg-papel--ele .fgp-assin .fgp-cabtab td { background: #1F7A4D; color: #fff; border-color: #1F7A4D; border-bottom: 2px solid #F8B800; }
 .fg-papel--ele .fgp-data { color: #0B5D3B; }
+
+/* tabela de folgas em CAIXA ALTA; no tipo "Folga Eleitoral" a coluna TIPO DE FOLGA fica em negrito */
+.fg-papel .fgp-func tr:not(.fgp-cabtab) td { text-transform: uppercase; }
+.fg-papel--ele .fgp-func tr:not(.fgp-cabtab) td:nth-child(3) { font-weight: 700; }
