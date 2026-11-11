@@ -46,7 +46,14 @@ window.CI_ASSUNTOS = [
     campos: ["assuntoLivre", "texto"],
     paragrafos: function (c) {
       var linhas = String(c.texto || "").split(/\n+/).map(function (l) { return l.trim(); }).filter(Boolean);
-      return linhas.length ? linhas.map(function (l) { return [{ t: l }]; }) : [[{ t: "{TEXTO DA COMUNICAÇÃO}" }]];
+      // **trecho** = negrito
+      function trechos(l) {
+        var out = [], re = /\*\*([^*]+)\*\*/g, i = 0, m;
+        while ((m = re.exec(l))) { if (m.index > i) out.push({ t: l.slice(i, m.index) }); out.push({ t: m[1], b: true }); i = re.lastIndex; }
+        if (i < l.length) out.push({ t: l.slice(i) });
+        return out.length ? out : [{ t: l }];
+      }
+      return linhas.length ? linhas.map(trechos) : [[{ t: "{TEXTO DA COMUNICAÇÃO}" }]];
     }
   }
 ];

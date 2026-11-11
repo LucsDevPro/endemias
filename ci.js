@@ -401,6 +401,20 @@
     reconhecimento.onend = function () {
       if (ditando) { try { reconhecimento.start(); } catch (e) { pararDitado(); } }   // o navegador encerra sozinho de tempos em tempos
     };
+    // negrito: **trecho** (aparece em negrito no modelo e no .docx)
+    function alternarNegrito() {
+      var t = dom.texto, a = t.selectionStart, b = t.selectionEnd, v = t.value;
+      if (a === b) {                                   // sem seleção: abre ** ** e deixa o cursor no meio
+        t.value = v.slice(0, a) + "****" + v.slice(b); t.selectionStart = t.selectionEnd = a + 2;
+      } else if (v.slice(a - 2, a) === "**" && v.slice(b, b + 2) === "**") {   // já está em negrito: tira
+        t.value = v.slice(0, a - 2) + v.slice(a, b) + v.slice(b + 2); t.selectionStart = a - 2; t.selectionEnd = b - 2;
+      } else {
+        t.value = v.slice(0, a) + "**" + v.slice(a, b) + "**" + v.slice(b); t.selectionStart = a + 2; t.selectionEnd = b + 2;
+      }
+      t.focus(); renderPreview();
+    }
+    dom.negrito.addEventListener("click", alternarNegrito);
+    dom.texto.addEventListener("keydown", function (e) { if ((e.ctrlKey || e.metaKey) && (e.key === "b" || e.key === "B")) { e.preventDefault(); alternarNegrito(); } });
     dom.mic.addEventListener("click", function () { if (ditando) pararDitado(); else iniciarDitado(); });
   }
   function iniciarDitado() {
@@ -865,7 +879,7 @@
   // ---------------- inicialização ----------------
   function init() {
     ["ciNumero", "ciRemetente", "ciPara", "ciSigla", "ciGerente", "ciGerenteCargo", "ciAssuntos", "ciIncMat", "ciBusca", "ciResumoSelecao", "ciLista", "ciContador",
-     "ciMarcarTodos", "ciDesmarcar", "ciMotivo", "ciTexto", "ciMic", "ciCorrigir", "ciMelhorarIA", "ciDesfazer", "ciIaStatus", "ciIaDetalhe", "ciAssuntoLivre", "ciLimpar", "ciGerar", "ciStatus", "ciPreview"].forEach(function (id) {
+     "ciMarcarTodos", "ciDesmarcar", "ciMotivo", "ciTexto", "ciNegrito", "ciMic", "ciCorrigir", "ciMelhorarIA", "ciDesfazer", "ciIaStatus", "ciIaDetalhe", "ciAssuntoLivre", "ciLimpar", "ciGerar", "ciStatus", "ciPreview"].forEach(function (id) {
       var k = id.replace(/^ci/, ""); k = k.charAt(0).toLowerCase() + k.slice(1);
       dom[k] = document.getElementById(id);
     });
