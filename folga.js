@@ -483,6 +483,13 @@
   }
   function destinatarioTexto(tipo) { var d = destinatario(tipo); return d.fixo + d.nome; }
 
+  // folga eleitoral individual (1 servidor): modelo "solo", que usa a folha inteira
+  function ehSolo(qtd) { return state.tipoAtual === TIPO_ELEITORAL && qtd === 1; }
+  function modeloDocx(qtd) {
+    if (state.tipoAtual !== TIPO_ELEITORAL) return "assets/modelo-folga.docx";
+    return ehSolo(qtd) ? "assets/modelo-folga-eleitoral-solo.docx" : "assets/modelo-folga-eleitoral.docx";
+  }
+
   function tipoDe() { return state.tipoAtual; }   // um documento = um tipo só (eleição vai para outro setor)
 
   // texto do ASSUNTO conforme o tipo do documento
@@ -582,7 +589,7 @@
     var px = function (tw) { return (tw / 15).toFixed(2) + "px"; };
     var P = dom.preview;
     P.innerHTML = "";
-    P.className = "fg-papel" + (cabe ? "" : " fg-papel--estoura") + (state.tipoAtual === TIPO_ELEITORAL ? " fg-papel--ele" : "");
+    P.className = "fg-papel" + (cabe ? "" : " fg-papel--estoura") + (state.tipoAtual === TIPO_ELEITORAL ? " fg-papel--ele" : "") + (ehSolo(itens.length) ? " fg-papel--solo" : "");
     P.style.setProperty("--sz", (nv.sz * 0.6667).toFixed(2) + "px");
     P.style.setProperty("--szh", (nv.sz * 0.6667).toFixed(2) + "px");
     P.style.setProperty("--mar", px(nv.mar));
@@ -614,7 +621,8 @@
 
     // título
     corpo.appendChild(el("div", "fgp-titulo", "COMUNICAÇÃO INTERNA"));
-    corpo.appendChild(sp(120));
+    var solo = ehSolo(itens.length);
+    corpo.appendChild(sp(solo ? 260 : 120));
 
     // dados
     var ci = (dom.ci.value || "").trim();
@@ -625,14 +633,14 @@
     r = el("tr"); tdPapel(r, "De:", "fgp-lab"); var c = tdPapel(r, remetenteAtual().setor + " – "); c.colSpan = 3; c.appendChild(el("b", null, remetenteAtual().nome)); t1.appendChild(r);
     r = el("tr"); tdPapel(r, "Para:", "fgp-lab"); var dest = destinatario(state.tipoAtual); c = tdPapel(r, ""); c.colSpan = 3; c.appendChild(el("b", null, destinatarioTexto(state.tipoAtual))); t1.appendChild(r);
     corpo.appendChild(t1);
-    corpo.appendChild(sp(200));
+    corpo.appendChild(sp(solo ? 420 : 200));
 
     corpo.appendChild(el("div", "fgp-assunto", "ASSUNTO: " + assuntoTexto(state.tipoAtual)));
-    corpo.appendChild(sp(160));
+    corpo.appendChild(sp(solo ? 420 : 160));
 
     // funcionários
     var t2 = el("table", "fgp-tab fgp-func"); cg = "";
-    [2350, 2050, 1850, 1788, 1600].forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
+    (solo ? [2400, 1800, 1800, 1888, 1750] : [2350, 2050, 1850, 1788, 1600]).forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
     t2.innerHTML = "<colgroup>" + cg + "</colgroup>";
     r = el("tr", "fgp-cabtab");
     ["NOME", "CARGO", "TIPO DE FOLGA", "DATA DA FOLGA", "ASSINATURA DO SERVIDOR"].forEach(function (t) { tdPapel(r, t); });
@@ -1392,7 +1400,7 @@
       };
     });
 
-    fetch(state.tipoAtual === TIPO_ELEITORAL ? "assets/modelo-folga-eleitoral.docx" : "assets/modelo-folga.docx")
+    fetch(modeloDocx(funcionariosOrdenados.length))
       .then(function (resp) {
         if (!resp.ok) throw new Error("Modelo não encontrado (assets/modelo-folga.docx)");
         return resp.arrayBuffer();
@@ -1403,7 +1411,7 @@
 
           // ajuste automático para caber numa folha (fonte, alturas e espaços)
           escolhaLayout = null;
-          if (window.FolgaLayout) {
+          if (window.FolgaLayout && !ehSolo(funcionariosOrdenados.length)) {
             try {
               escolhaLayout = FolgaLayout.escolherNivel(funcionariosOrdenados);
               docXml = FolgaLayout.aplicarNivel(docXml, escolhaLayout.nivel);
