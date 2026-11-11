@@ -618,12 +618,12 @@
 
     // dados
     var ci = (dom.ci.value || "").trim();
-    var t1 = el("table", "fgp-tab fgp-info"), cg = "";
+    var t1 = el("table", "fgp-tab fgp-info fgp-info--caps"), cg = "";
     [1250, 3569, 1250, 3569].forEach(function (w) { cg += '<col style="width:' + px(w) + '">'; });
     t1.innerHTML = "<colgroup>" + cg + "</colgroup>";
-    var r = el("tr"); tdPapel(r, "Número:", "fgp-lab"); tdPapel(r, (ci || "___") + "/2026"); tdPapel(r, "Data:", "fgp-lab"); tdPapel(r, formatarDataExtenso(new Date())); t1.appendChild(r);
-    r = el("tr"); tdPapel(r, "De:", "fgp-lab"); var c = tdPapel(r, remetenteAtual().setor + " – "); c.colSpan = 3; c.appendChild(el("b", null, remetenteAtual().nome)); t1.appendChild(r);
-    r = el("tr"); tdPapel(r, "Para:", "fgp-lab"); var dest = destinatario(state.tipoAtual); c = tdPapel(r, ""); c.colSpan = 3; c.appendChild(el("b", null, destinatarioTexto(state.tipoAtual))); t1.appendChild(r);
+    var r = el("tr"); tdPapel(r, "NÚMERO:", "fgp-lab"); tdPapel(r, (ci || "___") + "/2026"); tdPapel(r, "DATA:", "fgp-lab"); tdPapel(r, formatarDataExtenso(new Date())); t1.appendChild(r);
+    r = el("tr"); tdPapel(r, "DE:", "fgp-lab"); var c = tdPapel(r, remetenteAtual().setor + " – "); c.colSpan = 3; c.appendChild(el("b", null, remetenteAtual().nome)); t1.appendChild(r);
+    r = el("tr"); tdPapel(r, "PARA:", "fgp-lab"); var dest = destinatario(state.tipoAtual); c = tdPapel(r, ""); c.colSpan = 3; c.appendChild(el("b", null, destinatarioTexto(state.tipoAtual))); t1.appendChild(r);
     corpo.appendChild(t1);
     corpo.appendChild(sp(200));
 
@@ -1429,7 +1429,7 @@
           });
 
           var rem = remetenteAtual();
-          var subs = { "<<ci>>": ci, "<<hoje>>": formatarDataExtenso(new Date()), "<<setor>>": rem.setor, "<<assunto>>": assuntoTexto(state.tipoAtual), "<<para>>": destinatarioTexto(state.tipoAtual), "<<remetente>>": rem.nome };
+          var subs = { "<<ci>>": ci, "<<hoje>>": formatarDataExtenso(new Date()).toLocaleUpperCase("pt-BR"), "<<setor>>": rem.setor.toLocaleUpperCase("pt-BR"), "<<assunto>>": assuntoTexto(state.tipoAtual), "<<para>>": destinatarioTexto(state.tipoAtual).toLocaleUpperCase("pt-BR"), "<<remetente>>": rem.nome.toLocaleUpperCase("pt-BR") };
           Object.keys(arquivos).forEach(function (caminho) {
             var xmlAtual = caminho === "word/document.xml" ? docXml : arquivos[caminho];
             arquivos[caminho] = DocxUtils.substituirTags(xmlAtual, subs);

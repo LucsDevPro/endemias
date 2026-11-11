@@ -590,3 +590,6 @@ body.ver-funcao .folga-emp__cargo { display: block !important; }
 /* tabela de folgas em CAIXA ALTA; no tipo "Folga Eleitoral" a coluna TIPO DE FOLGA fica em negrito */
 .fg-papel .fgp-func tr:not(.fgp-cabtab) td { text-transform: uppercase; }
 .fg-papel--ele .fgp-func tr:not(.fgp-cabtab) td:nth-child(3) { font-weight: 700; }
+
+/* bloco Número/Data/De/Para da folga: tudo em CAIXA ALTA e negrito */
+.fgp-info--caps td, .fgp-info--caps td b { text-transform: uppercase; font-weight: 700; }
