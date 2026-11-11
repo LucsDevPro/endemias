@@ -821,7 +821,7 @@
         : '<w:spacing w:before="0" w:after="120" w:line="360" w:lineRule="auto"/><w:ind w:firstLine="709"/><w:jc w:val="both"/>';
       return '<w:p><w:pPr>' + pPr + '</w:pPr>' +
         p.map(function (s) {
-          return '<w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>' + (s.b ? "<w:b/><w:bCs/>" : "") + '<w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">' + escXml(s.t) + "</w:t></w:r>";
+          return '<w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/>' + (s.b ? "<w:b/><w:bCs/>" : "") + '<w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">' + escXml(s.t) + "</w:t></w:r>";
         }).join("") + "</w:p>";
     }).join("");
   }
