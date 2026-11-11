@@ -207,7 +207,7 @@ tr:hover > td > .fgp-x { opacity: .9; }
 .fgp-x:hover { opacity: 1 !important; transform: scale(1.15); }
 .fgp-x--data { top: -9px; right: -9px; width: 16px; height: 16px; font-size: 10px; }
 .fgp-data:hover .fgp-x--data { opacity: 1; }
-.fgp-data { white-space: nowrap; position: relative; }
+.fgp-data { position: relative; }
 
 /* ---------- celular / tela estreita: abas ---------- */
 @media (max-width: 1020px) {

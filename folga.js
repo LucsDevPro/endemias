@@ -174,12 +174,14 @@
     return partes[2] + "/" + partes[1] + "/" + partes[0];
   }
 
-  // sufixo do período: "" (dia todo), " (matutino)" ou " (vespertino)"
+  // sufixo do período: "" (dia todo), " (Mat.)", " (Vesp.)" ou " (2 Horas)"
   function sufixoPeriodo() {
-    if (dom.periodoMatutino && dom.periodoMatutino.checked) return " (matutino)";
-    if (dom.periodoVespertino && dom.periodoVespertino.checked) return " (vespertino)";
+    if (dom.periodoMatutino && dom.periodoMatutino.checked) return " (Mat.)";
+    if (dom.periodoVespertino && dom.periodoVespertino.checked) return " (Vesp.)";
+    if (dom.periodo2h && dom.periodo2h.checked) return " (2\u00A0Horas)";
     return "";
   }
+  function normalizarSufixo(d) { return String(d).replace(" (matutino)", " (Mat.)").replace(" (vespertino)", " (Vesp.)"); }
 
   function compararDatasBR(a, b) {
     function toDate(s) {
@@ -243,6 +245,7 @@
     dom.data = document.getElementById("folgaData");
     dom.periodoMatutino = document.getElementById("folgaPeriodoMatutino");
     dom.periodoVespertino = document.getElementById("folgaPeriodoVespertino");
+    dom.periodo2h = document.getElementById("folgaPeriodo2h");
     dom.addData = document.getElementById("folgaAddData");
     dom.desmarcar = document.getElementById("folgaDesmarcar");
     dom.resumoSelecao = document.getElementById("folgaResumoSelecao");
@@ -1597,6 +1600,7 @@
     dom.data.addEventListener("input", renderPreview);
     dom.periodoMatutino.addEventListener("change", function () { renderPendentes(); });
     dom.periodoVespertino.addEventListener("change", function () { renderPendentes(); });
+    if (dom.periodo2h) dom.periodo2h.addEventListener("change", function () { renderPendentes(); });
     ligarTelaDividida();
 
     dom.marcarTodos.addEventListener("click", marcarTodosFiltrados);
@@ -1619,15 +1623,13 @@
     if (dom.addData) dom.addData.addEventListener("click", adicionarData);
     if (dom.desmarcar) dom.desmarcar.addEventListener("click", desmarcarSelecao);
 
-    // matutino e vespertino são mutuamente exclusivos — marcar um desmarca o outro
-    if (dom.periodoMatutino && dom.periodoVespertino) {
-      dom.periodoMatutino.addEventListener("change", function () {
-        if (dom.periodoMatutino.checked) dom.periodoVespertino.checked = false;
+    // Mat., Vesp. e 2 Horas são mutuamente exclusivos — marcar um desmarca os outros
+    (function () {
+      var grupo = [dom.periodoMatutino, dom.periodoVespertino, dom.periodo2h].filter(Boolean);
+      grupo.forEach(function (c) {
+        c.addEventListener("change", function () { if (c.checked) grupo.forEach(function (o) { if (o !== c) o.checked = false; }); });
       });
-      dom.periodoVespertino.addEventListener("change", function () {
-        if (dom.periodoVespertino.checked) dom.periodoMatutino.checked = false;
-      });
-    }
+    })();
     dom.limpar.addEventListener("click", limparTudo);
     dom.gerar.addEventListener("click", function () { autorizarPasta().then(gerarDocumento); });
     (function () {
