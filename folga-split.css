@@ -566,3 +566,10 @@ body.ver-funcao .folga-emp__cargo { display: block !important; }
 .fgp-func .fgp-datas { color: #002868; }
 /* assinaturas da CI: só os nomes, sem tabela */
 .fgp-assin-ci td { border: 0 !important; background: transparent !important; }
+
+/* ---- preview fiel ao .docx (Word: Arial, entrelinha simples ≈ 1,15; título de 640 twips) ---- */
+.fg-papel, .fg-papel .fgp-tab td { line-height: 1.15; }
+.fg-papel .fgp-titulo { font-size: 24px; letter-spacing: 3px; padding: 0; height: 42.67px; line-height: 39.67px; font-weight: 700; }
+.fg-papel .fgp-titulo { height: 44.5px; line-height: 41.5px; }
+.fg-papel .fgp-func .fgp-cabtab td:last-child { padding-left: 5px; padding-right: 5px; }
+.fg-papel .fgp-assin .fgp-linha-assin td { height: calc(var(--assin) + 10px); }
