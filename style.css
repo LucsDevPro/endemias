@@ -2294,3 +2294,15 @@ kbd {
   display: flex;
   margin-top: 0.2rem;
 }
+
+/* ---- Página principal: o cabeçalho (logo + nome do setor) passou para o rodapé ---- */
+.topbar--rodape {
+  position: static;
+  border-bottom: 0;
+  border-top: 1px solid rgba(223, 231, 242, 0.8);
+  animation: none;
+  margin-top: 1.5rem;
+}
+.topbar--rodape::before { top: 0; }
+.topbar--rodape .topbar__inner { justify-content: center; padding: 1.1rem 1.5rem 1.2rem; }
+.topbar--rodape .brand { animation: none; }
