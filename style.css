@@ -2297,7 +2297,7 @@ kbd {
 
 /* ---- Página principal: o cabeçalho (logo + nome do setor) passou para o rodapé ---- */
 .topbar--rodape {
-  position: static;
+  position: relative;
   border-bottom: 0;
   border-top: 1px solid rgba(223, 231, 242, 0.8);
   animation: none;
@@ -2314,6 +2314,14 @@ kbd {
 .topbar--rodape .brand__divider { height: 18px; }
 .topbar--rodape .brand__name { font-size: .78rem; letter-spacing: 0; }
 .topbar--rodape .topbar__back, .topbar--rodape .tema-btn { padding: .2rem .65rem; font-size: .72rem; line-height: 1.2; }
-.topbar--rodape::before { height: 2px; }
-.topbar--rodape::after { height: 2px; }
+.topbar--rodape::before { display: none; }
+/* barra com efeito: agora no TOPO do rodapé; o rodapé fica rente ao pé da página */
+.topbar--rodape::after { top: 0; bottom: auto; height: 4px; }
+.topbar--rodape .topbar__inner { padding-top: .45rem; }
 .topbar--rodape { margin-top: 1rem; }
+
+/* página principal: rodapé fixo, rente ao pé da tela (fora do zoom automático) */
+body.home-rodape { padding-bottom: 46px; }
+body.home-rodape > .topbar--rodape { position: fixed; top: auto; left: 0; right: 0; bottom: 0; margin: 0; z-index: 60; }
+/* demais páginas: o rodapé acompanha o pé da janela */
+body:not(.home-rodape):not(.folga-page) > .topbar--rodape { position: sticky; top: auto; bottom: 0; margin-top: 1rem; }
