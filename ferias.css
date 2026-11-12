@@ -1,0 +1,20 @@
+/* Férias: em telas largas tudo cabe numa tela só, sem rolagem da página (3 colunas;
+   listas compridas rolam dentro da própria coluna). Em telas pequenas segue em coluna única. */
+@media (min-width: 1021px) {
+  html, body.ferias-page { height: 100%; overflow: hidden; }
+  body.ferias-page .page--wide { max-width: none; width: 100%; height: calc(100vh - 38px); padding: 10px 16px; display: flex; flex-direction: column; box-sizing: border-box; }
+  body.ferias-page .hero { margin: 0 0 8px; padding: 0; flex: none; text-align: center; display: flex; flex-direction: column; align-items: center; }
+  body.ferias-page .hero .title { font-size: 1.5rem; margin: 0; line-height: 1.1; }
+  body.ferias-page .hero .title::after, body.ferias-page .hero .title::before { display: none; }
+  body.ferias-page .hero .subtitle { display: none; }
+  body.ferias-page .foot { display: none; }
+  body.ferias-page .fer-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr .8fr 1.9fr; gap: 12px; padding: 0; background: none; border: 0; box-shadow: none; }
+  body.ferias-page .fer-grid > .folga-section, body.ferias-page .fer-col3 > .folga-section { min-height: 0; overflow-y: auto; margin: 0; }
+  body.ferias-page .fer-grid > .folga-section { padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,.72); border: 1px solid rgba(255,255,255,.85); box-shadow: 0 8px 24px -12px rgba(0,43,104,.25); }
+  body.ferias-page .fer-col3 { min-height: 0; display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,.72); border: 1px solid rgba(255,255,255,.85); box-shadow: 0 8px 24px -12px rgba(0,43,104,.25); }
+  body.ferias-page .fer-col3 > .folga-section { flex: 1; padding: 0; }
+  body.ferias-page .fer-col3 .folga-status { flex: none; margin: 0; }
+  body.ferias-page .fer-col3 .fer-actions { flex: none; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+  body.ferias-page .folga-privacy { font-size: .78rem; padding: .5rem .7rem; margin: 0 0 .6rem; }
+  body.ferias-page .folga-upload { padding: .9rem; }
+}

@@ -10,9 +10,10 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="tema.css">
 <link rel="stylesheet" href="tema-claro.css">
+<link rel="stylesheet" href="ferias.css">
 <script src="tema-toggle.js"></script>
 </head>
-<body>
+<body class="ferias-page">
 
 <main class="page page--tool page--wide">
 
@@ -21,7 +22,7 @@
     <p class="subtitle">Preenche vários Requerimentos de Férias de uma vez, a partir da planilha de funcionários.</p>
   </div>
 
-  <div class="tool-panel">
+  <div class="tool-panel fer-grid">
 
     <section class="folga-section">
       <h3 class="folga-section__title">1. Escolha os servidores</h3>
@@ -95,11 +96,12 @@
       </div>
     </section>
 
+    <div class="fer-col3">
     <section class="folga-section">
       <h3 class="folga-section__title">3. Requerimentos <span class="fer-badge" id="feriasContador">0</span></h3>
       <p class="folga-count" id="feriasResumo"></p>
 
-      <div class="fer-vazio" id="feriasVazio">Nenhum servidor na lista ainda. Marque servidores na planilha acima e clique em “Adicionar à lista”, ou adicione manualmente.</div>
+      <div class="fer-vazio" id="feriasVazio">Nenhum servidor na lista ainda. Marque servidores na planilha à esquerda e clique em “Adicionar à lista”, ou adicione manualmente.</div>
 
       <div class="fer-lista" id="feriasLista" hidden></div>
       <p class="folga-count" id="feriasDica" hidden>O período aquisitivo é sugerido pela data de admissão (último ciclo completo) — confira antes de gerar. O fim do gozo é calculado sozinho.</p>
@@ -111,6 +113,7 @@
       <button type="button" id="feriasLimpar" class="folga-btn folga-btn--ghost" hidden>Limpar lista</button>
       <button type="button" id="feriasGerarUnico" class="folga-btn" hidden>Gerar um único .docx (1 por página)</button>
       <button type="button" id="feriasGerar" class="folga-btn folga-btn--primary" disabled>Gerar documento (.docx)</button>
+    </div>
     </div>
 
   </div>
