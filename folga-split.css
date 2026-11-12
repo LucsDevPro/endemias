@@ -604,17 +604,9 @@ body.ver-funcao .folga-emp__cargo { display: block !important; }
 .fgp-rodape { position: absolute; left: 75.6px; right: 75.6px; bottom: 26.7px; border-top: 1px solid #7F7F7F; padding-top: 3px; font-size: 12px; line-height: 1.15; color: #7F7F7F; z-index: 1; }
 body.folga-page .topbar--rodape { margin-top: 0; }
 
-/* ---- Folga / Comunicação Interna: rodapé preenchido (faixa azul-marinho sólida, logo claro, aviso embaixo) ---- */
-body.folga-page .topbar--rodape,
-html[data-tema="claro"] body.folga-page .topbar--rodape { background: linear-gradient(90deg, #002868 0%, #0A4A9E 50%, #002868 100%); border-top: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
-body.folga-page .topbar--rodape .brand__logo--claro-sobre-escuro,
-html[data-tema="claro"] body.folga-page .topbar--rodape .brand__logo--claro-sobre-escuro { display: none; }
-body.folga-page .topbar--rodape .brand__logo--original,
-html[data-tema="claro"] body.folga-page .topbar--rodape .brand__logo--original { display: block; background: #fff; padding: 2px 8px; border-radius: 6px; height: 24px; }
-body.folga-page .topbar--rodape .brand__name,
-html[data-tema="claro"] body.folga-page .topbar--rodape .brand__name { color: #fff; }
-body.folga-page .topbar--rodape .topbar__back, body.folga-page .topbar--rodape .tema-btn,
-html[data-tema="claro"] body.folga-page .topbar--rodape .topbar__back, html[data-tema="claro"] body.folga-page .topbar--rodape .tema-btn { color: #fff; border-color: rgba(255,255,255,.55); }
-body.folga-page .topbar--rodape .topbar__back:hover, body.folga-page .topbar--rodape .tema-btn:hover { background: #F8B800; color: #002868; border-color: #F8B800; }
-
 body.folga-page .topbar__nota { display: none; }
+
+
+/* título da página centralizado */
+body.folga-page .hero--compacto { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+body.folga-page .hero--compacto .title { text-align: center; }
