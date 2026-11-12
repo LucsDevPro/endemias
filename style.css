@@ -2306,3 +2306,14 @@ kbd {
 .topbar--rodape::before { top: 0; }
 .topbar--rodape .topbar__inner { justify-content: center; padding: 1.1rem 1.5rem 1.2rem; }
 .topbar--rodape .brand { animation: none; }
+
+/* rodapé fino: uma linha só, bem rente ao pé da página */
+.topbar--rodape .topbar__inner { padding: .3rem 1rem; gap: .6rem; position: relative; }
+.topbar--rodape .brand { gap: .6rem; }
+.topbar--rodape .brand__logo { height: 24px; }
+.topbar--rodape .brand__divider { height: 18px; }
+.topbar--rodape .brand__name { font-size: .78rem; letter-spacing: 0; }
+.topbar--rodape .topbar__back, .topbar--rodape .tema-btn { padding: .2rem .65rem; font-size: .72rem; line-height: 1.2; }
+.topbar--rodape::before { height: 2px; }
+.topbar--rodape::after { height: 2px; }
+.topbar--rodape { margin-top: 1rem; }

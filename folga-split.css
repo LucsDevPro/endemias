@@ -410,7 +410,7 @@ html[data-tema="claro"] .fg-abas { background: rgba(238,243,249,.92); }
 
 @media (min-width: 1021px) {
   html, body.folga-page { height: 100%; overflow: hidden; }
-  body.folga-page .page--split { max-width: none; width: 100%; height: calc(100vh - 94px); padding: 10px 16px 10px; display: flex; flex-direction: column; }
+  body.folga-page .page--split { max-width: none; width: 100%; height: calc(100vh - 38px); padding: 10px 16px 10px; display: flex; flex-direction: column; }
   body.folga-page .hero--compacto { margin: 0 0 8px; padding: 0; flex: none; }
   body.folga-page .hero--compacto .title { font-size: 1.5rem; margin: 0; line-height: 1.1; }
   body.folga-page .hero--compacto .title::after, body.folga-page .hero--compacto .title::before { display: none; }
@@ -436,7 +436,7 @@ html[data-tema="claro"] .fg-abas { background: rgba(238,243,249,.92); }
 }
 
 @media (min-width: 1021px) {
-  body.folga-page .page--split { --z: 1; zoom: var(--z); height: calc((100vh - 94px) / var(--z)); }
+  body.folga-page .page--split { --z: 1; zoom: var(--z); height: calc((100vh - 38px) / var(--z)); }
   .fg-doc { grid-template-columns: 1fr; gap: .7rem; }
   .fg-doc__ci { display: flex; align-items: center; gap: .8rem; }
   .fg-doc__ci .fg-rot { margin: 0; white-space: nowrap; }
@@ -610,11 +610,11 @@ html[data-tema="claro"] body.folga-page .topbar--rodape { background: linear-gra
 body.folga-page .topbar--rodape .brand__logo--claro-sobre-escuro,
 html[data-tema="claro"] body.folga-page .topbar--rodape .brand__logo--claro-sobre-escuro { display: none; }
 body.folga-page .topbar--rodape .brand__logo--original,
-html[data-tema="claro"] body.folga-page .topbar--rodape .brand__logo--original { display: block; background: #fff; padding: 3px 10px; border-radius: 9px; height: 42px; }
+html[data-tema="claro"] body.folga-page .topbar--rodape .brand__logo--original { display: block; background: #fff; padding: 2px 8px; border-radius: 6px; height: 24px; }
 body.folga-page .topbar--rodape .brand__name,
 html[data-tema="claro"] body.folga-page .topbar--rodape .brand__name { color: #fff; }
 body.folga-page .topbar--rodape .topbar__back, body.folga-page .topbar--rodape .tema-btn,
 html[data-tema="claro"] body.folga-page .topbar--rodape .topbar__back, html[data-tema="claro"] body.folga-page .topbar--rodape .tema-btn { color: #fff; border-color: rgba(255,255,255,.55); }
 body.folga-page .topbar--rodape .topbar__back:hover, body.folga-page .topbar--rodape .tema-btn:hover { background: #F8B800; color: #002868; border-color: #F8B800; }
-body.folga-page .topbar--rodape .topbar__inner { padding: .7rem 1.5rem .25rem; }
-body.folga-page .topbar__nota { margin: 0; padding: 0 1rem .6rem; text-align: center; color: rgba(255,255,255,.78); font-size: .78rem; }
+
+body.folga-page .topbar__nota { display: none; }
