@@ -40,6 +40,19 @@ window.CI_ASSUNTOS = [
     }
   },
   {
+    id: "produtividade",
+    botao: "Produtividade",
+    assunto: "PRODUTIVIDADE",
+    campos: [],
+    paragrafos: function () {
+      return [
+        [{ t: "Encaminho, em anexo, a relação dos Agentes de Combate às Endemias (ACE) e os respectivos valores do Incentivo Financeiro Estadual, referente à competência do mês de setembro, conforme a Lei Estadual nº 4.841/2016, alterada pela Lei nº 6.287/2024." }],
+        [{ t: "Solicito que sejam realizados os procedimentos necessários para o processamento e pagamento do incentivo." }],
+        [{ t: "Atenciosamente," }]
+      ];
+    }
+  },
+  {
     id: "livre",
     botao: "✍ Texto livre",
     assunto: "",
