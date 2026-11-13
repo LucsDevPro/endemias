@@ -6,8 +6,8 @@
 .fgp-assunto { font-size: 14.67px; }
 .fgp-rodape { position: absolute; left: 75.6px; right: 75.6px; bottom: 22px; text-align: center; font-size: 10.7px; color: #002B68; border-top: 1px solid #002B68; padding-top: 4px; line-height: 1.35; }
 .fg-papel--estoura .fgp-rodape { position: static; margin-top: 18px; }
-.fgp-assin-ci .fgp-linha-assin td { vertical-align: bottom; font-size: 11px; }
-.fgp-nome-assin { border-top: 1px solid #002B68; margin: 0 6px; padding-top: 2px; font-weight: 700; font-size: 11.3px; }
+.fgp-assin-ci .fgp-linha-assin td { vertical-align: bottom; font-size: 13.33px; }
+.fgp-nome-assin { border-top: 1px solid #002B68; margin: 0 6px; padding-top: 2px; font-weight: 700; font-size: 14.67px; }
 .fgp-sub-assin { font-size: 10.7px; font-weight: 400; }
 .fgp-recebido { font-size: 11.3px; text-align: center; }
 .ci-campos[hidden] { display: none !important; }
