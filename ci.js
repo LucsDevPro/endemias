@@ -103,7 +103,7 @@
     var datas = state.calSel.slice().sort().map(function (i) { return fmtBR(parseISO(i)); });
     return {
       nomes: nomes, datas: datas, n: nomes.length, d: datas.length, juntar: juntar,
-      texto: dom.texto ? dom.texto.value : "", motivo: dom.motivo ? dom.motivo.value.trim() : "", assuntoLivre: dom.assuntoLivre ? dom.assuntoLivre.value.trim() : ""
+      texto: dom.texto ? dom.texto.value : "", motivo: dom.motivo ? dom.motivo.value.trim() : "", competencia: dom.competencia ? dom.competencia.value : "", assuntoLivre: dom.assuntoLivre ? dom.assuntoLivre.value.trim() : ""
     };
   }
   function assuntoTexto() {
@@ -879,7 +879,7 @@
   // ---------------- inicialização ----------------
   function init() {
     ["ciNumero", "ciRemetente", "ciPara", "ciSigla", "ciGerente", "ciGerenteCargo", "ciAssuntos", "ciIncMat", "ciBusca", "ciResumoSelecao", "ciLista", "ciContador",
-     "ciMarcarTodos", "ciDesmarcar", "ciMotivo", "ciTexto", "ciNegrito", "ciMic", "ciCorrigir", "ciMelhorarIA", "ciDesfazer", "ciIaStatus", "ciIaDetalhe", "ciAssuntoLivre", "ciLimpar", "ciGerar", "ciStatus", "ciPreview"].forEach(function (id) {
+     "ciMarcarTodos", "ciDesmarcar", "ciMotivo", "ciCompetencia", "ciTexto", "ciNegrito", "ciMic", "ciCorrigir", "ciMelhorarIA", "ciDesfazer", "ciIaStatus", "ciIaDetalhe", "ciAssuntoLivre", "ciLimpar", "ciGerar", "ciStatus", "ciPreview"].forEach(function (id) {
       var k = id.replace(/^ci/, ""); k = k.charAt(0).toLowerCase() + k.slice(1);
       dom[k] = document.getElementById(id);
     });
@@ -889,6 +889,13 @@
     dom.numero.addEventListener("input", renderPreview);
     dom.remetente.addEventListener("change", function () { state.remetente = parseInt(dom.remetente.value, 10) || 0; renderPreview(); });
     ["para", "sigla", "gerente", "gerenteCargo", "motivo", "texto", "assuntoLivre"].forEach(function (k) { dom[k].addEventListener("input", renderPreview); });
+    // competência (Produtividade): lista dos 12 meses; sugere 2 meses antes do mês atual (em novembro → setembro)
+    (function () {
+      var meses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+      meses.forEach(function (m) { var o = document.createElement("option"); o.value = m; o.textContent = m.charAt(0).toUpperCase() + m.slice(1); dom.competencia.appendChild(o); });
+      dom.competencia.value = meses[(new Date().getMonth() + 10) % 12];
+      dom.competencia.addEventListener("change", renderPreview);
+    })();
     dom.incMat.addEventListener("change", function () { state.incMat = dom.incMat.checked; renderPreview(); });
     dom.busca.addEventListener("input", function () { state.filtroTexto = dom.busca.value; renderLista(); });
     dom.busca.addEventListener("keydown", function (e) {

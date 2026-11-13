@@ -5,7 +5,7 @@
 //   id        nome interno (sem espaços)
 //   botao     texto do botão na tela
 //   assunto   texto que vai depois de "ASSUNTO:" (o campo pode ser "livre")
-//   campos    o que a pessoa precisa preencher: "agentes", "datas", "motivo", "assuntoLivre", "texto"
+//   campos    o que a pessoa precisa preencher: "agentes", "datas", "motivo", "competencia", "assuntoLivre", "texto"
 //   paragrafos(c)  devolve a lista de parágrafos do documento. Cada parágrafo é uma lista de
 //                  trechos { t: "texto", b: true/false (negrito) }.
 //                  Para uma linha de lista ("- Nome"), marque o parágrafo com p.lista = true.
@@ -43,10 +43,10 @@ window.CI_ASSUNTOS = [
     id: "produtividade",
     botao: "Produtividade",
     assunto: "PRODUTIVIDADE",
-    campos: [],
-    paragrafos: function () {
+    campos: ["competencia"],
+    paragrafos: function (c) {
       return [
-        [{ t: "Encaminho, em anexo, a relação dos Agentes de Combate às Endemias (ACE) e os respectivos valores do Incentivo Financeiro Estadual, referente à competência do mês de setembro, conforme a Lei Estadual nº 4.841/2016, alterada pela Lei nº 6.287/2024." }],
+        [{ t: "Encaminho, em anexo, a relação dos Agentes de Combate às Endemias (ACE) e os respectivos valores do Incentivo Financeiro Estadual, referente à competência do mês de " + (c.competencia || "setembro") + ", conforme a Lei Estadual nº 4.841/2016, alterada pela Lei nº 6.287/2024." }],
         [{ t: "Solicito que sejam realizados os procedimentos necessários para o processamento e pagamento do incentivo." }],
         [{ t: "Atenciosamente," }]
       ];
