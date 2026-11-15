@@ -158,7 +158,7 @@ Mesma tela dividida da Folga: **preencher à esquerda, modelo A4 ao vivo à dire
 
 **Para criar um assunto novo**, abra `ci-assuntos.js`, copie um bloco da lista `CI_ASSUNTOS` e mude `id`, `botao`, `assunto`, `campos` (o que preencher) e a função `paragrafos` (o texto, com `c.nomes`, `c.datas` e `c.juntar()`). O botão aparece sozinho.
 
-> O microfone e o "✨ Melhorar texto" (LanguageTool/IA) da versão antiga não existem mais nesta página. `ci-config.js` ficou no projeto, mas a página atual não o usa.
+> A CI tem microfone (ditado por voz, Chrome/Edge), negrito no texto livre (botão **B** ou Ctrl+B), correção ortográfica (LanguageTool) e "✨ Melhorar texto" por IA (opcional, via `ci-config.js`). O assunto **Produtividade** tem texto fixo e o mês da competência é editável (padrão: 2 meses antes do atual). Os modelos .docx usam Times New Roman.
 
 ## Lançar Ovitrampas (`ovitrampas.html`)
 
