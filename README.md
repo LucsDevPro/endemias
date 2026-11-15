@@ -238,6 +238,7 @@ Cada folga e cada CI gerada (docx ou impressão) pode ser registrada numa Planil
 
 - Aba **Folgas**: uma linha por agente (CI nº, tipo, agente, datas, emissor, ação).
 - Aba **CIs**: uma linha por CI (número, assunto, emissor, ação).
+- Aba **Férias**: uma linha por servidor (matrícula, cargo, período aquisitivo, dias, início, fim). O CPF não é enviado.
 - Se a mesma folga/CI for gerada de novo (ex.: docx e depois impressão), a linha é atualizada, não duplicada.
 
 **Como ligar**

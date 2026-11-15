@@ -814,6 +814,15 @@
       })
       .then(function (msg) {
         setStatus(msg, false);
+        if (window.Registro) {
+          Registro.enviar({
+            kind: "ferias", quando: new Date().toISOString(), requerimento: fmtBR(dataDoRequerimento()),
+            servidores: linhas.map(function (l) {
+              return { nome: l.nome.trim(), matricula: l.matricula.trim(), cargo: l.cargo.trim(), periodo: l.periodo.trim(),
+                       dias: l.dias, inicio: fmtBR(parseISO(l.inicio)), fim: fmtBR(calcFim(l.inicio, l.dias)) };
+            })
+          });
+        }
       })
       .catch(function (err) {
         console.error(err);

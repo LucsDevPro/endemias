@@ -7,6 +7,7 @@
  * CI gerada no site vira linhas na planilha:
  *   - aba "Folgas": uma linha por agente (CI, tipo, agente, datas, emissor)
  *   - aba "CIs":    uma linha por CI (número, assunto, emissor)
+ *   - aba "Férias": uma linha por servidor (período, dias, início, fim)
  *
  * PASSO A PASSO
  *  1. Crie uma Planilha Google nova (ex.: "Registro Endemias").
@@ -32,6 +33,8 @@
 var ABA_FOLGAS = "Folgas";
 var ABA_CIS = "CIs";
 var CAB_FOLGAS = ["Registrado em", "CI nº", "Tipo", "Agente", "Datas", "Emissor", "Ação", "Chave"];
+var ABA_FERIAS = "Férias";
+var CAB_FERIAS = ["Registrado em", "Servidor", "Matrícula", "Cargo", "Período aquisitivo", "Dias", "Início", "Fim", "Requerimento em", "Chave"];
 var CAB_CIS = ["Registrado em", "CI nº", "Assunto", "Emissor", "Ação", "Chave"];
 
 function doGet() {
@@ -51,6 +54,7 @@ function doPost(e) {
   try {
     if (ev.kind === "folga") registrarFolga_(ev);
     else if (ev.kind === "ci") registrarCi_(ev);
+    else if (ev.kind === "ferias") registrarFerias_(ev);
     else return json_({ ok: false, erro: "Tipo de registro desconhecido" });
   } finally {
     lock.releaseLock();
@@ -65,6 +69,15 @@ function registrarFolga_(ev) {
     var datas = (a.datas || []).join("; ");
     var chave = [ev.ci, ev.tipo, a.nome, datas].join("|");
     gravar_(aba, chave, 8, 7, quando, ev.acao, [quando, "'" + ev.ci, ev.tipo, a.nome, datas, ev.emissor, ev.acao, chave]);
+  });
+}
+
+function registrarFerias_(ev) {
+  var aba = aba_(ABA_FERIAS, CAB_FERIAS);
+  var quando = quando_(ev.quando);
+  (ev.servidores || []).forEach(function (f) {
+    var chave = [f.matricula || f.nome, f.periodo, f.inicio, f.fim].join("|");
+    gravar_(aba, chave, 10, 0, quando, "", [quando, f.nome, "'" + f.matricula, f.cargo, f.periodo, f.dias, f.inicio, f.fim, ev.requerimento, chave]);
   });
 }
 
@@ -83,10 +96,13 @@ function gravar_(aba, chave, colChave, colAcao, quando, acao, linha) {
     var chaves = aba.getRange(2, colChave, ultima - 1, 1).getValues();
     for (var i = chaves.length - 1; i >= 0; i--) {
       if (chaves[i][0] === chave) {
-        var r = i + 2, atual = String(aba.getRange(r, colAcao).getValue());
-        if (atual.indexOf(acao) === -1) atual = atual ? atual + ", " + acao : acao;
+        var r = i + 2;
         aba.getRange(r, 1).setValue(quando);
-        aba.getRange(r, colAcao).setValue(atual);
+        if (colAcao) {
+          var atual = String(aba.getRange(r, colAcao).getValue());
+          if (atual.indexOf(acao) === -1) atual = atual ? atual + ", " + acao : acao;
+          aba.getRange(r, colAcao).setValue(atual);
+        }
         return;
       }
     }
