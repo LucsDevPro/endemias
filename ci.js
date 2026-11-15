@@ -372,6 +372,7 @@
     else h.push({ id: Date.now(), ci: ci, chave: chave, quando: new Date().toISOString(), tipo: tipo, remetente: rem.setor + " – " + rem.nome, agentes: ag, sig: sig, acoes: [acao] });
     try { localStorage.setItem(HIST_KEY, JSON.stringify(h)); } catch (e2) { /* ignora */ }
     atualizarDicaCi();
+    if (window.Registro) Registro.enviar({ kind: "ci", quando: new Date().toISOString(), ci: ci, assunto: assuntoTexto(), emissor: rem.setor + " – " + rem.nome, acao: acao });
   }
 
   // ---------------- microfone: ditado por voz (Web Speech API, nativa do Chrome/Edge) ----------------

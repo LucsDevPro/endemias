@@ -231,3 +231,19 @@ Modelo refeito do zero: cabeçalho com o logo da Prefeitura de Ponta Porã (cent
 À esquerda, passo a passo (1 CI → 2 quem → 3 quando → 4 adicionar); à direita, o modelo A4 ao vivo (`folga-split.css`). O que ainda não foi adicionado aparece em amarelo; ✕ no modelo remove funcionário ou data. O selo mostra se cabe em 1 folha. No celular há abas "Preencher" / "Ver modelo".
 
 **Remetente (De:)** — escolhido na tela (padrão: Setor de Endemias e Zoonoses – Alexandre Mendonca de Lima); dá para adicionar outros coordenadores. O trabalho (CI, folgas, datas) não é salvo: F5 recomeça do zero. Só a lista de funcionários e a de remetentes ficam no navegador.
+
+## Registro de folgas e CIs na planilha (opcional)
+
+Cada folga e cada CI gerada (docx ou impressão) pode ser registrada numa Planilha Google compartilhada, para ter o controle de tudo que foi emitido por qualquer pessoa/computador.
+
+- Aba **Folgas**: uma linha por agente (CI nº, tipo, agente, datas, emissor, ação).
+- Aba **CIs**: uma linha por CI (número, assunto, emissor, ação).
+- Se a mesma folga/CI for gerada de novo (ex.: docx e depois impressão), a linha é atualizada, não duplicada.
+
+**Como ligar**
+1. Crie uma Planilha Google, abra *Extensões → Apps Script* e cole o conteúdo de `RegistroFolgas.gs`.
+2. Em *Configurações do projeto → Propriedades do script*, crie `REGISTRO_TOKEN` com uma senha simples.
+3. *Implantar → Nova implantação → App da Web* (Executar como: Eu; Acesso: Qualquer pessoa) e copie a URL `/exec`.
+4. Em `registro-config.js`, preencha `URL` e `TOKEN` (o mesmo do passo 2).
+
+Sem `URL`, nada é enviado e o site funciona como antes. Se estiver sem internet, o registro fica numa fila no navegador e é reenviado quando voltar.

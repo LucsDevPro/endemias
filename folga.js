@@ -903,6 +903,7 @@
       h.push({ id: Date.now(), ci: ci, chave: chave, quando: new Date().toISOString(), tipo: state.tipoAtual, remetente: rem.setor + " – " + rem.nome, agentes: ag, sig: sig, acoes: [acao] });
     }
     salvarHistorico(h); atualizarDicaCi();
+    if (window.Registro) Registro.enviar({ kind: "folga", quando: new Date().toISOString(), ci: ci, tipo: state.tipoAtual, emissor: rem.setor + " – " + rem.nome, acao: acao, agentes: ag });
   }
   function datasUnicas(e) {
     var u = {}; e.agentes.forEach(function (a) { a.datas.forEach(function (d) { u[d] = 1; }); });
