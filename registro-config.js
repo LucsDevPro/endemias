@@ -15,6 +15,6 @@
 // ============================================================
 
 var REGISTRO_CONFIG = {
-  URL: "",
-  TOKEN: ""
+  URL: "https://script.google.com/macros/s/AKfycbx6vN2I67datUTpwEdIutVAnqq1llfvBgOW189qAo2lTyKXmNpO0ZT0tS0lqcbrBnLj/exec",
+  TOKEN: "1234"
 };
