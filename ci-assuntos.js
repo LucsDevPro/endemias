@@ -66,6 +66,20 @@ window.CI_ASSUNTOS = [
     }
   },
   {
+    id: "plantoes",
+    botao: "Escala de plantões",
+    assunto: "ESCALA DE PLANTÕES",
+    campos: ["mesBanco"],
+    paragrafos: function (c) {
+      return [
+        [{ t: "Segue, em anexo, a escala de plantões da UVZ referente ao mês de " + (c.mesBanco || "novembro de 2026") + "." }],
+        [{ t: "Os plantões são necessários para garantir os cuidados com os animais que permanecem alojados na unidade durante os finais de semana, assegurando a alimentação, hidratação, higiene e demais cuidados necessários ao bem-estar e à manutenção da saúde dos animais." }],
+        [{ t: "Atenciosamente," }],
+        [{ t: "Unidade de Vigilância em Zoonoses – UVZ" }]
+      ];
+    }
+  },
+  {
     id: "livre",
     botao: "✍ Texto livre",
     assunto: "",
