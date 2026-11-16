@@ -103,7 +103,7 @@
     var datas = state.calSel.slice().sort().map(function (i) { return fmtBR(parseISO(i)); });
     return {
       nomes: nomes, datas: datas, n: nomes.length, d: datas.length, juntar: juntar,
-      texto: dom.texto ? dom.texto.value : "", motivo: dom.motivo ? dom.motivo.value.trim() : "", competencia: dom.competencia ? dom.competencia.value : "", assuntoLivre: dom.assuntoLivre ? dom.assuntoLivre.value.trim() : ""
+      texto: dom.texto ? dom.texto.value : "", motivo: dom.motivo ? dom.motivo.value.trim() : "", competencia: dom.competencia ? dom.competencia.value : "", mesBanco: dom.mesBanco ? dom.mesBanco.value : "", assuntoLivre: dom.assuntoLivre ? dom.assuntoLivre.value.trim() : ""
     };
   }
   function assuntoTexto() {
@@ -880,7 +880,7 @@
   // ---------------- inicialização ----------------
   function init() {
     ["ciNumero", "ciRemetente", "ciPara", "ciSigla", "ciGerente", "ciGerenteCargo", "ciAssuntos", "ciIncMat", "ciBusca", "ciResumoSelecao", "ciLista", "ciContador",
-     "ciMarcarTodos", "ciDesmarcar", "ciMotivo", "ciCompetencia", "ciTexto", "ciNegrito", "ciMic", "ciCorrigir", "ciMelhorarIA", "ciDesfazer", "ciIaStatus", "ciIaDetalhe", "ciAssuntoLivre", "ciLimpar", "ciGerar", "ciStatus", "ciPreview"].forEach(function (id) {
+     "ciMarcarTodos", "ciDesmarcar", "ciMotivo", "ciCompetencia", "ciMesBanco", "ciTexto", "ciNegrito", "ciMic", "ciCorrigir", "ciMelhorarIA", "ciDesfazer", "ciIaStatus", "ciIaDetalhe", "ciAssuntoLivre", "ciLimpar", "ciGerar", "ciStatus", "ciPreview"].forEach(function (id) {
       var k = id.replace(/^ci/, ""); k = k.charAt(0).toLowerCase() + k.slice(1);
       dom[k] = document.getElementById(id);
     });
@@ -896,6 +896,18 @@
       meses.forEach(function (m) { var o = document.createElement("option"); o.value = m; o.textContent = m.charAt(0).toUpperCase() + m.slice(1); dom.competencia.appendChild(o); });
       dom.competencia.value = meses[(new Date().getMonth() + 10) % 12];
       dom.competencia.addEventListener("change", renderPreview);
+    })();
+    // escala de banco de horas: mês (e ano) de referência; sugere o mês atual
+    (function () {
+      var meses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+      var hoje = new Date(), mesAtual = hoje.getMonth();
+      meses.forEach(function (m, i) {
+        // meses bem à frente do atual são do ano anterior (ex.: em janeiro, dezembro = ano passado)
+        var ano = hoje.getFullYear() - (i > mesAtual + 6 ? 1 : 0);
+        var o = document.createElement("option"); o.value = m + " de " + ano; o.textContent = m.charAt(0).toUpperCase() + m.slice(1) + " de " + ano; dom.mesBanco.appendChild(o);
+      });
+      dom.mesBanco.selectedIndex = mesAtual;
+      dom.mesBanco.addEventListener("change", renderPreview);
     })();
     dom.incMat.addEventListener("change", function () { state.incMat = dom.incMat.checked; renderPreview(); });
     dom.busca.addEventListener("input", function () { state.filtroTexto = dom.busca.value; renderLista(); });

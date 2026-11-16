@@ -53,6 +53,19 @@ window.CI_ASSUNTOS = [
     }
   },
   {
+    id: "banco-horas",
+    botao: "Escala banco de horas",
+    assunto: "ESCALA BANCO DE HORAS",
+    campos: ["mesBanco"],
+    paragrafos: function (c) {
+      return [
+        [{ t: "Segue, em anexo, a escala de banco de horas da UVZ, referente ao mês de " + (c.mesBanco || "novembro de 2026") + ", correspondente às atividades de vacinação realizadas no período." }],
+        [{ t: "Atenciosamente," }],
+        [{ t: "Unidade de Vigilância em Zoonoses – UVZ." }]
+      ];
+    }
+  },
+  {
     id: "livre",
     botao: "✍ Texto livre",
     assunto: "",
