@@ -887,6 +887,10 @@
     dom.resumo = dom.resumoSelecao;
     state.funcionarios = carregarFuncionarios(); state.matriculas = carregarMatriculas(); state.remetentes = carregarRemetentes();
     renderAssuntos(); aplicarCampos(); renderRemetentes(); renderCalendario(); atualizarDicaCi();
+    // destinatários frequentes: um clique preenche o campo "Para" (continua editável)
+    Array.prototype.forEach.call(document.querySelectorAll(".ci-para-btn"), function (b) {
+      b.addEventListener("click", function () { dom.para.value = b.getAttribute("data-para"); renderPreview(); });
+    });
     dom.numero.addEventListener("input", renderPreview);
     dom.remetente.addEventListener("change", function () { state.remetente = parseInt(dom.remetente.value, 10) || 0; renderPreview(); });
     ["para", "sigla", "gerente", "gerenteCargo", "motivo", "texto", "assuntoLivre"].forEach(function (k) { dom[k].addEventListener("input", renderPreview); });

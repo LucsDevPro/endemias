@@ -30,3 +30,8 @@
 
 /* texto da comunicação dentro de uma caixa de borda bem fina (igual ao .docx) */
 .fgp-corpotxt { border: 1px solid #002868; padding: 9.3px 13.3px 4px; }
+
+/* destinatários frequentes (campo "Para") */
+.ci-paras { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .35rem; }
+.ci-para-btn { font: inherit; font-size: .78rem; padding: .22rem .65rem; border-radius: 999px; border: 1px solid #c3cfe0; background: #f4f7fb; color: #002868; cursor: pointer; }
+.ci-para-btn:hover, .ci-para-btn:focus-visible { background: #e3ecf8; border-color: #002868; outline: none; }
